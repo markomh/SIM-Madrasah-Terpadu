@@ -1,0 +1,9 @@
+export type * from "./referensi";
+export type * from "./siswa";
+export type * from "./keanggotaan";
+export type * from "./mutasi";
+export type * from "./pegawai";
+export type * from "./audit";
+export type * from "./absensi";
+export type * from "./jadwal";
+export type * from "./persuratan";
