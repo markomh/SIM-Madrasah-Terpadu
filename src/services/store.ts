@@ -13,6 +13,8 @@ import type {
   Surat,
   TahunAjaran,
   TingkatPendidikan,
+  SesiTatapMuka,
+  IzinGuru,
 } from "@/types";
 
 export const STORAGE_KEY = "sim-madrasah-demo-store-v1";
@@ -35,6 +37,12 @@ export type DemoStore = {
   jadwal: JadwalPelajaran[];
   surat: Surat[];
   auditLog: AuditLog[];
+  sesiTatapMuka: SesiTatapMuka[];
+  izinGuru: IzinGuru[];
+  pengaturan: {
+    ambangToleransiTerlambatMenit: number;
+    ambangFlagDigantikanMendadak: number;
+  };
 };
 
 export function createId(prefix: string): string {
@@ -265,6 +273,81 @@ function buildSeed(): DemoStore {
     { id_log: "au_2", id_user: "pg_ops", nama_tabel: "riwayat_mutasi", id_record: "mt_01", aksi: "Create", timestamp: nowIso() },
   ];
 
+  const pengaturan = {
+    ambangToleransiTerlambatMenit: 15,
+    ambangFlagDigantikanMendadak: 3,
+  };
+
+  const izinGuru: IzinGuru[] = [
+    {
+      id_izin: "iz_1",
+      id_pegawai: "pg_guru_1",
+      tanggal_izin: todayIso(),
+      jenis_izin: "Direncanakan H-1",
+      alasan: "Acara keluarga",
+      id_pegawai_pengganti: "pg_wali_c",
+      saluran_pelaporan: "WA Pribadi Kepala Madrasah",
+      dilaporkan_pada: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+      status_rekonsiliasi: "Tepat Waktu",
+      dicatat_oleh: "pg_admin",
+    },
+    {
+      id_izin: "iz_2",
+      id_pegawai: "pg_guru_2",
+      tanggal_izin: todayIso(),
+      jenis_izin: "Mendesak-Darurat",
+      alasan: "Sakit mendadak",
+      id_pegawai_pengganti: null,
+      saluran_pelaporan: "WA Group",
+      dilaporkan_pada: new Date(Date.now() - 25 * 3600 * 1000).toISOString(),
+      status_rekonsiliasi: "Terlambat",
+      dicatat_oleh: "pg_admin",
+    },
+  ];
+
+  const sesiTatapMuka: SesiTatapMuka[] = [
+    {
+      id_sesi: "st_1",
+      id_jadwal: "jd_1", // MTK by pg_guru_2
+      tanggal: todayIso(),
+      id_pegawai_pelaksana: "pg_guru_2",
+      waktu_input: new Date(new Date().setHours(7, 5, 0, 0)).toISOString(),
+      is_guru_pengganti: false,
+      id_izin_terkait: null,
+      status_kehadiran_guru: "Tepat Waktu",
+    },
+    {
+      id_sesi: "st_2",
+      id_jadwal: "jd_2", // BIN by pg_guru_1 -> tapi izin, diganti pg_wali_c
+      tanggal: todayIso(),
+      id_pegawai_pelaksana: "pg_wali_c",
+      waktu_input: new Date(new Date().setHours(8, 30, 0, 0)).toISOString(),
+      is_guru_pengganti: true,
+      id_izin_terkait: "iz_1",
+      status_kehadiran_guru: "Digantikan Terjadwal",
+    },
+    {
+      id_sesi: "st_3",
+      id_jadwal: "jd_3", // QUR by pg_wali_a
+      tanggal: todayIso(),
+      id_pegawai_pelaksana: "pg_wali_a",
+      waktu_input: new Date(new Date().setHours(7, 20, 0, 0)).toISOString(), // 20 minutes late
+      is_guru_pengganti: false,
+      id_izin_terkait: null,
+      status_kehadiran_guru: "Terlambat",
+    },
+    {
+      id_sesi: "st_4",
+      id_jadwal: "jd_4", // IPA by pg_guru_2 (who is sick, replaced by pg_wali_b but mendadak)
+      tanggal: todayIso(),
+      id_pegawai_pelaksana: "pg_wali_b",
+      waktu_input: new Date(new Date().setHours(7, 0, 0, 0)).toISOString(),
+      is_guru_pengganti: true,
+      id_izin_terkait: null,
+      status_kehadiran_guru: "Digantikan Mendadak",
+    }
+  ];
+
   return {
     tahunAjaran,
     tingkat,
@@ -281,6 +364,9 @@ function buildSeed(): DemoStore {
     jadwal,
     surat,
     auditLog,
+    sesiTatapMuka,
+    izinGuru,
+    pengaturan,
   };
 }
 

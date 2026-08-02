@@ -8,6 +8,9 @@ import { absensiMock } from "./absensi.mock";
 import { jadwalMock } from "./jadwal.mock";
 import { persuratanMock } from "./persuratan.mock";
 import { wawasanMock } from "./wawasan.mock";
+import { sesiTatapMukaMock } from "./sesi-tatap-muka.mock";
+import { izinGuruMock } from "./izin-guru.mock";
+import { pengaturanMock } from "./pengaturan.mock";
 import { loadStore, resetStore, SIMULATE_ERROR_KEY } from "./store";
 
 /** Single entry point — Stage 2 swaps mock implementations here. */
@@ -22,6 +25,9 @@ export const services = {
   jadwal: jadwalMock,
   persuratan: persuratanMock,
   wawasan: wawasanMock,
+  sesiTatapMuka: sesiTatapMukaMock,
+  izinGuru: izinGuruMock,
+  pengaturan: pengaturanMock,
 };
 
 export function getAuditLog() {

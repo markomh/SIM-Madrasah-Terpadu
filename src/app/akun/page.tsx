@@ -17,20 +17,29 @@ import {
   isSimulateErrorEnabled,
   resetDemoData,
   setSimulateError,
+  services,
 } from "@/services";
 import type { AuditLog } from "@/types";
+import { Field, inputClass } from "@/components/ui/primitives";
 
 export default function AkunPage() {
   const { peran } = useAuth();
-  const { bump } = useDataVersion();
+  const { bump, version } = useDataVersion();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [simulate, setSimulate] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [toleransi, setToleransi] = useState(15);
+  const [ambangMendadak, setAmbangMendadak] = useState(3);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     setSimulate(isSimulateErrorEnabled());
     setLogs(getAuditLog().slice(0, 20));
-  }, []);
+    services.pengaturan.get().then(res => {
+      setToleransi(res.ambangToleransiTerlambatMenit);
+      setAmbangMendadak(res.ambangFlagDigantikanMendadak);
+    });
+  }, [version]);
 
   if (peran !== "Admin Madrasah") {
     return (
@@ -97,6 +106,46 @@ export default function AkunPage() {
               { key: "t", header: "Waktu", render: (l) => <span className="tabular text-xs">{l.timestamp.slice(0, 19)}</span> },
             ]}
           />
+        </SurfaceCard>
+        
+        <SurfaceCard title="Pengaturan Sistem" className="md:col-span-2">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Ambang toleransi terlambat (menit)">
+              <input
+                type="number"
+                min="0"
+                className={inputClass}
+                value={toleransi}
+                onChange={e => setToleransi(Number(e.target.value))}
+              />
+            </Field>
+            <Field label="Ambang flag Digantikan Mendadak (kali/bulan)">
+              <input
+                type="number"
+                min="1"
+                className={inputClass}
+                value={ambangMendadak}
+                onChange={e => setAmbangMendadak(Number(e.target.value))}
+              />
+            </Field>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <PrimaryButton
+              disabled={savingSettings}
+              onClick={async () => {
+                setSavingSettings(true);
+                await services.pengaturan.update({
+                  ambangToleransiTerlambatMenit: toleransi,
+                  ambangFlagDigantikanMendadak: ambangMendadak
+                });
+                bump();
+                setMsg("Pengaturan berhasil disimpan.");
+                setSavingSettings(false);
+              }}
+            >
+              {savingSettings ? "Menyimpan..." : "Simpan Pengaturan"}
+            </PrimaryButton>
+          </div>
         </SurfaceCard>
       </div>
     </AppShell>

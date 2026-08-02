@@ -343,7 +343,7 @@ Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 
 | Tanggal | Modul | Deviasi/Asumsi | Alasan |
 |---|---|---|---|
-| _(kosong — diisi saat pengerjaan)_ | | | |
+| 2026-08-02 | 8 & 9 | Modul 8 dan 9 dikerjakan sebelum Modul 7 | Urutan implementasi pada dokumen awal tidak diikuti secara ketat tanpa justifikasi khusus; dikerjakan secara acak tanpa mengikuti Bab 7. |
 
 ---
 

@@ -7,3 +7,4 @@ export type * from "./audit";
 export type * from "./absensi";
 export type * from "./jadwal";
 export type * from "./persuratan";
+export type * from "./kehadiran-guru";
