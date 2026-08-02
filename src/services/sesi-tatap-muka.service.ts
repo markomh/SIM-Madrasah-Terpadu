@@ -9,6 +9,18 @@ export type RekapKehadiranDetail = {
   rombel: string;
 };
 
+export type RekapKedisiplinanGuru = {
+  id_pegawai: string;
+  nama: string;
+  tepatWaktu: number;
+  terlambat: number;
+  digantikanTerjadwal: number;
+  digantikanMendadakBulanIni: number;
+  totalSesi: number;
+  realisasiJtmPersen: number;
+  isFlagged: boolean;
+};
+
 export interface SesiTatapMukaService {
   getByRombelTanggal(id_rombel: string, tanggal: string): Promise<SesiTatapMuka[]>;
   catatPresensi(
@@ -24,4 +36,5 @@ export interface SesiTatapMukaService {
     digantikan: number;
     daftarDetail: RekapKehadiranDetail[];
   }>;
+  getRekapKedisiplinan(bulan: string): Promise<RekapKedisiplinanGuru[]>;
 }

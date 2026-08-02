@@ -12,6 +12,7 @@ import {
   Field,
   inputClass,
   StatusBadge,
+  LoadingBlock,
 } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
@@ -74,8 +75,8 @@ export default function IzinGuruPage() {
       setIdPegawai("");
       setAlasan("");
       setIdPengganti("");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -85,6 +86,15 @@ export default function IzinGuruPage() {
     return (
       <AppShell title="Izin Guru">
         <ErrorBlock message="Akses Ditolak. Halaman ini khusus untuk Admin Madrasah dan Kepala Madrasah." />
+      </AppShell>
+    );
+  }
+
+  if (loading && pegawais.length === 0) {
+    return (
+      <AppShell title="Izin Guru">
+        <PageHeader title="Izin Guru" description="Memuat data..." />
+        <LoadingBlock />
       </AppShell>
     );
   }
@@ -113,7 +123,7 @@ export default function IzinGuruPage() {
             </Field>
             
             <Field label="Jenis Izin">
-              <select required className={inputClass} value={jenisIzin} onChange={e => setJenisIzin(e.target.value as any)}>
+              <select required className={inputClass} value={jenisIzin} onChange={e => setJenisIzin(e.target.value as IzinGuru["jenis_izin"])}>
                 <option value="Direncanakan H-1">Direncanakan H-1</option>
                 <option value="Mendesak-Darurat">Mendesak-Darurat</option>
               </select>
@@ -124,7 +134,7 @@ export default function IzinGuruPage() {
             </Field>
             
             <Field label="Saluran Pelaporan">
-              <select required className={inputClass} value={saluran} onChange={e => setSaluran(e.target.value as any)}>
+              <select required className={inputClass} value={saluran} onChange={e => setSaluran(e.target.value as IzinGuru["saluran_pelaporan"])}>
                 <option value="Langsung/Tatap Muka">Langsung/Tatap Muka</option>
                 <option value="WA Pribadi Kepala Madrasah">WA Pribadi Kepala Madrasah</option>
                 <option value="WA Group">WA Group</option>

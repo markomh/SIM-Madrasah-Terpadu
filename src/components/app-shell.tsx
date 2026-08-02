@@ -56,6 +56,9 @@ const navigation: NavGroup[] = [
     items: [
       { href: "/guru-tendik/pegawai", label: "Data Pegawai", icon: Users, roles: ["Admin Madrasah", "Kepala Madrasah"] },
       { href: "/guru-tendik/jadwal", label: "Penjadwalan", icon: CalendarDays, roles: ["Admin Madrasah", "Guru Mapel", "Kepala Madrasah"] },
+      { href: "/guru-tendik/presensi-siswa", label: "Presensi Siswa (Sesi)", icon: ClipboardCheck, roles: ["Wali Kelas", "Guru Mapel", "Admin Madrasah"] },
+      { href: "/guru-tendik/izin", label: "Izin Guru", icon: FileText, roles: ["Admin Madrasah", "Kepala Madrasah"] },
+      { href: "/guru-tendik/kedisiplinan", label: "Kedisiplinan & JTM", icon: Shield, roles: ["Kepala Madrasah", "Admin Madrasah"] },
     ],
   },
   {
@@ -131,7 +134,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   return (
     <div className="min-h-screen bg-paper text-ink">
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <aside className="hidden w-64 shrink-0 border-r border-border bg-surface px-4 py-5 lg:flex lg:flex-col">
+        <aside className="hidden w-64 shrink-0 border-r border-border bg-surface px-4 py-5 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
           <div className="mb-6 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-primary text-white">
               <School size={18} />

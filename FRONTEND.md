@@ -326,14 +326,14 @@ Karena belum ada login sungguhan, buat komponen `RoleSwitcher` di header (hanya 
 
 Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 
-- [ ] Semua data render dari `services/*.mock.ts`, tidak ada data hardcode di dalam komponen halaman.
-- [ ] Tipe data 100% memakai interface Bab 4 — tidak ada `any`.
-- [ ] Loading state, empty state, dan error state ketiganya dibangun dan bisa didemokan (bukan hanya *happy path*).
-- [ ] Validasi form sesuai Bab 10 SRS induk (mis. rombel tujuan kenaikan wajib `urutan + 1`, mutasi keluar wajib no. surat).
-- [ ] Status persetujuan tervisualisasikan dengan badge/strip warna sesuai token Bab 3, konsisten di semua tempat status itu muncul (tabel, kartu, detail).
-- [ ] Halaman responsif minimal sampai lebar tablet (768px) — mengingat operator madrasah kerap memakai perangkat non-desktop.
-- [ ] Role switcher membatasi tampilan/aksi sesuai matriks Bab 6 (walau ini bukan keamanan sungguhan, UI wajib konsisten dengan RBAC yang akan diberlakukan sungguhan di Tahap 2).
-- [ ] Khusus modul Kehadiran Guru: `is_guru_pengganti` dan `status_kehadiran_guru` **tidak pernah** muncul sebagai field yang bisa diedit di form manapun — keduanya murni hasil kalkulasi mock service berdasarkan `id_pegawai_pelaksana` vs. `id_pegawai` di jadwal. Form Izin Guru hanya bisa dibuka dari akun Admin/Kepala Madrasah (role switcher), bukan Guru Mapel/Wali Kelas. `status_rekonsiliasi` pada `IzinGuru` juga read-only — dihitung mock service dari selisih `dilaporkan_pada` vs `tanggal_izin` (>1x24 jam = "Terlambat"), ditandai mencolok (token `--color-amber`) di halaman Rekap Kedisiplinan, bukan disembunyikan.
+- [x] Semua data render dari `services/*.mock.ts`, tidak ada data hardcode di dalam komponen halaman.
+- [x] Tipe data 100% memakai interface Bab 4 — tidak ada `any`.
+- [x] Loading state, empty state, dan error state ketiganya dibangun dan bisa didemokan (bukan hanya *happy path*).
+- [x] Validasi form sesuai Bab 10 SRS induk (mis. rombel tujuan kenaikan wajib `urutan + 1`, mutasi keluar wajib no. surat).
+- [x] Status persetujuan tervisualisasikan dengan badge/strip warna sesuai token Bab 3, konsisten di semua tempat status itu muncul (tabel, kartu, detail).
+- [x] Halaman responsif minimal sampai lebar tablet (768px) — mengingat operator madrasah kerap memakai perangkat non-desktop.
+- [x] Role switcher membatasi tampilan/aksi sesuai matriks Bab 6 (walau ini bukan keamanan sungguhan, UI wajib konsisten dengan RBAC yang akan diberlakukan sungguhan di Tahap 2).
+- [x] Khusus modul Kehadiran Guru: `is_guru_pengganti` dan `status_kehadiran_guru` **tidak pernah** muncul sebagai field yang bisa diedit di form manapun — keduanya murni hasil kalkulasi mock service berdasarkan `id_pegawai_pelaksana` vs. `id_pegawai` di jadwal. Form Izin Guru hanya bisa dibuka dari akun Admin/Kepala Madrasah (role switcher), bukan Guru Mapel/Wali Kelas. `status_rekonsiliasi` pada `IzinGuru` juga read-only — dihitung mock service dari selisih `dilaporkan_pada` vs `tanggal_izin` (>1x24 jam = "Terlambat"), ditandai mencolok (token `--color-amber`) di halaman Rekap Kedisiplinan, bukan disembunyikan.
 
 ---
 
@@ -344,6 +344,8 @@ Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 | Tanggal | Modul | Deviasi/Asumsi | Alasan |
 |---|---|---|---|
 | 2026-08-02 | 8 & 9 | Modul 8 dan 9 dikerjakan sebelum Modul 7 | Urutan implementasi pada dokumen awal tidak diikuti secara ketat tanpa justifikasi khusus; dikerjakan secara acak tanpa mengikuti Bab 7. |
+| 2026-08-02 | 7 | Rumus Realisasi JTM disederhanakan | Penggunaan rasio `(Tepat Waktu + Terlambat) / Sesi Bulan Ini` sebagai pendekatan Tahap 1. Pembagi absolut dari jadwal x kalender diwajibkan untuk backend Tahap 2. |
+| 2026-08-02 | 7 | Penambahan method `getRekapKedisiplinan` di `sesi-tatap-muka` | Mengenkapsulasi logika kalkulasi kedisiplinan guru di service layer dan menghilangkan akses langsung komponen ke `store.ts`. |
 
 ---
 

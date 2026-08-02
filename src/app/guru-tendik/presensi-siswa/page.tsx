@@ -12,6 +12,7 @@ import {
   Field,
   inputClass,
   StatusBadge,
+  LoadingBlock,
 } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
@@ -103,8 +104,8 @@ export default function PresensiSiswaPage() {
       
       setSuccess(`Berhasil dicatat! Status kehadiran Anda: ${updatedSesi.status_kehadiran_guru}`);
       bump();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -166,6 +167,8 @@ export default function PresensiSiswaPage() {
               </div>
             )}
             
+            {loading && <div className="pt-2"><LoadingBlock label="Memuat sesi..." /></div>}
+            
             {selectedRombel && tanggal && sessions.length === 0 && !loading && (
               <p className="text-sm text-muted">Tidak ada jadwal untuk rombel ini di hari terpilih.</p>
             )}
@@ -203,7 +206,7 @@ export default function PresensiSiswaPage() {
                             value={s.status}
                             onChange={(e) => {
                               const newStudents = [...students];
-                              newStudents[idx].status = e.target.value as any;
+                              newStudents[idx].status = e.target.value as AbsensiSiswa["status"];
                               setStudents(newStudents);
                             }}
                           >

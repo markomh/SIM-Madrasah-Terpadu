@@ -10,9 +10,11 @@ import {
   PrimaryButton,
   SurfaceCard,
   StatusBadge,
+  LoadingBlock,
 } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
+import type { RekapKedisiplinanGuru } from "@/services/sesi-tatap-muka.service";
 
 type RekapGuru = {
   id_pegawai: string;
@@ -30,7 +32,10 @@ export default function KedisiplinanPage() {
   const { peran, currentUser } = useAuth();
   const { version, bump } = useDataVersion();
 
-  const [rekap, setRekap] = useState<RekapGuru[]>([]);
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
+  const [rekap, setRekap] = useState<RekapKedisiplinanGuru[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creatingSurat, setCreatingSurat] = useState<string | null>(null);
@@ -39,58 +44,15 @@ export default function KedisiplinanPage() {
     if (peran !== "Kepala Madrasah") return;
 
     setLoading(true);
-    // Since we don't have a specific API for Rekap Kedisiplinan per Guru, we calculate it here
-    Promise.all([
-      services.pegawai.getAll(),
-      // We will access the store directly for this mock calculation since no service method was defined in instructions
-      import("@/services/store").then(m => m.loadStore())
-    ]).then(([pegawais, store]) => {
-      const { sesiTatapMuka, jadwal, pengaturan } = store;
-      
-      const gurus = pegawais.filter(p => p.tugas_utama === "Guru Mapel");
-      const rekapData = gurus.map(guru => {
-        // Find all schedules for this teacher
-        const jadwalGuru = jadwal.filter(j => j.id_pegawai === guru.id_pegawai);
-        
-        let tepatWaktu = 0;
-        let terlambat = 0;
-        let digantikanTerjadwal = 0;
-        let digantikanMendadak = 0;
-        
-        // Find sessions
-        for (const j of jadwalGuru) {
-          const sesiList = sesiTatapMuka.filter(s => s.id_jadwal === j.id_jadwal);
-          for (const sesi of sesiList) {
-            if (sesi.status_kehadiran_guru === "Tepat Waktu") tepatWaktu++;
-            else if (sesi.status_kehadiran_guru === "Terlambat") terlambat++;
-            else if (sesi.status_kehadiran_guru === "Digantikan Terjadwal") digantikanTerjadwal++;
-            else if (sesi.status_kehadiran_guru === "Digantikan Mendadak") digantikanMendadak++;
-          }
-        }
-        
-        const totalSesi = tepatWaktu + terlambat + digantikanTerjadwal + digantikanMendadak;
-        const jtmRealisasi = totalSesi * 2; // Assuming 2 JTM per session roughly for demo
-        const isFlagged = digantikanMendadak >= pengaturan.ambangFlagDigantikanMendadak;
-        
-        return {
-          id_pegawai: guru.id_pegawai,
-          nama: guru.nama_lengkap_gelar,
-          tepatWaktu,
-          terlambat,
-          digantikanTerjadwal,
-          digantikanMendadak,
-          totalSesi,
-          jtmRealisasi,
-          isFlagged
-        };
-      });
-      
-      setRekap(rekapData);
-      setError(null);
-    }).catch(err => setError(err.message))
+    services.sesiTatapMuka.getRekapKedisiplinan(selectedMonth)
+      .then(data => {
+        setRekap(data);
+        setError(null);
+      })
+      .catch(err => setError(err.message))
       .finally(() => setLoading(false));
 
-  }, [version, peran]);
+  }, [version, peran, selectedMonth]);
 
   const handleBuatTeguran = async (id_pegawai: string) => {
     if (!currentUser) return;
@@ -105,8 +67,8 @@ export default function KedisiplinanPage() {
       });
       alert("Draf Surat Teguran berhasil dibuat! Silakan cek modul Persuratan.");
       bump();
-    } catch (e: any) {
-      alert("Gagal membuat draf surat: " + e.message);
+    } catch (e: unknown) {
+      alert("Gagal membuat draf surat: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setCreatingSurat(null);
     }
@@ -120,12 +82,32 @@ export default function KedisiplinanPage() {
     );
   }
 
+  if (loading && rekap.length === 0) {
+    return (
+      <AppShell title="Rekap Kedisiplinan Guru">
+        <PageHeader title="Kedisiplinan & Kehadiran Guru" description="Memuat data rekap..." />
+        <LoadingBlock />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell title="Rekap Kedisiplinan Guru">
       <PageHeader
         title="Kedisiplinan & Kehadiran Guru"
         description="Rekapitulasi kehadiran, keterlambatan, penggantian kelas, dan JTM."
       />
+
+      <div className="mb-4 flex items-center gap-3">
+        <label htmlFor="month-select" className="text-sm font-semibold text-ink">Pilih Bulan:</label>
+        <input
+          id="month-select"
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="rounded-[4px] border border-border bg-surface px-3 py-1.5 text-sm outline-none focus:border-primary"
+        />
+      </div>
 
       <SurfaceCard>
         {error && <div className="mb-4"><ErrorBlock message={error} /></div>}
@@ -159,7 +141,7 @@ export default function KedisiplinanPage() {
               key: "digantikan_mendadak",
               header: "Diganti Mendadak",
               render: (row) => {
-                if (row.digantikanMendadak === 0) return "0";
+                if (row.digantikanMendadakBulanIni === 0) return "0";
                 return row.isFlagged ? (
                   <StatusBadge status="Ditolak" /> // red
                 ) : (
@@ -171,7 +153,7 @@ export default function KedisiplinanPage() {
             {
               key: "jtm",
               header: "Realisasi JTM",
-              render: (row) => <span className="tabular">{row.jtmRealisasi} Jam</span>,
+              render: (row) => <span className="tabular">{row.realisasiJtmPersen}%</span>,
               className: "text-center"
             },
             {

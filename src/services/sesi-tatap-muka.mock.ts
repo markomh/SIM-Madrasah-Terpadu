@@ -180,5 +180,53 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
     }
     
     return result;
+  },
+
+  async getRekapKedisiplinan(bulan) {
+    maybeThrowSimulatedError();
+    await simulateLatency();
+    const store = loadStore();
+    
+    const gurus = store.pegawai.filter(p => p.tugas_utama === "Guru Mapel");
+    
+    return gurus.map(guru => {
+      const jadwalGuru = store.jadwal.filter(j => j.id_pegawai === guru.id_pegawai);
+      const sesiBulanIni = store.sesiTatapMuka.filter(s =>
+        jadwalGuru.some(j => j.id_jadwal === s.id_jadwal) &&
+        s.tanggal.startsWith(bulan)
+      );
+
+      let tepatWaktu = 0;
+      let terlambat = 0;
+      let digantikanTerjadwal = 0;
+      let digantikanMendadakBulanIni = 0;
+
+      for (const s of sesiBulanIni) {
+        if (s.status_kehadiran_guru === "Tepat Waktu") tepatWaktu++;
+        else if (s.status_kehadiran_guru === "Terlambat") terlambat++;
+        else if (s.status_kehadiran_guru === "Digantikan Terjadwal") digantikanTerjadwal++;
+        else if (s.status_kehadiran_guru === "Digantikan Mendadak") digantikanMendadakBulanIni++;
+      }
+
+      const sesiTerpenuhi = tepatWaktu + terlambat;
+      
+      const realisasiJtmPersen = sesiBulanIni.length > 0
+        ? Math.round((sesiTerpenuhi / sesiBulanIni.length) * 100)
+        : 0;
+
+      const isFlagged = digantikanMendadakBulanIni >= store.pengaturan.ambangFlagDigantikanMendadak;
+
+      return {
+        id_pegawai: guru.id_pegawai,
+        nama: guru.nama_lengkap_gelar,
+        tepatWaktu,
+        terlambat,
+        digantikanTerjadwal,
+        digantikanMendadakBulanIni,
+        totalSesi: sesiBulanIni.length,
+        realisasiJtmPersen,
+        isFlagged,
+      };
+    });
   }
 };

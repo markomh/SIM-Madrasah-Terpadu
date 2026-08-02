@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const [pending, setPending] = useState<PersetujuanItem[]>([]);
   const [risiko, setRisiko] = useState<Siswa[]>([]);
   const [siswaCount, setSiswaCount] = useState(0);
-  const [rekapPagi, setRekapPagi] = useState<any>(null);
+  const [rekapPagi, setRekapPagi] = useState<Awaited<ReturnType<typeof services.sesiTatapMuka.getRekapTanggal>> | null>(null);
   const [flaggedCount, setFlaggedCount] = useState(0);
 
   useEffect(() => {
@@ -29,31 +29,15 @@ export default function DashboardPage() {
       services.wawasan.getSiswaBerisiko(50),
       services.siswa.getAll({ status_siswa: "Aktif" }),
       services.sesiTatapMuka.getRekapTanggal(new Date().toISOString().slice(0, 10)),
-      import("@/services/store").then(async m => {
-        const store = m.loadStore();
-        let flagged = 0;
-        const gurus = store.pegawai.filter(p => p.tugas_utama === "Guru Mapel");
-        for (const g of gurus) {
-          const jadwalGuru = store.jadwal.filter(j => j.id_pegawai === g.id_pegawai);
-          let digantikanMendadak = 0;
-          for (const j of jadwalGuru) {
-            const sesiList = store.sesiTatapMuka.filter(s => s.id_jadwal === j.id_jadwal);
-            for (const s of sesiList) {
-              if (s.status_kehadiran_guru === "Digantikan Mendadak") digantikanMendadak++;
-            }
-          }
-          if (digantikanMendadak >= store.pengaturan.ambangFlagDigantikanMendadak) flagged++;
-        }
-        return flagged;
-      })
+      services.sesiTatapMuka.getRekapKedisiplinan(new Date().toISOString().slice(0, 7))
     ])
-      .then(([p, r, s, rekap, flagged]) => {
+      .then(([p, r, s, rekap, rekapKedisiplinan]) => {
         if (cancelled) return;
         setPending(p);
         setRisiko(r);
         setSiswaCount(s.filter((x) => !x.id_siswa.includes("pending")).length);
         setRekapPagi(rekap);
-        setFlaggedCount(flagged);
+        setFlaggedCount(rekapKedisiplinan.filter(k => k.isFlagged).length);
         setError(null);
       })
       .catch((e: Error) => {
@@ -141,7 +125,7 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {rekapPagi.daftarDetail.map((d: any, idx: number) => (
+                        {rekapPagi.daftarDetail.map((d, idx) => (
                           <tr key={idx}>
                             <td className="py-2">{d.mapel} - {d.rombel}</td>
                             <td className="py-2">
