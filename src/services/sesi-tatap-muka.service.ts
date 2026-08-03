@@ -26,7 +26,7 @@ export interface SesiTatapMukaService {
   catatPresensi(
     id_sesi: string,
     id_pegawai_pelaksana: string,
-    absensiSiswa: Array<Omit<AbsensiSiswa, "id_absensi" | "tanggal">>
+    absensiSiswa: Array<Omit<AbsensiSiswa, "id_absensi" | "tanggal" | "id_sesi">>
   ): Promise<SesiTatapMuka>;
   getRekapTanggal(tanggal: string): Promise<{
     terjadwal: number;

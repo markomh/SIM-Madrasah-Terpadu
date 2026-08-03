@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from "react";
 
 type Column<T> = {
   key: string;
-  header: string;
+  header: ReactNode;
   render: (row: T) => ReactNode;
   className?: string;
 };

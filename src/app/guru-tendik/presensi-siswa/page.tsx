@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion } from "@/components/app-providers";
@@ -18,17 +19,23 @@ import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
 import type { Rombel, SesiTatapMuka, AnggotaRombel, Siswa, JadwalPelajaran, AbsensiSiswa } from "@/types";
 
-export default function PresensiSiswaPage() {
+function PresensiSiswaContent() {
   const { peran, currentUser } = useAuth();
   const { version, bump } = useDataVersion();
+  const searchParams = useSearchParams();
+
+  const initRombel = searchParams.get("rombel") ?? "";
+  const initTanggal = searchParams.get("tanggal") ?? new Date().toISOString().slice(0, 10);
+  const initSesi = searchParams.get("sesi") ?? "";
 
   const [rombels, setRombels] = useState<Rombel[]>([]);
   const [jadwals, setJadwals] = useState<JadwalPelajaran[]>([]);
   
-  const [selectedRombel, setSelectedRombel] = useState("");
-  const [tanggal, setTanggal] = useState(new Date().toISOString().slice(0, 10));
+  const [selectedRombel, setSelectedRombel] = useState(initRombel);
+  const [tanggal, setTanggal] = useState(initTanggal);
   const [sessions, setSessions] = useState<SesiTatapMuka[]>([]);
   const [selectedSesi, setSelectedSesi] = useState<SesiTatapMuka | null>(null);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   const [students, setStudents] = useState<{ id_siswa: string; nama: string; status: AbsensiSiswa["status"]; catatan: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +54,14 @@ export default function PresensiSiswaPage() {
       services.sesiTatapMuka.getByRombelTanggal(selectedRombel, tanggal)
         .then(res => {
           setSessions(res);
-          setSelectedSesi(null);
+          if (initSesi && !hasAutoSelected) {
+             const s = res.find(x => x.id_sesi === initSesi);
+             if (s) setSelectedSesi(s);
+             else setSelectedSesi(null);
+             setHasAutoSelected(true);
+          } else {
+             setSelectedSesi(null);
+          }
           setStudents([]);
         })
         .catch(err => setError(err.message))
@@ -56,7 +70,7 @@ export default function PresensiSiswaPage() {
       setSessions([]);
       setSelectedSesi(null);
     }
-  }, [selectedRombel, tanggal, version]);
+  }, [selectedRombel, tanggal, version, initSesi, hasAutoSelected]);
 
   useEffect(() => {
     if (selectedSesi) {
@@ -245,5 +259,13 @@ export default function PresensiSiswaPage() {
         </SurfaceCard>
       </div>
     </AppShell>
+  );
+}
+
+export default function PresensiSiswaPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PresensiSiswaContent />
+    </Suspense>
   );
 }

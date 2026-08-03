@@ -45,7 +45,7 @@ const navigation: NavGroup[] = [
     group: "KESISWAAN",
     items: [
       { href: "/kesiswaan/siswa", label: "Data Siswa Induk", icon: Users, roles: ["Admin Madrasah", "Operator Kesiswaan", "Wali Kelas", "Kepala Madrasah"] },
-      { href: "/kesiswaan/absensi", label: "Absensi", icon: ClipboardCheck, roles: ["Wali Kelas", "Guru Mapel", "Admin Madrasah"] },
+      { href: "/kesiswaan/absensi", label: "Rekap Presensi", icon: ClipboardCheck, roles: ["Wali Kelas", "Guru Mapel", "Admin Madrasah"] },
       { href: "/kesiswaan/kenaikan-kelas", label: "Kenaikan Kelas", icon: BookOpen, roles: ["Admin Madrasah", "Operator Kesiswaan"] },
       { href: "/kesiswaan/pindah-rombel", label: "Pindah Rombel", icon: ArrowLeftRight, roles: ["Operator Kesiswaan", "Kepala Madrasah", "Admin Madrasah"] },
       { href: "/kesiswaan/mutasi", label: "Mutasi", icon: Shield, roles: ["Operator Kesiswaan", "Kepala Madrasah", "Admin Madrasah"] },

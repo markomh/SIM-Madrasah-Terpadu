@@ -26,11 +26,11 @@ export default function PortalOrtuPage() {
     // Demo: orang tua melihat anak sw_01
     Promise.all([
       services.siswa.getById("sw_01"),
-      services.absensi.getByTanggal(new Date().toISOString().slice(0, 10)),
+      services.absensi.getRekapHarian("rb_10a", new Date().toISOString().slice(0, 10)),
     ])
       .then(([s, a]) => {
         setSiswa(s);
-        setAbsensi(a.filter((x) => x.id_siswa === "sw_01"));
+        setAbsensi(a.filter((x: AbsensiSiswa) => x.id_siswa === "sw_01"));
         setError(null);
       })
       .catch((e: Error) => setError(e.message))

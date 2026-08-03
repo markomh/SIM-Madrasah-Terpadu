@@ -200,6 +200,21 @@ export type AuditLog = {
   timestamp: string;
 };
 
+// types/absensi.ts — FORMALISASI (baru, sebelumnya tidak pernah ada di kontrak Bab 4 ini;
+// versi lama yang ditulis sendiri oleh agen tanpa id_sesi dinyatakan tidak berlaku, lihat Bab 9 Log Deviasi)
+export type StatusAbsensi = "Hadir" | "Sakit" | "Izin" | "Alpa";
+
+export type AbsensiSiswa = {
+  id_absensi: string;
+  tanggal: string;
+  id_siswa: string;
+  id_rombel: string;
+  id_sesi: string;        // WAJIB — FK ke SesiTatapMuka. Kunci unik adalah (id_siswa, id_sesi), BUKAN (id_siswa, tanggal).
+  status: StatusAbsensi;
+};
+// Konsekuensi penting: satu siswa boleh punya BANYAK baris AbsensiSiswa dalam satu hari yang sama
+// (satu per sesi/mapel). Jangan menulis logika apa pun yang mengasumsikan satu siswa = satu status per hari.
+
 // types/kehadiran-guru.ts
 export type StatusKehadiranGuru =
   | "Tepat Waktu" | "Terlambat" | "Digantikan Terjadwal" | "Digantikan Mendadak" | "Tidak Terlaksana";
@@ -268,6 +283,17 @@ Implementasi mock (`siswa.mock.ts`) memenuhi interface yang sama persis, tapi me
 
 **Kenapa ini wajib:** di Tahap 2, tim/agen backend cukup membuat `siswa.api.ts` yang mengimplementasikan `SiswaService` yang sama memakai `fetch` sungguhan, lalu mengganti satu baris import di komponen. Tidak ada komponen React yang perlu disentuh ulang.
 
+**Aturan khusus `absensi.service.ts` — read-only, tidak boleh punya method mutasi:**
+
+```typescript
+export interface AbsensiService {
+  getRekapHarian(id_rombel: string, tanggal: string): Promise<AbsensiSiswa[]>; // hanya baca
+  // TIDAK BOLEH ada create()/updateStatus()/upsert() di sini.
+}
+```
+
+Satu-satunya cara menulis `AbsensiSiswa` adalah lewat `SesiTatapMukaService.catatPresensi()` (Bab 4 `types/kehadiran-guru.ts`), karena itulah yang sekaligus menghitung status kehadiran guru. Kalau `absensi.service.ts` punya method tulis, itu artinya ada jalur bypass yang melewati deteksi kehadiran guru — persis celah yang membuat data JTM/kedisiplinan tidak bisa diandalkan.
+
 **Simulasi latensi & error:** setiap fungsi mock wajib memberi delay acak 200–600ms dan sesekali (dapat diatur lewat flag) mengembalikan error tersimulasi, supaya UI *loading state* dan *error state* benar-benar dibangun dan diuji di Tahap 1 — bukan ditambahkan belakangan.
 
 ---
@@ -282,14 +308,14 @@ Mengikuti struktur navigasi Bab 8 SRS induk, dengan penyesuaian modul baru (kena
 | `/kesiswaan/siswa` | Daftar Siswa Induk (tabel, filter, pencarian) | Admin, Operator, Wali Kelas (view rombelnya saja) |
 | `/kesiswaan/siswa/[id]` | Detail & Edit Siswa | Admin, Operator |
 | `/kesiswaan/siswa/tambah` | Form Tambah Siswa (PPDB) | Admin, Operator |
-| `/kesiswaan/absensi` | Input Absensi Harian | Wali Kelas, Guru Mapel |
+| `/kesiswaan/absensi` | **Rekap Presensi Siswa (read-only)** — agregasi lintas sesi/mapel dalam satu hari untuk satu rombel, dipakai Wali Kelas melihat "siapa tidak masuk hari ini lintas semua jam" dengan cepat. **Bukan tempat input** — form input dihapus dari halaman ini, digantikan tautan langsung ke `/guru-tendik/presensi-siswa` untuk tiap sesi yang belum lengkap. *(diubah — sebelumnya jadi jalur input duplikat yang menciptakan celah bypass Modul 7, lihat Bab 9 Log Deviasi)* | Wali Kelas, Guru Mapel, Admin Madrasah |
 | `/kesiswaan/kenaikan-kelas` | Wizard Kenaikan Kelas Massal (Pemetaan Kenaikan) | Admin, Operator |
 | `/kesiswaan/pindah-rombel` | Form Pengajuan Pindah Rombel (sesama & lintas tingkat) | Operator (ajukan), Kepala Madrasah (approve) |
 | `/kesiswaan/mutasi` | Form Mutasi Masuk/Keluar + status | Operator (ajukan), Kepala Madrasah (approve) |
 | `/persetujuan` | Kotak Masuk Persetujuan (semua pengajuan menunggu) | Kepala Madrasah |
 | `/guru-tendik/pegawai` | Daftar Guru & Tendik | Admin |
 | `/guru-tendik/jadwal` | Penjadwalan (drag-and-drop bentrok-cek) | Admin |
-| `/guru-tendik/presensi-siswa` | Input Presensi per Sesi Tatap Muka (halaman ini yang otomatis membuktikan kehadiran guru — tidak ada halaman "presensi guru" terpisah) | Wali Kelas, Guru Mapel |
+| `/guru-tendik/presensi-siswa` | **Satu-satunya jalur input presensi siswa** — Input Presensi per Sesi Tatap Muka (halaman ini yang otomatis membuktikan kehadiran guru — tidak ada halaman "presensi guru" terpisah, dan tidak ada jalur input lain di halaman manapun) | Wali Kelas, Guru Mapel |
 | `/guru-tendik/izin` | Catat Izin Guru (H-1 / Mendesak-Darurat), lihat riwayat izin per guru | Admin, Kepala Madrasah |
 | `/guru-tendik/kedisiplinan` | Rekap Kehadiran Guru, Realisasi JTM, Flag "Digantikan Mendadak" berulang, draf Surat Teguran | Kepala Madrasah |
 | `/persuratan` | Buat & Arsip Surat | Admin, Operator, Kepala Madrasah (approve/e-sign) |
@@ -326,14 +352,14 @@ Karena belum ada login sungguhan, buat komponen `RoleSwitcher` di header (hanya 
 
 Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 
-- [x] Semua data render dari `services/*.mock.ts`, tidak ada data hardcode di dalam komponen halaman.
-- [x] Tipe data 100% memakai interface Bab 4 — tidak ada `any`.
-- [x] Loading state, empty state, dan error state ketiganya dibangun dan bisa didemokan (bukan hanya *happy path*).
-- [x] Validasi form sesuai Bab 10 SRS induk (mis. rombel tujuan kenaikan wajib `urutan + 1`, mutasi keluar wajib no. surat).
-- [x] Status persetujuan tervisualisasikan dengan badge/strip warna sesuai token Bab 3, konsisten di semua tempat status itu muncul (tabel, kartu, detail).
-- [x] Halaman responsif minimal sampai lebar tablet (768px) — mengingat operator madrasah kerap memakai perangkat non-desktop.
-- [x] Role switcher membatasi tampilan/aksi sesuai matriks Bab 6 (walau ini bukan keamanan sungguhan, UI wajib konsisten dengan RBAC yang akan diberlakukan sungguhan di Tahap 2).
-- [x] Khusus modul Kehadiran Guru: `is_guru_pengganti` dan `status_kehadiran_guru` **tidak pernah** muncul sebagai field yang bisa diedit di form manapun — keduanya murni hasil kalkulasi mock service berdasarkan `id_pegawai_pelaksana` vs. `id_pegawai` di jadwal. Form Izin Guru hanya bisa dibuka dari akun Admin/Kepala Madrasah (role switcher), bukan Guru Mapel/Wali Kelas. `status_rekonsiliasi` pada `IzinGuru` juga read-only — dihitung mock service dari selisih `dilaporkan_pada` vs `tanggal_izin` (>1x24 jam = "Terlambat"), ditandai mencolok (token `--color-amber`) di halaman Rekap Kedisiplinan, bukan disembunyikan.
+- [ ] Semua data render dari `services/*.mock.ts`, tidak ada data hardcode di dalam komponen halaman.
+- [ ] Tipe data 100% memakai interface Bab 4 — tidak ada `any`.
+- [ ] Loading state, empty state, dan error state ketiganya dibangun dan bisa didemokan (bukan hanya *happy path*).
+- [ ] Validasi form sesuai Bab 10 SRS induk (mis. rombel tujuan kenaikan wajib `urutan + 1`, mutasi keluar wajib no. surat).
+- [ ] Status persetujuan tervisualisasikan dengan badge/strip warna sesuai token Bab 3, konsisten di semua tempat status itu muncul (tabel, kartu, detail).
+- [ ] Halaman responsif minimal sampai lebar tablet (768px) — mengingat operator madrasah kerap memakai perangkat non-desktop.
+- [ ] Role switcher membatasi tampilan/aksi sesuai matriks Bab 6 (walau ini bukan keamanan sungguhan, UI wajib konsisten dengan RBAC yang akan diberlakukan sungguhan di Tahap 2).
+- [ ] Khusus modul Kehadiran Guru: `is_guru_pengganti` dan `status_kehadiran_guru` **tidak pernah** muncul sebagai field yang bisa diedit di form manapun — keduanya murni hasil kalkulasi mock service berdasarkan `id_pegawai_pelaksana` vs. `id_pegawai` di jadwal. Form Izin Guru hanya bisa dibuka dari akun Admin/Kepala Madrasah (role switcher), bukan Guru Mapel/Wali Kelas. `status_rekonsiliasi` pada `IzinGuru` juga read-only — dihitung mock service dari selisih `dilaporkan_pada` vs `tanggal_izin` (>1x24 jam = "Terlambat"), ditandai mencolok (token `--color-amber`) di halaman Rekap Kedisiplinan, bukan disembunyikan.
 
 ---
 
@@ -343,9 +369,7 @@ Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 
 | Tanggal | Modul | Deviasi/Asumsi | Alasan |
 |---|---|---|---|
-| 2026-08-02 | 8 & 9 | Modul 8 dan 9 dikerjakan sebelum Modul 7 | Urutan implementasi pada dokumen awal tidak diikuti secara ketat tanpa justifikasi khusus; dikerjakan secara acak tanpa mengikuti Bab 7. |
-| 2026-08-02 | 7 | Rumus Realisasi JTM disederhanakan | Penggunaan rasio `(Tepat Waktu + Terlambat) / Sesi Bulan Ini` sebagai pendekatan Tahap 1. Pembagi absolut dari jadwal x kalender diwajibkan untuk backend Tahap 2. |
-| 2026-08-02 | 7 | Penambahan method `getRekapKedisiplinan` di `sesi-tatap-muka` | Mengenkapsulasi logika kalkulasi kedisiplinan guru di service layer dan menghilangkan akses langsung komponen ke `store.ts`. |
+| 2026-08-03 | Kesiswaan / Kehadiran Guru | Mengubah fungsi `/kesiswaan/absensi` menjadi halaman Rekap (Read-Only) dan memperbaiki tipe data `AbsensiSiswa` dengan kunci `(id_siswa, id_sesi)`. | Menghindari duplikasi input presensi dan bypass pencatatan JTM guru, karena pencatatan wajib melalui `/guru-tendik/presensi-siswa` per sesi. |
 
 ---
 

@@ -5,6 +5,7 @@ export type AbsensiSiswa = {
   tanggal: string;
   id_siswa: string;
   id_rombel: string;
+  id_sesi: string;
   status: StatusAbsensi;
   catatan: string | null;
 };

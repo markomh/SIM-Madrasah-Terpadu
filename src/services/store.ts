@@ -242,6 +242,7 @@ function buildSeed(): DemoStore {
       tanggal: todayIso(),
       id_siswa: a.id_siswa,
       id_rombel: a.id_rombel,
+      id_sesi: `st_${(i % 4) + 1}`,
       status: (i % 5 === 0 ? "Izin" : i % 7 === 0 ? "Sakit" : i % 11 === 0 ? "Alpa" : "Hadir") as AbsensiSiswa["status"],
       catatan: i % 5 === 0 ? "Surat orang tua" : null,
     }));

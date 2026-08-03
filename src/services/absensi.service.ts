@@ -1,7 +1,5 @@
-import type { AbsensiSiswa, StatusAbsensi } from "@/types";
+import type { AbsensiSiswa } from "@/types";
 
 export interface AbsensiService {
-  getByTanggal(tanggal: string, id_rombel?: string): Promise<AbsensiSiswa[]>;
-  ensureDefaults(tanggal: string, id_rombel: string): Promise<AbsensiSiswa[]>;
-  updateStatus(id_absensi: string, status: StatusAbsensi, catatan?: string | null): Promise<AbsensiSiswa>;
+  getRekapHarian(id_rombel: string, tanggal: string): Promise<AbsensiSiswa[]>;
 }

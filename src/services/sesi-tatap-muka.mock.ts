@@ -98,7 +98,7 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
       // Simpan absensi siswa
       for (const abs of absensiSiswa) {
         // Hapus absensi sebelumnya jika ada
-        const existingIdx = store.absensi.findIndex(a => a.id_siswa === abs.id_siswa && a.tanggal === sesi.tanggal && a.id_rombel === abs.id_rombel);
+        const existingIdx = store.absensi.findIndex(a => a.id_siswa === abs.id_siswa && a.id_sesi === sesi.id_sesi);
         if (existingIdx >= 0) {
           store.absensi.splice(existingIdx, 1);
         }
@@ -108,6 +108,7 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
           tanggal: sesi.tanggal,
           id_siswa: abs.id_siswa,
           id_rombel: abs.id_rombel,
+          id_sesi: sesi.id_sesi,
           status: abs.status,
           catatan: abs.catatan ?? null,
         });

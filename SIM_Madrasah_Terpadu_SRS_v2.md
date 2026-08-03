@@ -57,9 +57,9 @@ Prinsip utamanya adalah **single source of input**: setiap data (siswa, guru, ja
 - Menyediakan data real-time untuk pengambilan keputusan Kepala Madrasah.
 - Menjadi fondasi jangka panjang menuju madrasah berbasis data (*data-driven school management*).
 
-**Ruang lingkup (in-scope):** Kesiswaan, SDM/PTK, Penjadwalan, Persuratan, Pelaporan, Portal Orang Tua tahap lanjut, Modul AI pendukung keputusan.
+**Ruang lingkup (in-scope):** Kesiswaan, SDM/PTK, Penjadwalan, Persuratan, Pelaporan, Portal Orang Tua tahap lanjut, Modul AI pendukung keputusan, **Nilai Dasar (bukan e-Rapor penuh), Ekstrakurikuler & Bimbingan Konseling** *(ditambahkan setelah audit fondasi entitas)*.
 
-**Di luar lingkup (out-of-scope) untuk versi awal:** Modul keuangan/SPP, e-learning/LMS, dan ujian online — direkomendasikan sebagai fase terpisah agar proyek tetap fokus dan realistis secara anggaran.
+**Di luar lingkup (out-of-scope) untuk versi awal:** Modul keuangan/SPP, e-learning/LMS, ujian online, dan **cetak e-Rapor resmi** — direkomendasikan sebagai fase terpisah agar proyek tetap fokus dan realistis secara anggaran.
 
 ---
 
@@ -120,6 +120,14 @@ Arsitektur **Modular Hybrid, Sinkronisasi Bertingkat, dan AI-Augmented**:
 ### D. Portal Orang Tua/Wali (baru — fase lanjutan)
 - Akses terbatas (*read-only*) untuk melihat data absensi, jadwal, dan pengumuman anak mereka.
 - Notifikasi otomatis via WhatsApp Business API/email saat anak tidak hadir tanpa keterangan.
+
+### E. Modul Nilai Dasar *(baru — hasil audit fondasi entitas)*
+- Input nilai per komponen (Tugas/UH/UTS/UAS) oleh guru mapel yang memang terjadwal mengajar mapel & rombel terkait.
+- **Bukan e-Rapor resmi** — hanya menyediakan data terstruktur untuk dua kebutuhan: validasi Wali Kelas dan sinyal tambahan modul AI (Bab 5). Cetak rapor formal tetap di luar lingkup versi ini.
+
+### F. Modul Ekstrakurikuler & Bimbingan Konseling *(baru — hasil audit fondasi entitas)*
+- Pendaftaran & riwayat keanggotaan siswa di kegiatan ekstrakurikuler, dengan presensi terpisah dari presensi akademik.
+- Pencatatan bimbingan konseling oleh Guru BK, dengan tingkat kerahasiaan (Umum/Rahasia) yang membatasi siapa saja yang bisa membaca catatan tertentu — lihat RBAC Bab 12.
 
 ---
 
@@ -210,8 +218,18 @@ Mengadaptasi pola dashboard EMIS GTK/EMIS 4.0 namun disederhanakan: Header, Side
 - `agama`
 - `nama_ibu_kandung` (wajib untuk validasi Dukcapil/Verval)
 - `status_siswa` (Aktif, Lulus, Mutasi Keluar, Drop Out)
+- `alamat_detail` *(baru)* — teks bebas untuk RT/RW/jalan/nomor rumah (bagian yang memang tidak perlu distandarisasi)
+- `id_desa` *(baru, FK ke `master_desa`)* — menggantikan field alamat teks bebas yang sebelumnya **tidak ada sama sekali** di rancangan; distandarisasi penuh 4 level demi kompatibilitas kode wilayah EMIS/Verval
 - `skor_risiko_ai` *(baru — nullable, diisi oleh modul AI, bukan input manual)*
 - `created_at`, `updated_at`, `updated_by` *(baru — untuk audit trail)*
+
+### A.1 Entitas Master Wilayah *(baru — standarisasi penuh 4 level, mengikuti struktur kode wilayah Kemendagri yang juga dipakai EMIS/Verval)*
+- `master_provinsi`: `id_provinsi` (PK), `kode_provinsi`, `nama_provinsi`
+- `master_kabupaten`: `id_kabupaten` (PK), `id_provinsi` (FK), `kode_kabupaten`, `nama_kabupaten`
+- `master_kecamatan`: `id_kecamatan` (PK), `id_kabupaten` (FK), `kode_kecamatan`, `nama_kecamatan`
+- `master_desa`: `id_desa` (PK), `id_kecamatan` (FK), `kode_desa`, `nama_desa`
+- Data awal (*seed*) keempat tabel ini wajib diimpor dari sumber resmi Kemendagri/Kemenag sebelum modul Kesiswaan digunakan produksi — bukan diinput manual satu per satu oleh Admin.
+- **Field alamat yang sama berlaku juga untuk `pegawai`** (lihat Bab 9B) — konsisten satu standar wilayah untuk seluruh entitas yang punya alamat.
 
 ### B. Entitas Guru & Tendik (Tabel: `pegawai`)
 - `id_pegawai` (PK)
@@ -219,15 +237,23 @@ Mengadaptasi pola dashboard EMIS GTK/EMIS 4.0 namun disederhanakan: Header, Side
 - `nip`, `npk`
 - `nama_lengkap_gelar`
 - `status_kepegawaian` (PNS, Non-PNS, Honorer)
-- `tugas_utama` (Guru Mapel, Guru BK, Tendik)
+- `tugas_utama` (Guru Mapel, Guru BK, Tendik, **Pembina Ekstrakurikuler** *(baru)*)
+- `alamat_detail`, `id_desa` *(baru, sama seperti `siswa` — lihat Bab 9A.1)*
+- `mapel_sertifikasi` *(baru, nullable)* — array/tabel pivot ke `mata_pelajaran`, dipakai memvalidasi linearitas jam mengajar yang dijanjikan Bab 4B tapi sebelumnya tidak punya data untuk dicocokkan
 
 ### C. Entitas Akademik & Referensi
-- `tahun_ajaran`: `id_tahun`, `nama_tahun`, `semester`, `status_aktif`
+- `tahun_ajaran` *(diperbaiki — granularitas semula per-semester berisiko membuat rombel "berpindah" palsu tiap semester)*: `id_tahun` (PK), `nama_tahun` (contoh: "2026/2027"), `status_aktif`. **Satu baris mewakili satu tahun ajaran penuh (2 semester), bukan per-semester.** `semester` dipindah menjadi field di `jadwal_pelajaran` (lihat di bawah).
+  > **Asumsi yang diambil** (perlu dikonfirmasi ke pihak madrasah sebelum backend dibangun): komposisi `rombel` — siswa dan wali kelas — **tetap sama** sepanjang satu tahun ajaran penuh; yang berubah antar semester hanyalah jadwal mata pelajaran. Jika ternyata ada madrasah yang mengubah komposisi rombel di tengah tahun ajaran (pergantian semester), asumsi ini perlu direvisi bersama pihak terkait.
 - `mata_pelajaran`: `id_mapel`, `kode_mapel`, `nama_mapel`, `kelompok_mapel`
-- `tingkat_pendidikan` *(baru — sebelumnya hanya disebut sebagai FK tanpa entitas resmi)*: `id_tingkat` (PK), `nama_tingkat` (contoh: Kelas 10 / Kelas III), `urutan` (integer, dipakai untuk memvalidasi kenaikan berjenjang, mis. tingkat 10 hanya boleh naik ke 11, bukan ke 9)
-- `rombel`: `id_rombel`, `nama_rombel` (contoh: 10-A), `id_tingkat` (FK ke `tingkat_pendidikan`, **diperbaiki** dari string bebas menjadi relasi resmi), `id_wali_kelas` (FK), `id_tahun_ajaran`
+- `tingkat_pendidikan`: `id_tingkat` (PK), `nama_tingkat` (contoh: Kelas 10 / Kelas III), `urutan` (integer, dipakai untuk memvalidasi kenaikan berjenjang)
+- `rombel`: `id_rombel`, `nama_rombel` (contoh: 10-A), `id_tingkat` (FK), `id_wali_kelas` (FK), `id_tahun` (FK ke `tahun_ajaran` — **tahun penuh, bukan per-semester**, lihat asumsi di atas)
+- `jadwal_pelajaran` *(baru — diformalkan, sebelumnya hanya hidup di ERD & Aturan Bisnis tanpa entri Kamus Data resmi)*: `id_jadwal` (PK), `id_rombel` (FK), `id_pegawai` (FK, guru pengajar), `id_mapel` (FK), `semester` *(baru, dipindah dari `tahun_ajaran`)* — "Ganjil"/"Genap", `hari`, `jam_mulai`, `jam_selesai`. Kombinasi `id_pegawai` + `hari` + `jam_mulai` + `semester` harus unik (Bab 10 poin 3).
 
-### D. Entitas Keanggotaan Rombel *(diperbaiki — sebelumnya pivot sederhana tanpa riwayat)*
+### D. Entitas Presensi Siswa *(baru — diformalkan, sebelumnya hanya disebut di Aturan Bisnis tanpa entri Kamus Data resmi)*
+- `absensi_siswa`: `id_absensi` (PK), `tanggal`, `id_siswa` (FK), `id_rombel` (FK), `id_sesi` (FK ke `sesi_tatap_muka` — **kunci yang membuat presensi unik per sesi/mapel, bukan per hari**, lihat Bab 9J), `status` (Hadir/Sakit/Izin/Alpa)
+- Kombinasi `id_siswa` + `id_sesi` harus unik — satu siswa satu status per sesi tatap muka. Ini yang memungkinkan rekap kehadiran siswa per mata pelajaran (mis. siswa sering alpa khusus di jam tertentu), bukan cuma per hari.
+
+### E. Entitas Keanggotaan Rombel *(diperbaiki — sebelumnya pivot sederhana tanpa riwayat)*
 Tabel `anggota_rombel` sebelumnya hanya menyimpan `id_siswa` + `id_rombel`, sehingga tidak bisa merepresentasikan kapan siswa pindah rombel atau naik kelas. Struktur baru:
 - `id_anggota` (PK)
 - `id_siswa` (FK)
@@ -243,11 +269,11 @@ Tabel `anggota_rombel` sebelumnya hanya menyimpan `id_siswa` + `id_rombel`, sehi
 
 > **Aturan turunan:** untuk 1 siswa, hanya boleh ada **maksimal satu baris** dengan `tanggal_selesai IS NULL` pada satu waktu — inilah yang menjamin "siswa hanya aktif di satu rombel" sekaligus tetap menyimpan seluruh riwayatnya. Baris dengan `status_persetujuan` = "Menunggu Persetujuan" **belum** dianggap aktif dan belum menutup baris lama (lihat Bab 10 poin 9).
 
-### E. Entitas Pemetaan Kenaikan Kelas *(baru)*
+### F. Entitas Pemetaan Kenaikan Kelas *(baru)*
 - `pemetaan_kenaikan`: `id_pemetaan` (PK), `id_rombel_asal` (FK), `id_rombel_tujuan` (FK), `id_tahun_ajaran` (FK, tahun ajaran tujuan)
 - Fungsinya: sebelum tombol "Proses Kenaikan Kelas" massal dijalankan, Admin/Operator terlebih dulu memetakan rombel asal → rombel tujuan (mis. 10-A tahun ini → 11-A tahun depan). Sistem memakai pemetaan ini untuk membuat baris `anggota_rombel` baru secara massal.
 
-### F. Entitas Riwayat Mutasi *(baru, diperbarui dengan alur persetujuan)*
+### G. Entitas Riwayat Mutasi *(baru, diperbarui dengan alur persetujuan)*
 - `riwayat_mutasi`: `id_mutasi` (PK), `id_siswa` (FK), `jenis_mutasi` (Masuk/Keluar), `sekolah_asal` (diisi jika Mutasi Masuk), `sekolah_tujuan` (diisi jika Mutasi Keluar), `tanggal_mutasi`, `no_surat_mutasi`, `alasan`, `id_tahun_ajaran` (FK)
 - `status_persetujuan` *(baru)* — (Menunggu Persetujuan, Disetujui, Ditolak). Setiap mutasi **wajib** melalui approval, tidak ada opsi "Tidak Perlu" seperti pada pindah rombel — karena mutasi selalu mengubah status resmi siswa.
 - `diajukan_oleh` *(baru, FK ke `id_pegawai`)* — Operator Kesiswaan sebagai eksekutor yang menginput dan mengajukan.
@@ -255,16 +281,16 @@ Tabel `anggota_rombel` sebelumnya hanya menyimpan `id_siswa` + `id_rombel`, sehi
 - `tanggal_persetujuan` *(baru, nullable)*
 - Menampung dua arah mutasi yang sebelumnya tidak punya tempat penyimpanan detail: siswa pindahan dari sekolah lain (non-PPDB) maupun siswa yang keluar karena pindah sekolah.
 
-### G. Field Tambahan pada `siswa`
+### H. Field Tambahan pada `siswa`
 - `jalur_masuk` (PPDB Reguler / Mutasi Masuk) — *ditambahkan* agar laporan bisa memisahkan siswa hasil PPDB dari siswa pindahan, sesuai kebutuhan pelaporan Verval PD.
 
-### H. Entitas Audit *(baru)*
+### I. Entitas Audit *(baru)*
 - `audit_log`: `id_log` (PK), `id_user` (FK), `nama_tabel`, `id_record`, `aksi` (Create/Update/Delete), `data_sebelum` (JSON), `data_sesudah` (JSON), `timestamp`
 
-### I. Entitas Sinkronisasi *(baru)*
+### J. Entitas Sinkronisasi *(baru)*
 - `sync_log`: `id_sync` (PK), `modul`, `status` (Sukses/Gagal), `jumlah_record`, `pesan_error`, `dijalankan_oleh`, `timestamp`
 
-### J. Entitas Sesi Tatap Muka *(baru — dasar pemenuhan JTM & kehadiran guru)*
+### K. Entitas Sesi Tatap Muka *(baru — dasar pemenuhan JTM & kehadiran guru)*
 Dirancang khusus agar **kehadiran guru tidak memerlukan presensi mandiri terpisah** — bukti kehadiran melekat pada aktivitas mengajar yang sudah wajib dilakukan (input presensi siswa).
 
 - `sesi_tatap_muka`: `id_sesi` (PK), `id_jadwal` (FK ke `jadwal_pelajaran` — acuan guru & jam yang seharusnya), `tanggal`
@@ -272,6 +298,7 @@ Dirancang khusus agar **kehadiran guru tidak memerlukan presensi mandiri terpisa
 - `waktu_input` (timestamp submit presensi, dibandingkan otomatis terhadap `jam_mulai`/`jam_selesai` pada `jadwal_pelajaran`)
 - `is_guru_pengganti` (boolean, **dihitung otomatis** — `TRUE` jika `id_pegawai_pelaksana` ≠ `id_pegawai` pada `id_jadwal`; tidak dapat diedit manual)
 - `id_izin_terkait` (FK nullable ke `izin_guru` — diisi otomatis jika penggantian ini sudah dilaporkan lebih dulu, lihat Bab 9K)
+- `jurnal_materi` *(baru, nullable, teks bebas)* — materi/topik yang diajarkan pada sesi ini, diisi guru pelaksana setelah presensi siswa disimpan. Sengaja diletakkan sebagai kolom di entitas ini, bukan tabel terpisah, karena selalu satu-ke-satu dengan sesi dan tidak butuh riwayat tersendiri.
 - `status_kehadiran_guru` (dihitung otomatis oleh sistem, bukan input manual):
   - **Tepat Waktu** — pelaksana = guru terjadwal, `waktu_input` dalam batas wajar dari `jam_mulai`
   - **Terlambat** — pelaksana = guru terjadwal, tapi `waktu_input` melewati ambang toleransi
@@ -281,12 +308,25 @@ Dirancang khusus agar **kehadiran guru tidak memerlukan presensi mandiri terpisa
 
 > **Catatan penting:** status ini merefleksikan **kepatuhan administratif** (siapa yang menginput data), bukan pengawasan CCTV atas kehadiran fisik. Keduanya biasanya selaras, tapi tim pengembang dan Kepala Madrasah perlu memahami batasan ini agar tidak menganggapnya sebagai bukti mutlak.
 
-### K. Entitas Izin Guru *(baru)*
+### L. Entitas Izin Guru *(baru)*
 - `izin_guru`: `id_izin` (PK), `id_pegawai` (FK, guru yang izin), `tanggal_izin`, `jenis_izin` (Direncanakan H-1 / Mendesak-Darurat), `alasan`, `id_pegawai_pengganti` (FK nullable, jika sudah ditentukan penggantinya di muka), `dilaporkan_pada` (timestamp), `dicatat_oleh` (FK ke `id_pegawai` — Admin/Kepala Madrasah yang menerima laporan dan menginput ke sistem)
 - `saluran_pelaporan` *(baru)* — (Langsung/Tatap Muka, WA Pribadi Kepala Madrasah, WA Group) — **field informasional saja**, dicatat manual oleh yang menginput (bukan integrasi WhatsApp otomatis); berguna untuk konteks/audit, bukan pemicu logika sistem.
 - `status_rekonsiliasi` *(baru)* — (Tepat Waktu, Terlambat) — dihitung otomatis berdasarkan selisih `dilaporkan_pada` terhadap `tanggal_izin` (lihat aturan jendela 1x24 jam, Bab 10 poin 14).
 - **Bukan diinput oleh guru bersangkutan** — sesuai SOP lapangan, guru melapor lisan/WA (pribadi ke Kepala Madrasah atau via grup WA) kepada Admin atau Kepala Madrasah, yang kemudian mencatatkannya. Ini mencegah modul ini menjadi beban administratif baru bagi guru.
 - Untuk kasus mendesak (mis. musibah keluarga), entri ini boleh dicatat **setelah** kejadian, dengan batas wajar maksimal **1x24 jam** sejak tanggal kejadian (lihat Bab 10 poin 14) — sistem tidak mensyaratkan pencatatan sebelum sesi berlangsung untuk kategori "Mendesak-Darurat".
+
+### M. Entitas Nilai Dasar *(baru — sengaja minimal, bukan e-Rapor penuh)*
+Dirancang secukupnya untuk dua kebutuhan yang sudah dijanjikan tapi belum punya fondasi data: (a) input Wali Kelas di akhir semester, (b) sinyal tambahan untuk deteksi dini AI (Bab 5) yang sebelumnya hanya berbasis absensi. **Bukan pengganti e-Rapor resmi** — cetak rapor formal tetap di luar lingkup versi ini (konsisten dengan pengecualian e-learning/ujian online di Bab 2).
+
+- `komponen_nilai`: `id_komponen` (PK), `id_mapel` (FK), `nama_komponen` (mis. "Tugas", "Ulangan Harian", "UTS", "UAS"), `bobot` (persen, dipakai kalkulasi nilai akhir per mapel)
+- `nilai_siswa`: `id_nilai` (PK), `id_siswa` (FK), `id_komponen` (FK), `id_rombel` (FK), `id_tahun` (FK), `semester` (Ganjil/Genap, konsisten dengan `jadwal_pelajaran` Bab 9C), `nilai` (numerik), `id_pegawai_penilai` (FK ke `pegawai` — guru yang menginput), `tanggal_input`
+- Validasi tingkat aplikasi: `id_pegawai_penilai` harus guru yang memang terjadwal mengajar `id_mapel` (via `komponen_nilai` → `mata_pelajaran`) di `id_rombel` tersebut pada semester terkait — mencegah guru menilai mapel/rombel yang bukan tanggung jawabnya.
+
+### N. Entitas Ekstrakurikuler & Bimbingan Konseling *(baru)*
+- `ekstrakurikuler`: `id_ekstra` (PK), `nama_ekstra`, `id_pembina` (FK ke `pegawai`, `tugas_utama` = "Pembina Ekstrakurikuler"), `id_tahun` (FK)
+- `keanggotaan_ekstra`: `id_keanggotaan` (PK), `id_siswa` (FK), `id_ekstra` (FK), `tanggal_mulai`, `tanggal_selesai` (nullable), `status` (Aktif/Keluar) — mengikuti pola riwayat yang sama seperti `anggota_rombel` (Bab 9D), bukan relasi langsung tanpa jejak waktu
+- `absensi_ekstra`: `id_absensi_ekstra` (PK), `id_keanggotaan` (FK), `tanggal`, `status` (Hadir/Tidak Hadir) — terpisah dari `absensi_siswa` karena jadwal ekstrakurikuler tidak terikat `jadwal_pelajaran`/sesi tatap muka reguler
+- `catatan_bk`: `id_catatan` (PK), `id_siswa` (FK), `id_pegawai_bk` (FK ke `pegawai`, `tugas_utama` = "Guru BK"), `tanggal`, `kategori` (Akademik/Perilaku/Pribadi/Sosial), `catatan` (teks), `tingkat_kerahasiaan` (Umum/Rahasia — "Rahasia" hanya bisa dibaca Guru BK bersangkutan dan Kepala Madrasah, tidak oleh Wali Kelas/Operator, lihat Bab 12)
 
 ---
 
@@ -294,7 +334,7 @@ Dirancang khusus agar **kehadiran guru tidak memerlukan presensi mandiri terpisa
 
 1. **Rombel & Siswa:** 1 siswa hanya di 1 rombel per tahun ajaran aktif; 1 rombel memiliki banyak siswa (*one-to-many* via tabel riwayat).
 2. **Pegawai & Rombel (Wali Kelas):** 1 rombel maksimal 1 wali kelas; 1 pegawai maksimal wali kelas di 1 rombel per tahun ajaran aktif.
-3. **Penjadwalan:** kombinasi `id_pegawai` + `hari` + `jam_mulai` harus unik — sistem menolak otomatis jika bentrok.
+3. **Penjadwalan:** kombinasi `id_pegawai` + `hari` + `jam_mulai` + `semester` harus unik — sistem menolak otomatis jika bentrok.
 4. **AI — Skor Risiko:** `skor_risiko_ai` hanya dapat ditulis oleh proses sistem/AI, tidak dapat diedit manual oleh pengguna (mencegah manipulasi data).
 5. **Audit:** setiap `UPDATE`/`DELETE` pada tabel `siswa`, `pegawai`, dan `absensi_siswa` wajib memicu entri baru di `audit_log` sebelum transaksi dianggap selesai.
 
@@ -356,6 +396,16 @@ Dirancang khusus agar **kehadiran guru tidak memerlukan presensi mandiri terpisa
  - **Realisasi JTM** dihitung per guru per bulan: `(jumlah sesi dengan status "Tepat Waktu" atau "Terlambat") ÷ (jumlah sesi terjadwal di jadwal_pelajaran)` — dipakai untuk memantau linearitas jam mengajar sesuai kebutuhan sertifikasi, dilaporkan di dashboard Kepala Madrasah dan modul Wawasan (AI, Bab 5).
  - Riwayat tindakan disiplin (teguran, SP1, SP2, dst.) terhadap seorang guru dicatat sebagai entri persuratan (Bab 4C) yang tertaut ke `id_pegawai`, sehingga pola pelanggaran berulang tetap terlacak lintas tahun ajaran.
 
+### Aturan Tambahan — Semester, Nilai, Ekstrakurikuler & Bimbingan Konseling *(baru — hasil audit fondasi entitas)*
+
+16. **Granularitas semester:** `tahun_ajaran` merepresentasikan satu tahun penuh (2 semester); `rombel` dan `anggota_rombel` **tidak berubah** saat pergantian semester dalam tahun ajaran yang sama — hanya `jadwal_pelajaran` (termasuk field `semester`-nya) yang berbeda. Proses kenaikan kelas (Bab 10 poin 7) tetap hanya terjadi di **akhir tahun ajaran**, bukan tiap pergantian semester.
+
+17. **Validasi input nilai:** sistem menolak `nilai_siswa` jika `id_pegawai_penilai` bukan guru yang terjadwal (`jadwal_pelajaran`) mengajar `id_mapel` terkait di `id_rombel` dan `semester` yang sama — mencegah guru menilai di luar tanggung jawabnya.
+
+18. **Keanggotaan ekstrakurikuler** mengikuti pola riwayat yang sama seperti keanggotaan rombel (Bab 10 poin 6): satu siswa hanya boleh punya satu baris `keanggotaan_ekstra` aktif (`tanggal_selesai IS NULL`) per `id_ekstra` yang sama pada satu waktu, meski boleh aktif di lebih dari satu ekstrakurikuler berbeda secara bersamaan.
+
+19. **Kerahasiaan catatan BK:** entri `catatan_bk` dengan `tingkat_kerahasiaan` = "Rahasia" hanya dapat dibaca oleh `id_pegawai_bk` yang menulisnya dan Kepala Madrasah — tervalidasi di level aplikasi **dan** di level basis data (row-level security), bukan hanya disembunyikan di UI, sejalan dengan prinsip Bab 7 (Keamanan & Kepatuhan Data).
+
 ---
 
 ## 11. Entity-Relationship Diagram (ERD)
@@ -365,8 +415,7 @@ erDiagram
     %% Entitas Master
     TAHUN_AJARAN {
         int id_tahun PK
-        string nama_tahun "Contoh: 2026/2027"
-        string semester "Ganjil/Genap"
+        string nama_tahun "Contoh: 2026/2027, satu tahun penuh"
         boolean status_aktif
     }
 
@@ -377,7 +426,8 @@ erDiagram
         string npk
         string nama_lengkap
         string status_kepegawaian
-        string tugas_utama
+        string tugas_utama "Guru Mapel/Guru BK/Tendik/Pembina Ekstra"
+        int id_desa FK
     }
 
     SISWA {
@@ -392,7 +442,15 @@ erDiagram
         string nama_ibu_kandung
         string status_siswa "Aktif/Lulus/Mutasi Keluar/Drop Out"
         string jalur_masuk "PPDB Reguler/Mutasi Masuk"
+        int id_desa FK
         float skor_risiko_ai "Diisi sistem AI"
+    }
+
+    MASTER_DESA {
+        int id_desa PK
+        int id_kecamatan FK
+        string kode_desa
+        string nama_desa
     }
 
     MATA_PELAJARAN {
@@ -456,6 +514,7 @@ erDiagram
         int id_rombel FK
         int id_pegawai FK "Guru Pengajar"
         int id_mapel FK
+        enum semester "Ganjil/Genap"
         string hari
         time jam_mulai
         time jam_selesai
@@ -492,6 +551,57 @@ erDiagram
         datetime dilaporkan_pada
         enum status_rekonsiliasi "Tepat Waktu/Terlambat, maks 1x24 jam"
         int dicatat_oleh FK "id_pegawai, Admin/Kepala Madrasah"
+    }
+
+    KOMPONEN_NILAI {
+        int id_komponen PK
+        int id_mapel FK
+        string nama_komponen "Tugas/UH/UTS/UAS"
+        float bobot
+    }
+
+    NILAI_SISWA {
+        int id_nilai PK
+        int id_siswa FK
+        int id_komponen FK
+        int id_rombel FK
+        int id_tahun FK
+        enum semester "Ganjil/Genap"
+        float nilai
+        int id_pegawai_penilai FK
+    }
+
+    EKSTRAKURIKULER {
+        int id_ekstra PK
+        string nama_ekstra
+        int id_pembina FK "id_pegawai"
+        int id_tahun FK
+    }
+
+    KEANGGOTAAN_EKSTRA {
+        int id_keanggotaan PK
+        int id_siswa FK
+        int id_ekstra FK
+        date tanggal_mulai
+        date tanggal_selesai "Null jika masih aktif"
+        enum status "Aktif/Keluar"
+    }
+
+    ABSENSI_EKSTRA {
+        int id_absensi_ekstra PK
+        int id_keanggotaan FK
+        date tanggal
+        enum status "Hadir/Tidak Hadir"
+    }
+
+    CATATAN_BK {
+        int id_catatan PK
+        int id_siswa FK
+        int id_pegawai_bk FK "id_pegawai"
+        date tanggal
+        enum kategori "Akademik/Perilaku/Pribadi/Sosial"
+        string catatan
+        enum tingkat_kerahasiaan "Umum/Rahasia"
     }
 
     AUDIT_LOG {
@@ -532,7 +642,23 @@ erDiagram
     SISWA ||--o{ ABSENSI_SISWA : "memiliki riwayat"
     ROMBEL ||--o{ ABSENSI_SISWA : "direkap berdasarkan"
     PEGAWAI ||--o{ AUDIT_LOG : "melakukan aksi"
+    MASTER_DESA ||--o{ SISWA : "berdomisili di"
+    MASTER_DESA ||--o{ PEGAWAI : "berdomisili di"
+    MATA_PELAJARAN ||--o{ KOMPONEN_NILAI : "memiliki komponen"
+    KOMPONEN_NILAI ||--o{ NILAI_SISWA : "dinilai sebagai"
+    SISWA ||--o{ NILAI_SISWA : "memperoleh"
+    ROMBEL ||--o{ NILAI_SISWA : "dalam konteks rombel"
+    PEGAWAI ||--o{ NILAI_SISWA : "menilai"
+    PEGAWAI ||--o{ EKSTRAKURIKULER : "membina"
+    TAHUN_AJARAN ||--o{ EKSTRAKURIKULER : "diselenggarakan pada"
+    EKSTRAKURIKULER ||--o{ KEANGGOTAAN_EKSTRA : "diikuti oleh"
+    SISWA ||--o{ KEANGGOTAAN_EKSTRA : "mendaftar"
+    KEANGGOTAAN_EKSTRA ||--o{ ABSENSI_EKSTRA : "dicatat kehadirannya"
+    SISWA ||--o{ CATATAN_BK : "memiliki catatan"
+    PEGAWAI ||--o{ CATATAN_BK : "mencatat sebagai Guru BK"
 ```
+
+> **Catatan:** untuk menjaga keterbacaan diagram, tabel `master_provinsi`, `master_kabupaten`, `master_kecamatan` (rantai lengkap di atas `master_desa`) tidak digambar di ERD ini — definisi lengkap keempatnya ada di Kamus Data Bab 9A.1. Yang digambar hanya `MASTER_DESA` karena itulah level yang langsung menjadi FK di `SISWA`/`PEGAWAI`.
 
 ### Penjelasan Relasi Kunci
 
@@ -542,7 +668,11 @@ erDiagram
 - **`RIWAYAT_MUTASI`** menjawab kebutuhan **mutasi masuk (non-PPDB) dan mutasi keluar**: mencatat sekolah asal/tujuan, nomor surat, serta siapa yang mengajukan (`diajukan_oleh`) dan siapa yang menyetujui (`disetujui_oleh`) — merepresentasikan alur "Operator eksekutor mengajukan → Kepala Madrasah menyetujui via akunnya sendiri" (Bab 10 poin 10–11), dengan jejak kedua akun tersimpan terpisah di `audit_log`. Tabel ini terpisah dari `ANGGOTA_ROMBEL` karena mutasi adalah peristiwa administratif dengan status persetujuannya sendiri, sementara `ANGGOTA_ROMBEL` baru diperbarui **setelah** mutasi disetujui.
 - **`SESI_TATAP_MUKA`** adalah jantung mekanisme kehadiran guru tanpa presensi mandiri: setiap baris `jadwal_pelajaran` yang benar-benar terjadi pada suatu tanggal menghasilkan satu sesi, dan `id_pegawai_pelaksana` — yaitu siapa yang menginput `ABSENSI_SISWA` pada sesi itu — otomatis *menjadi* bukti kehadiran guru. Tidak ada input kehadiran terpisah; presensi siswa dan kehadiran guru adalah satu peristiwa yang sama.
 - **`IZIN_GURU`** menjawab SOP lapangan: guru melapor lisan/WA ke Admin/Kepala Madrasah (H-1, atau setelah kejadian untuk kasus darurat), yang mencatatnya ke sistem — bukan guru yang input sendiri. Tautan ke `SESI_TATAP_MUKA` (`id_izin_terkait`) inilah yang membedakan penggantian yang sah/dilaporkan ("Digantikan Terjadwal") dari anomali yang perlu ditinjau ("Digantikan Mendadak"), termasuk mendukung pencatatan retroaktif untuk kasus mendesak.
-- **`JADWAL_PELAJARAN`** sebagai *hub table* yang mengikat `id_rombel`, `id_pegawai`, `id_mapel` — validasi backend wajib menolak kombinasi guru+hari+jam yang bentrok.
+- **`JADWAL_PELAJARAN`** sebagai *hub table* yang mengikat `id_rombel`, `id_pegawai`, `id_mapel`, dan kini juga `semester` — validasi backend wajib menolak kombinasi guru+hari+jam+semester yang bentrok. Field `semester` sengaja diletakkan di sini (bukan di `TAHUN_AJARAN`) agar `ROMBEL` dan `ANGGOTA_ROMBEL` tetap stabil sepanjang tahun ajaran penuh — mencegah siswa "dipindahkan" secara palsu setiap pergantian semester (lihat Bab 10 poin 16).
+- **`MASTER_DESA`** (dan rantai `master_kecamatan`/`master_kabupaten`/`master_provinsi` di atasnya) menggantikan ketiadaan field alamat sebelumnya pada `SISWA` dan `PEGAWAI` — dipakai bersama oleh keduanya agar satu standar wilayah konsisten di seluruh sistem, sekaligus kompatibel dengan kode wilayah yang dipakai EMIS/Verval saat sinkronisasi (Bab 3).
+- **`KOMPONEN_NILAI` → `NILAI_SISWA`** sengaja dipisah dua level: `KOMPONEN_NILAI` mendefinisikan jenis penilaian per mapel (Tugas/UH/UTS/UAS beserta bobotnya), `NILAI_SISWA` menyimpan nilai aktual per siswa per komponen. Pemisahan ini memungkinkan bobot komponen berbeda antar mapel tanpa mengubah struktur tabel nilai itu sendiri.
+- **`EKSTRAKURIKULER` → `KEANGGOTAAN_EKSTRA` → `ABSENSI_EKSTRA`** mengikuti pola berjenjang yang sama seperti `ROMBEL` → `ANGGOTA_ROMBEL` → `ABSENSI_SISWA`, sengaja dibuat konsisten agar tim pengembang tidak perlu mempelajari pola desain baru untuk domain ini.
+- **`CATATAN_BK`** sengaja **tidak** ditautkan ke `SESI_TATAP_MUKA` atau `ANGGOTA_ROMBEL` — catatan BK berdiri independen dari jadwal/rombel karena bimbingan konseling bisa terjadi kapan saja, tidak terikat jam pelajaran tertentu. Field `tingkat_kerahasiaan` yang membedakan visibilitasnya, ditegakkan di level query backend (row-level security), bukan sekadar disembunyikan di tampilan (Bab 10 poin 19, Bab 12).
 - **`AUDIT_LOG`** terhubung ke seluruh entitas transaksional secara generik (`nama_tabel` + `id_record`) agar tidak perlu tabel log terpisah untuk tiap modul.
 
 ---
@@ -551,11 +681,13 @@ erDiagram
 
 | Peran | Hak Akses Utama |
 |---|---|
-| **Admin Madrasah** | Akses penuh (CRUD) semua modul, sinkronisasi EMIS/Verval, setting tahun ajaran aktif, manajemen pengguna, **mencatat `izin_guru`** yang dilaporkan lisan/WA, mengatur ambang kedisiplinan (Bab 10 poin 15) |
+| **Admin Madrasah** | Akses penuh (CRUD) semua modul, sinkronisasi EMIS/Verval, setting tahun ajaran aktif, manajemen pengguna, **mencatat `izin_guru`** yang dilaporkan lisan/WA, mengatur ambang kedisiplinan (Bab 10 poin 15). **Perkecualian eksplisit:** tidak termasuk membaca `catatan_bk` berstatus "Rahasia" — kerahasiaan BK berlaku bahkan terhadap Admin (Bab 10 poin 19) |
 | **Kepala Madrasah** *(baru)* | Dashboard eksekutif (*read-only*), approval SK/Surat Tugas, **approval pindah rombel lintas tingkat**, **approval mutasi masuk & mutasi keluar** (wajib via akun sendiri, lihat Bab 10 poin 9–11), melihat laporan siswa berisiko dari AI Layer, **mencatat `izin_guru`** (alternatif dari Admin), **meninjau flag kedisiplinan "Digantikan Mendadak" & realisasi JTM**, menandatangani draf Surat Teguran |
 | **Operator Kesiswaan** | CRUD profil siswa, kenaikan kelas massal, pindah rombel sesama tingkat (langsung berlaku), **mengajukan** pindah rombel lintas tingkat & **mengeksekusi input** mutasi masuk/keluar (keduanya menunggu approval Kepala Madrasah), persuratan siswa |
-| **Wali Kelas** | *View* siswa di rombelnya, input absensi harian, *view* jadwal rombel, menerima peringatan dini AI untuk siswanya |
-| **Guru Mapel** | *View* jadwal mengajar pribadi, **input presensi siswa per sesi tatap muka** (aksi ini yang otomatis menjadi bukti kehadirannya sendiri — tidak ada menu presensi terpisah), *view* realisasi JTM pribadi. **Tidak memiliki akses untuk mencatat izinnya sendiri** — sesuai SOP, dicatat oleh Admin/Kepala Madrasah |
+| **Wali Kelas** | *View* siswa di rombelnya, input absensi harian, *view* jadwal rombel, menerima peringatan dini AI untuk siswanya, **validasi nilai siswa di rombelnya untuk keperluan akhir semester** |
+| **Guru Mapel** | *View* jadwal mengajar pribadi, **input presensi siswa per sesi tatap muka** (aksi ini yang otomatis menjadi bukti kehadirannya sendiri — tidak ada menu presensi terpisah), *view* realisasi JTM pribadi, **input nilai siswa untuk mapel & rombel yang diampu** (Bab 10 poin 17). **Tidak memiliki akses untuk mencatat izinnya sendiri** — sesuai SOP, dicatat oleh Admin/Kepala Madrasah |
+| **Pembina Ekstrakurikuler** *(baru)* | CRUD keanggotaan & presensi ekstrakurikuler untuk kegiatan yang dibinanya saja, tidak memiliki akses ke data akademik/nilai |
+| **Guru BK** *(baru)* | CRUD `catatan_bk` untuk siswa yang ditanganinya; entri "Rahasia" hanya bisa dibaca oleh dirinya sendiri dan Kepala Madrasah — **tidak bisa dibaca Wali Kelas atau Operator Kesiswaan**, termasuk lewat akses admin biasa sekalipun (Bab 10 poin 19) |
 | **Orang Tua/Wali** *(baru, fase lanjutan)* | *View-only* data absensi & pengumuman anak sendiri, tidak dapat mengakses data siswa lain |
 
 **Catatan implementasi:** gunakan model RBAC + *row-level scoping* (mis. Wali Kelas hanya bisa `SELECT` siswa dengan `id_rombel` miliknya), bukan hanya pembatasan di level menu UI, agar tidak bisa ditembus lewat API langsung.
