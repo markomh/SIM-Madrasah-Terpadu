@@ -125,6 +125,8 @@ export type Siswa = {
   nama_ibu_kandung: string;
   status_siswa: StatusSiswa;
   jalur_masuk: JalurMasuk;
+  alamat_detail: string | null;   // teks bebas RT/RW/jalan (baru)
+  id_desa: string | null;         // FK ke MasterDesa (baru — lihat types/wilayah.ts)
   skor_risiko_ai: number | null;   // 0–100, read-only di UI, hanya tampilan
 };
 
@@ -177,7 +179,20 @@ export type RiwayatMutasi = {
 };
 
 // types/pegawai.ts
-export type Peran = "Admin Madrasah" | "Kepala Madrasah" | "Operator Kesiswaan" | "Wali Kelas" | "Guru Mapel" | "Orang Tua Wali";
+// REVISI KEDUA — model pertama (Peran mencakup Kepala Madrasah/Admin/Operator sebagai satu nilai
+// eksklusif) masih salah dengan alasan yang sama seperti bug Wali Kelas sebelumnya: Guru adalah
+// SATU ENTITAS TUNGGAL yang bisa menyandang kombinasi jabatan apa pun sekaligus — termasuk jadi
+// Kepala Madrasah sambil tetap mengajar dan jadi wali kelas. Lihat SRS induk Bab 12 untuk penjelasan
+// lengkap. Model final:
+//   1. tugas_utama = kategori kepegawaian dasar SAJA ("Guru" | "Tendik") — bukan tempat jabatan.
+//   2. Jabatan skala-madrasah (Kepala Madrasah/Admin Madrasah/Operator Kesiswaan/Guru BK) = baris di
+//      PenugasanJabatan, banyak baris aktif boleh dimiliki satu id_pegawai sekaligus.
+//   3. Jabatan skala-terbatas (Wali Kelas/Pembina Ekstrakurikuler) = dihitung dari FK yang SUDAH ADA
+//      di Rombel.id_wali_kelas / Ekstrakurikuler.id_pembina — TIDAK diduplikasi ke PenugasanJabatan.
+//   4. "Guru Kelas" vs "Guru Mapel" BUKAN status yang disimpan — keduanya cuma pola distribusi baris
+//      JadwalPelajaran (satu rombel banyak mapel, vs satu mapel banyak rombel). Hak input presensi/nilai
+//      selalu dicek dari JadwalPelajaran langsung, tidak perlu tahu "tipe" guru yang mana.
+export type TugasUtama = "Guru" | "Tendik";
 
 export type Pegawai = {
   id_pegawai: string;
@@ -186,9 +201,54 @@ export type Pegawai = {
   npk: string | null;
   nama_lengkap_gelar: string;
   status_kepegawaian: string;
-  tugas_utama: string;
-  peran: Peran; // dipakai role switcher mock di Tahap 1
+  tugas_utama: TugasUtama;
+  alamat_detail: string | null;
+  id_desa: string | null;
+  mapel_sertifikasi: string[];
 };
+
+// types/penugasan-jabatan.ts (baru)
+export type JenisJabatan = "Kepala Madrasah" | "Admin Madrasah" | "Operator Kesiswaan" | "Guru BK";
+export type StatusPenugasan = "Aktif" | "Berakhir";
+
+export type PenugasanJabatan = {
+  id_penugasan: string;
+  id_pegawai: string;
+  jenis_jabatan: JenisJabatan;
+  id_tahun: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string | null;
+  status: StatusPenugasan;
+};
+
+// lib/access.ts (baru — SATU-SATUNYA tempat logika pengecekan jabatan boleh berada;
+// jangan pernah menulis ulang perbandingan string peran di file lain manapun)
+//
+//   hasJabatan(idPegawai, jenisJabatan, penugasanList) =>
+//     penugasanList.some(p => p.id_pegawai === idPegawai && p.jenis_jabatan === jenisJabatan && p.status === "Aktif")
+//
+//   isKepalaMadrasah(idPegawai, penugasanList)   => hasJabatan(idPegawai, "Kepala Madrasah", penugasanList)
+//   isAdminMadrasah(idPegawai, penugasanList)    => hasJabatan(idPegawai, "Admin Madrasah", penugasanList)
+//   isOperatorKesiswaan(idPegawai, penugasanList)=> hasJabatan(idPegawai, "Operator Kesiswaan", penugasanList)
+//   isGuruBk(idPegawai, penugasanList)           => hasJabatan(idPegawai, "Guru BK", penugasanList)
+//
+//   isWaliKelas(idPegawai, rombelList) => rombelList.some(r => r.id_wali_kelas === idPegawai)
+//   getRombelWaliKelas(idPegawai, rombelList) => rombelList.filter(r => r.id_wali_kelas === idPegawai)
+//   isPembinaEkstrakurikuler(idPegawai, ekstraList) => ekstraList.some(e => e.id_pembina === idPegawai)
+//
+//   isPengajar(idPegawai, idRombel, idMapel, semester, jadwalList) =>
+//     jadwalList.some(j => j.id_pegawai === idPegawai && j.id_rombel === idRombel
+//                        && j.id_mapel === idMapel && j.semester === semester)
+//   getRombelDiajar(idPegawai, jadwalList) => daftar unik {id_rombel, id_mapel, semester} dari jadwalList
+//
+// SEMUA fungsi ini dipanggil ulang tiap kali dibutuhkan dari data yang sedang dimuat — TIDAK PERNAH
+// disimpan sebagai field/state statis, karena penugasan/rombel/jadwal bisa berubah kapan saja.
+
+// Role switcher Tahap 1 (mock login) TIDAK LAGI memilih satu "Peran" dari dropdown tertutup.
+// Sebagai gantinya, switcher memilih SATU PEGAWAI dari daftar (lengkap dengan seluruh relasinya:
+// tugas_utama, baris PenugasanJabatan miliknya, apakah dia wali kelas/pembina di suatu tempat, dan
+// jadwal mengajarnya) — currentUser adalah objek Pegawai utuh, dan SELURUH hak akses di UI dihitung
+// dari fungsi-fungsi di atas terhadap objek itu, bukan dari satu field "peran" tunggal.
 
 // types/audit.ts
 export type AuditLog = {
@@ -246,6 +306,76 @@ export type IzinGuru = {
   status_rekonsiliasi: StatusRekonsiliasi; // read-only, dihitung sistem — Terlambat jika > 1x24 jam dari tanggal_izin
   dicatat_oleh: string;             // id_pegawai — Admin/Kepala Madrasah, BUKAN guru bersangkutan
 };
+
+// types/wilayah.ts (baru — mendukung Bab 9A.1 SRS induk)
+export type MasterProvinsi = { id_provinsi: string; kode_provinsi: string; nama_provinsi: string };
+export type MasterKabupaten = { id_kabupaten: string; id_provinsi: string; kode_kabupaten: string; nama_kabupaten: string };
+export type MasterKecamatan = { id_kecamatan: string; id_kabupaten: string; kode_kecamatan: string; nama_kecamatan: string };
+export type MasterDesa = { id_desa: string; id_kecamatan: string; kode_desa: string; nama_desa: string };
+// Field alamat pada Siswa & Pegawai (lihat types/siswa.ts, types/pegawai.ts) ditambah:
+//   alamat_detail: string | null   (teks bebas RT/RW/jalan)
+//   id_desa: string | null         (FK ke MasterDesa)
+
+// types/nilai.ts (baru — mendukung SRS induk Bab 9M, sengaja minimal, BUKAN e-Rapor)
+export type KomponenNilai = {
+  id_komponen: string;
+  id_mapel: string;
+  nama_komponen: string;   // "Tugas" | "Ulangan Harian" | "UTS" | "UAS" — teks bebas, bukan union tertutup (madrasah bisa beda kebijakan)
+  bobot: number;           // persen
+};
+
+export type NilaiSiswa = {
+  id_nilai: string;
+  id_siswa: string;
+  id_komponen: string;
+  id_rombel: string;
+  id_tahun: string;
+  semester: "Ganjil" | "Genap";
+  nilai: number;
+  id_pegawai_penilai: string;  // wajib guru yang terjadwal mengajar mapel+rombel+semester terkait — validasi di service, lihat Bab 5
+  tanggal_input: string;
+};
+
+// types/ekstrakurikuler.ts (baru — mendukung SRS induk Bab 9N)
+export type StatusKeanggotaanEkstra = "Aktif" | "Keluar";
+export type StatusAbsensiEkstra = "Hadir" | "Tidak Hadir";
+
+export type Ekstrakurikuler = {
+  id_ekstra: string;
+  nama_ekstra: string;
+  id_pembina: string;      // id_pegawai, tugas_utama = "Pembina Ekstrakurikuler"
+  id_tahun: string;
+};
+
+export type KeanggotaanEkstra = {
+  id_keanggotaan: string;
+  id_siswa: string;
+  id_ekstra: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string | null;
+  status: StatusKeanggotaanEkstra;
+};
+
+export type AbsensiEkstra = {
+  id_absensi_ekstra: string;
+  id_keanggotaan: string;
+  tanggal: string;
+  status: StatusAbsensiEkstra;
+};
+
+// types/bk.ts (baru — mendukung SRS induk Bab 9N, kerahasiaan berjenjang WAJIB ditegakkan)
+export type KategoriCatatanBk = "Akademik" | "Perilaku" | "Pribadi" | "Sosial";
+export type TingkatKerahasiaan = "Umum" | "Rahasia";
+
+export type CatatanBk = {
+  id_catatan: string;
+  id_siswa: string;
+  id_pegawai_bk: string;   // id_pegawai, tugas_utama = "Guru BK"
+  tanggal: string;
+  kategori: KategoriCatatanBk;
+  catatan: string;
+  tingkat_kerahasiaan: TingkatKerahasiaan;
+};
 ```
 
 > **Catatan untuk Tahap 2:** field terenkripsi (`nik`) di sini bertipe `string` biasa karena Tahap 1 hanya memakai data tiruan/palsu — bukan data siswa asli. Tim backend tetap wajib menerapkan enkripsi sesungguhnya sesuai Bab 7 SRS induk; ini tidak disimulasikan di frontend.
@@ -300,37 +430,69 @@ Satu-satunya cara menulis `AbsensiSiswa` adalah lewat `SesiTatapMukaService.cata
 
 ## 6. Peta Halaman & Rute
 
-Mengikuti struktur navigasi Bab 8 SRS induk, dengan penyesuaian modul baru (kenaikan kelas, pindah rombel, mutasi).
+**Struktur navigasi direvisi total** (sebelumnya grup "GURU & TENDIK" mencampur fungsi Kepegawaian/HRD dengan fungsi KBM — temuan valid dari peninjauan lapangan: guru mapel tidak akan intuitif mencari menu absensi siswa di dalam pengaturan profil pegawai). Grup navigasi sekarang:
+
+| Grup Sidebar | Isi |
+|---|---|
+| **MADRASAH** | Beranda (dashboard per peran) |
+| **KESISWAAN** | Data Siswa Induk, Kenaikan Kelas, Pindah Rombel, Mutasi |
+| **AKADEMIK** *(baru — dipisah dari Guru & Tendik)* | Penjadwalan, Presensi Siswa (Sesi), **Rekap Presensi** (dipindah dari Kesiswaan — disandingkan langsung dengan Presensi Sesi sesuai temuan lapangan), Nilai Harian *(baru)* |
+| **KEPEGAWAIAN** *(baru — nama pengganti "Guru & Tendik", isi dipersempit hanya fungsi HRD)* | Data Pegawai, Izin Guru, Kedisiplinan & JTM |
+| **EKSTRAKURIKULER & BK** *(baru)* | Ekstrakurikuler, Bimbingan Konseling |
+| **PERSURATAN** | Buat & Arsip Surat |
+| **WAWASAN** | Dashboard AI, Kotak Persetujuan |
+| **REFERENSI** | Mapel, Tingkat Pendidikan, Hari Libur, Master Wilayah |
+| **AKUN** | Kelola Pengguna & Role Switcher, Portal Orang Tua |
+
+> **Penting soal kolom "Peran yang bisa akses" di tabel berikut (revisi kedua):** tipe `Peran` sebagai satu union tertutup **sudah tidak ada lagi** di kontrak Bab 4 — digantikan model tiga lapis (lihat `types/pegawai.ts` & `lib/access.ts` Bab 4, SRS induk Bab 12). Setiap label di kolom akses berikut merujuk ke salah satu dari:
+> - **Kepala Madrasah, Admin Madrasah, Operator Kesiswaan, Guru BK** → dihitung dari `PenugasanJabatan` (`hasJabatan(...)`), bisa aktif berbarengan pada satu akun.
+> - **Wali Kelas, Pembina Ekstrakurikuler** → status turunan dari relasi (`isWaliKelas`/`isPembinaEkstrakurikuler`).
+> - **Guru Mapel** (istilah di tabel ini) → sebenarnya berarti "`tugas_utama` = Guru **dan** `isPengajar` benar untuk konteks terkait" — bukan nilai yang tersimpan.
+>
+> **Jangan** menulis `peran === "..."` di kode manapun untuk label-label ini — field `peran` tunggal sudah tidak ada. Satu akun pegawai bisa memenuhi banyak label sekaligus dan harus menampilkan seluruh menu yang relevan secara bersamaan, bukan bergantian. Ini koreksi dari dua implementasi sebelumnya yang berturut-turut masih keliru memperlakukan sebagian label ini sebagai nilai eksklusif — lihat instruksi koreksi terpisah untuk daftar file yang perlu direfaktor.
 
 | Rute | Halaman | Peran yang bisa akses (role switcher) |
 |---|---|---|
 | `/` | Dashboard (ringkasan beda per peran — lihat Bab 6.1) | Semua |
-| `/kesiswaan/siswa` | Daftar Siswa Induk (tabel, filter, pencarian) | Admin, Operator, Wali Kelas (view rombelnya saja) |
+| `/kesiswaan/siswa` | Daftar Siswa Induk (tabel, filter, pencarian) — form tambah/edit kini menyertakan alamat berjenjang (provinsi→kabupaten→kecamatan→desa) | Admin, Operator, Wali Kelas (view rombelnya saja) |
 | `/kesiswaan/siswa/[id]` | Detail & Edit Siswa | Admin, Operator |
 | `/kesiswaan/siswa/tambah` | Form Tambah Siswa (PPDB) | Admin, Operator |
-| `/kesiswaan/absensi` | **Rekap Presensi Siswa (read-only)** — agregasi lintas sesi/mapel dalam satu hari untuk satu rombel, dipakai Wali Kelas melihat "siapa tidak masuk hari ini lintas semua jam" dengan cepat. **Bukan tempat input** — form input dihapus dari halaman ini, digantikan tautan langsung ke `/guru-tendik/presensi-siswa` untuk tiap sesi yang belum lengkap. *(diubah — sebelumnya jadi jalur input duplikat yang menciptakan celah bypass Modul 7, lihat Bab 9 Log Deviasi)* | Wali Kelas, Guru Mapel, Admin Madrasah |
 | `/kesiswaan/kenaikan-kelas` | Wizard Kenaikan Kelas Massal (Pemetaan Kenaikan) | Admin, Operator |
 | `/kesiswaan/pindah-rombel` | Form Pengajuan Pindah Rombel (sesama & lintas tingkat) | Operator (ajukan), Kepala Madrasah (approve) |
 | `/kesiswaan/mutasi` | Form Mutasi Masuk/Keluar + status | Operator (ajukan), Kepala Madrasah (approve) |
+| `/akademik/jadwal` *(pindah dari `/guru-tendik/jadwal`)* | Penjadwalan (drag-and-drop bentrok-cek, kini memvalidasi `semester` sebagai bagian kunci unik) | Admin |
+| `/akademik/presensi-siswa` *(pindah dari `/guru-tendik/presensi-siswa`)* | **Satu-satunya jalur input presensi siswa** — Input Presensi per Sesi Tatap Muka (halaman ini yang otomatis membuktikan kehadiran guru — tidak ada halaman "presensi guru" terpisah, dan tidak ada jalur input lain di halaman manapun) | Wali Kelas, Guru Mapel |
+| `/akademik/rekap-presensi` *(pindah dari `/kesiswaan/absensi`, nama rute berubah — tautkan ulang seluruh referensi/`Link` yang lama)* | Rekap Presensi Siswa (read-only) — matriks siswa × sesi, tautan "Isi Presensi" ke sesi yang belum lengkap | Wali Kelas, Guru Mapel, Admin Madrasah |
+| `/akademik/nilai` *(baru)* | **Akses berbasis relasi, bukan label peran** (lihat Bab 12 SRS induk "Rangkap Jabatan"): siapa pun dengan `isPengajar(currentUser, id_rombel, id_mapel, semester)` bernilai benar bisa **input** nilai untuk kombinasi itu — termasuk pegawai yang kebetulan juga Wali Kelas rombel lain atau rombel yang sama. Siapa pun dengan `isWaliKelas(currentUser, id_rombel)` benar melihat **rekap lengkap lintas-mapel** rombel itu (read-only untuk mapel yang bukan diajarnya sendiri). Satu akun bisa punya kedua hak sekaligus di rombel yang sama | Guru Mapel (jabatan pokok), + status turunan Wali Kelas jika relevan |
+| `/kepegawaian/pegawai` *(pindah dari `/guru-tendik/pegawai`)* | Daftar Guru & Tendik — form kini menyertakan alamat berjenjang dan `mapel_sertifikasi` | Admin |
+| `/kepegawaian/izin` *(pindah dari `/guru-tendik/izin`)* | Catat Izin Guru (H-1 / Mendesak-Darurat), lihat riwayat izin per guru | Admin, Kepala Madrasah |
+| `/kepegawaian/kedisiplinan` *(pindah dari `/guru-tendik/kedisiplinan`)* | Rekap Kehadiran Guru, Realisasi JTM, Flag "Digantikan Mendadak" berulang, draf Surat Teguran | Kepala Madrasah |
+| `/ekstrakurikuler` *(baru)* | Daftar ekstrakurikuler, CRUD keanggotaan siswa, presensi kegiatan — dibatasi Pembina hanya untuk ekstrakurikuler yang dibinanya | Pembina Ekstrakurikuler, Admin |
+| `/bk` *(baru)* | Catatan bimbingan konseling per siswa. **Entri "Rahasia" tidak boleh dirender ke DOM untuk peran selain Guru BK penulis & Kepala Madrasah** — bukan cuma disembunyikan via CSS, filter dilakukan di service sebelum data sampai ke komponen | Guru BK, Kepala Madrasah (view) |
 | `/persetujuan` | Kotak Masuk Persetujuan (semua pengajuan menunggu) | Kepala Madrasah |
-| `/guru-tendik/pegawai` | Daftar Guru & Tendik | Admin |
-| `/guru-tendik/jadwal` | Penjadwalan (drag-and-drop bentrok-cek) | Admin |
-| `/guru-tendik/presensi-siswa` | **Satu-satunya jalur input presensi siswa** — Input Presensi per Sesi Tatap Muka (halaman ini yang otomatis membuktikan kehadiran guru — tidak ada halaman "presensi guru" terpisah, dan tidak ada jalur input lain di halaman manapun) | Wali Kelas, Guru Mapel |
-| `/guru-tendik/izin` | Catat Izin Guru (H-1 / Mendesak-Darurat), lihat riwayat izin per guru | Admin, Kepala Madrasah |
-| `/guru-tendik/kedisiplinan` | Rekap Kehadiran Guru, Realisasi JTM, Flag "Digantikan Mendadak" berulang, draf Surat Teguran | Kepala Madrasah |
 | `/persuratan` | Buat & Arsip Surat | Admin, Operator, Kepala Madrasah (approve/e-sign) |
 | `/wawasan` | Dashboard AI — siswa berisiko, rekomendasi jadwal | Kepala Madrasah, Wali Kelas |
-| `/referensi` | Mapel, Tingkat Pendidikan, Hari Libur | Admin |
-| `/akun` | Kelola Pengguna & Role Switcher (khusus Tahap 1) | Admin |
-| `/portal-ortu` | Portal Orang Tua (read-only) — placeholder fase lanjutan, boleh dibangun terakhir | Orang Tua/Wali |
+| `/referensi` | Mapel, Tingkat Pendidikan, Hari Libur, **Master Wilayah** *(baru — hanya tampilan data seed, bukan form input manual satu-satu, sesuai Bab 9A.1 SRS induk)* | Admin |
+| `/akun` | Kelola Pengguna, **Manajemen `PenugasanJabatan`** (assign/akhiri jabatan Kepala Madrasah/Admin/Operator/Guru BK ke pegawai manapun), Role Switcher Tahap 1 (kini memilih **pegawai demo**, bukan label peran — lihat Bab 6.1) | Admin |
+| `/portal-ortu` | Portal Orang Tua (read-only) — placeholder fase lanjutan, boleh dibangun terakhir. **Catatan terbuka (konsisten dengan SRS induk Bab 12):** belum ada entitas `orang_tua` formal yang menghubungkan akun ke `siswa` — bukan `Pegawai`, jadi tidak tercakup model `PenugasanJabatan`/akses aditif di atas. Selesaikan model relasinya saat modul ini benar-benar dikerjakan (Fase 4), jangan dipaksakan memakai pola `Pegawai` yang sudah ada | Orang Tua/Wali (mock terpisah, bukan bagian `Pegawai`) |
 
-### 6.1 Dashboard Berbeda per Peran (mock role switcher)
+> **Migrasi rute penting:** karena `/guru-tendik/*` dipecah ke `/akademik/*` dan `/kepegawaian/*`, seluruh `Link`/`router.push` yang menunjuk ke rute lama (termasuk query-param prefill dari Rekap Presensi ke Presensi Sesi, lihat instruksi terpisah) wajib diperbarui mengikuti path baru. Jangan biarkan rute lama tetap hidup sebagai alias — itu akan membingungkan, bukan menyelesaikan masalah IA yang sedang diperbaiki.
 
-Karena belum ada login sungguhan, buat komponen `RoleSwitcher` di header (hanya tampil di Tahap 1, ditandai jelas sebagai alat demo, bukan fitur produksi) yang mengganti `currentUser` di context global. Konten dashboard menyesuaikan:
-- **Admin Madrasah:** ringkasan seluruh modul, status sinkronisasi (mock), **widget "Rekap Kehadiran Pagi"** (agregasi real-time dari `SesiTatapMuka` & presensi siswa hari berjalan: berapa sesi terjadwal vs. sudah diinput vs. terlambat vs. digantikan, dengan daftar nama — bukan cuma angka).
-- **Kepala Madrasah:** kartu jumlah pengajuan menunggu approval (kenaikan lintas tingkat, pindah rombel, mutasi, SK), grafik kehadiran, daftar siswa berisiko dari AI, **kartu flag kedisiplinan guru** (guru dengan status "Digantikan Mendadak" berulang) dan **realisasi JTM per guru**.
-- **Operator Kesiswaan:** daftar tugas (pengajuan yang masih berstatus "Menunggu Persetujuan" miliknya), shortcut ke form kenaikan kelas/mutasi.
-- **Wali Kelas:** absensi rombelnya hari ini, siswa berisiko di rombelnya.
+### 6.1 Dashboard Komposit (mock login, revisi kedua)
+
+Karena belum ada login sungguhan, buat komponen `RoleSwitcher` di header (hanya tampil di Tahap 1, ditandai jelas sebagai alat demo) yang mengganti `currentUser` (objek `Pegawai` utuh) di context global — **bukan** memilih satu "peran" dari dropdown tertutup, melainkan memilih satu **pegawai** dari daftar seed yang masing-masing sudah punya kombinasi jabatan riilnya sendiri (lihat `types/pegawai.ts` Bab 4).
+
+Dashboard (`/`) **bersifat komposit** — merender satu blok/kartu untuk **setiap** status yang benar pada `currentUser` saat itu, bukan satu tampilan tetap per "peran". Urutan pengecekan (semua independen, semua bisa muncul bersamaan):
+
+- Jika `isAdminMadrasah`/`tugas_utama` mengelola sistem: ringkasan seluruh modul, status sinkronisasi (mock), **widget "Rekap Kehadiran Pagi"**.
+- Jika `isKepalaMadrasah`: kartu jumlah pengajuan menunggu approval, grafik kehadiran, siswa berisiko dari AI, **kartu flag kedisiplinan guru** & **realisasi JTM per guru**.
+- Jika `isOperatorKesiswaan`: daftar tugas (pengajuan "Menunggu Persetujuan" miliknya), shortcut form kenaikan kelas/mutasi.
+- Jika `tugas_utama === "Guru"` **dan** punya baris di `jadwal_pelajaran` (`isPengajar` benar untuk sesuatu): jadwal mengajar hari ini, shortcut ke `/akademik/nilai` untuk mapel yang diajarnya.
+- Jika `isWaliKelas(currentUser.id_pegawai, rombelList)` benar untuk rombel mana pun: absensi rombel tersebut hari ini, siswa berisiko di rombel itu, rekap nilai rombel yang belum lengkap — **tampilkan blok ini untuk setiap rombel** tempat dia jadi wali kelas (biasanya satu, tapi jangan hardcode asumsi itu).
+- Jika `isPembinaEkstrakurikuler` benar untuk ekstrakurikuler mana pun: daftar ekstrakurikuler yang dibinanya, jumlah anggota aktif, sesi yang belum diisi presensinya.
+- Jika `isGuruBk`: jumlah catatan BK bulan ini, siswa dengan catatan terbaru — **tidak menampilkan isi catatan "Rahasia" milik Guru BK lain**.
+
+**Wajib disediakan di data seed:** minimal satu pegawai demo yang memicu **lebih dari tiga** blok di atas sekaligus (mis. Guru + Kepala Madrasah + Wali Kelas) — inilah bukti bahwa dashboard komposit benar-benar bekerja, bukan cuma menampilkan satu blok karena kebetulan tidak pernah diuji dengan kombinasi.
 
 ---
 
@@ -344,7 +506,10 @@ Karena belum ada login sungguhan, buat komponen `RoleSwitcher` di header (hanya 
 6. **Modul Guru, Jadwal, Persuratan:** sesuai Bab 4 SRS induk bagian B & C.
 7. **Modul Kehadiran Guru & JTM:** halaman Input Presensi per Sesi Tatap Muka (guru pengganti terdeteksi otomatis, tidak ada form penunjukan formal), halaman Catat Izin Guru (khusus akun Admin/Kepala Madrasah — pastikan UI tidak menyediakan akses ini untuk peran Guru Mapel/Wali Kelas), dan Rekap Kedisiplinan/JTM dengan badge status memakai token warna Bab 3.
 8. **Modul Wawasan (AI):** dashboard prediksi siswa berisiko dan rekomendasi jadwal — **seluruhnya data mock statis**, ditandai jelas dengan token `--color-ai` dan label "Hasil AI — perlu verifikasi" (lihat SRS induk Bab 5).
-9. **Portal Orang Tua & polish akhir:** halaman terakhir karena prioritas terendah di roadmap SRS induk Bab 14.
+9. **Restrukturisasi Navigasi (baru, wajib sebelum modul 10–12):** pecah grup "GURU & TENDIK" menjadi "AKADEMIK" (Penjadwalan, Presensi Sesi, Rekap Presensi, Nilai Harian) dan "KEPEGAWAIAN" (Data Pegawai, Izin, Kedisiplinan) sesuai peta rute baru Bab 6. Pindahkan file rute yang sudah ada (`/guru-tendik/*` → `/akademik/*` dan `/kepegawaian/*`), perbarui seluruh `Link`/query-param yang menunjuk ke path lama, dan hapus rute lama sepenuhnya — jangan disisakan sebagai alias.
+10. **Modul Nilai Dasar (baru):** halaman `/akademik/nilai` — input nilai oleh Guru Mapel dengan validasi `id_pegawai_penilai` harus guru yang benar-benar terjadwal mengajar mapel+rombel+semester terkait (SRS Bab 10 poin 17), dan tampilan rekap read-only untuk Wali Kelas.
+11. **Modul Ekstrakurikuler & BK (baru):** halaman `/ekstrakurikuler` (Pembina, dibatasi hanya ekstrakurikuler yang dibinanya) dan `/bk` (Guru BK, dengan **filter kerahasiaan di level service** — entri "Rahasia" difilter sebelum data dikirim ke komponen, bukan disembunyikan di UI). Tambahkan field alamat berjenjang (Master Wilayah) ke form Siswa dan Pegawai, plus halaman referensi wilayah (read-only, dari data seed).
+12. **Portal Orang Tua & polish akhir:** halaman terakhir karena prioritas terendah di roadmap SRS induk Bab 14.
 
 ---
 
@@ -359,7 +524,10 @@ Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 - [ ] Status persetujuan tervisualisasikan dengan badge/strip warna sesuai token Bab 3, konsisten di semua tempat status itu muncul (tabel, kartu, detail).
 - [ ] Halaman responsif minimal sampai lebar tablet (768px) — mengingat operator madrasah kerap memakai perangkat non-desktop.
 - [ ] Role switcher membatasi tampilan/aksi sesuai matriks Bab 6 (walau ini bukan keamanan sungguhan, UI wajib konsisten dengan RBAC yang akan diberlakukan sungguhan di Tahap 2).
-- [ ] Khusus modul Kehadiran Guru: `is_guru_pengganti` dan `status_kehadiran_guru` **tidak pernah** muncul sebagai field yang bisa diedit di form manapun — keduanya murni hasil kalkulasi mock service berdasarkan `id_pegawai_pelaksana` vs. `id_pegawai` di jadwal. Form Izin Guru hanya bisa dibuka dari akun Admin/Kepala Madrasah (role switcher), bukan Guru Mapel/Wali Kelas. `status_rekonsiliasi` pada `IzinGuru` juga read-only — dihitung mock service dari selisih `dilaporkan_pada` vs `tanggal_izin` (>1x24 jam = "Terlambat"), ditandai mencolok (token `--color-amber`) di halaman Rekap Kedisiplinan, bukan disembunyikan.
+- [ ] Khusus modul Kehadiran Guru: `is_guru_pengganti` dan `status_kehadiran_guru` **tidak pernah** muncul sebagai field yang bisa diedit di form manapun — keduanya murni hasil kalkulasi mock service berdasarkan `id_pegawai_pelaksana` vs. `id_pegawai` di jadwal. Form Izin Guru hanya bisa dibuka oleh akun dengan `hasJabatan(currentUser.id_pegawai, "Kepala Madrasah", ...)` atau `hasJabatan(..., "Admin Madrasah", ...)` bernilai benar — bukan dicek dari field peran tunggal. `status_rekonsiliasi` pada `IzinGuru` juga read-only — dihitung mock service dari selisih `dilaporkan_pada` vs `tanggal_izin` (>1x24 jam = "Terlambat"), ditandai mencolok (token `--color-amber`) di halaman Rekap Kedisiplinan, bukan disembunyikan.
+- [ ] **Khusus restrukturisasi navigasi:** tidak ada satu pun rute `/guru-tendik/*` yang masih hidup setelah Modul 9 selesai — grep seluruh codebase untuk memastikan.
+- [ ] **Khusus Modul Nilai:** service `nilai.mock.ts` menolak (throw error) input jika `id_pegawai_penilai` bukan guru yang terjadwal mengajar mapel+rombel+semester terkait — validasi ini di service, bukan hanya disembunyikan di UI (konsisten dengan pola validasi `AbsensiService`).
+- [ ] **Khusus Modul BK:** buktikan lewat kode bahwa `catatan_bk` "Rahasia" difilter di `bk.mock.ts` sebelum dikembalikan ke pemanggil non-berwenang — bukan difilter di komponen React (kalau difilter di komponen, data tetap ada di response network/state, itu bukan kerahasiaan sungguhan).
 
 ---
 
@@ -369,7 +537,7 @@ Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 
 | Tanggal | Modul | Deviasi/Asumsi | Alasan |
 |---|---|---|---|
-| 2026-08-03 | Kesiswaan / Kehadiran Guru | Mengubah fungsi `/kesiswaan/absensi` menjadi halaman Rekap (Read-Only) dan memperbaiki tipe data `AbsensiSiswa` dengan kunci `(id_siswa, id_sesi)`. | Menghindari duplikasi input presensi dan bypass pencatatan JTM guru, karena pencatatan wajib melalui `/guru-tendik/presensi-siswa` per sesi. |
+| 2026-08-04 | Arsitektur | Menggantikan pendekatan `Peran` menjadi `tugas_utama` (Guru/Tendik) + `PenugasanJabatan` aditif | Pegawai (terutama Guru) dapat memiliki lebih dari satu jabatan skala-madrasah (seperti Kepala Madrasah atau Guru BK) sekaligus tetap aktif mengajar dan menjadi wali kelas, sehingga model role eksklusif tidak realistis. |
 
 ---
 

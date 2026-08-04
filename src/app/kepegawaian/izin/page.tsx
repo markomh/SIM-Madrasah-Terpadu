@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -19,7 +20,7 @@ import { services } from "@/services";
 import type { IzinGuru, Pegawai } from "@/types";
 
 export default function IzinGuruPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version, bump } = useDataVersion();
 
   const [izins, setIzins] = useState<IzinGuru[]>([]);
@@ -37,7 +38,7 @@ export default function IzinGuruPage() {
   const [dilaporkanPada, setDilaporkanPada] = useState(new Date().toISOString().slice(0, 16));
 
   useEffect(() => {
-    if (peran !== "Admin Madrasah" && peran !== "Kepala Madrasah") return;
+    if (!(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) && !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) return;
     
     setLoading(true);
     Promise.all([
@@ -52,7 +53,7 @@ export default function IzinGuruPage() {
     }).finally(() => {
       setLoading(false);
     });
-  }, [version, peran]);
+  }, [version]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +83,7 @@ export default function IzinGuruPage() {
     }
   };
 
-  if (peran !== "Admin Madrasah" && peran !== "Kepala Madrasah") {
+  if (!(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) && !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) {
     return (
       <AppShell title="Izin Guru">
         <ErrorBlock message="Akses Ditolak. Halaman ini khusus untuk Admin Madrasah dan Kepala Madrasah." />

@@ -188,7 +188,7 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
     await simulateLatency();
     const store = loadStore();
     
-    const gurus = store.pegawai.filter(p => p.tugas_utama === "Guru Mapel");
+    const gurus = store.pegawai.filter(p => p.tugas_utama === "Guru");
     
     return gurus.map(guru => {
       const jadwalGuru = store.jadwal.filter(j => j.id_pegawai === guru.id_pegawai);

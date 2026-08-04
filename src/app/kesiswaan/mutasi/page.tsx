@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +28,7 @@ type MasukValues = z.infer<typeof mutasiMasukSchema>;
 type KeluarValues = z.infer<typeof mutasiKeluarSchema>;
 
 export default function MutasiPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { selected } = useTahunAjaran();
   const { version, bump } = useDataVersion();
   const [tab, setTab] = useState<"masuk" | "keluar" | "daftar">("daftar");
@@ -38,7 +39,7 @@ export default function MutasiPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  const canAjukan = peran === "Operator Kesiswaan" || peran === "Admin Madrasah";
+  const canAjukan = (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
 
   const masukForm = useForm<MasukValues>({
     resolver: zodResolver(mutasiMasukSchema),

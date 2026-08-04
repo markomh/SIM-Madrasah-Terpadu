@@ -11,6 +11,8 @@ export const siswaFormSchema = z.object({
   nama_ibu_kandung: z.string().min(2, "Nama ibu kandung wajib"),
   status_siswa: z.enum(["Aktif", "Lulus", "Mutasi Keluar", "Drop Out"]),
   jalur_masuk: z.enum(["PPDB Reguler", "Mutasi Masuk"]),
+  alamat_detail: z.string().min(5, "Detail alamat wajib diisi"),
+  id_desa: z.string().min(1, "Desa wajib diisi"),
 });
 
 export type SiswaFormValues = z.infer<typeof siswaFormSchema>;

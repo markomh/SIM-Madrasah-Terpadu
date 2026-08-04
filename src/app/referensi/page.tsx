@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -18,7 +19,7 @@ import { services } from "@/services";
 import type { HariLibur, MataPelajaran, Rombel, TingkatPendidikan } from "@/types";
 
 export default function ReferensiPage() {
-  const { peran } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { selected } = useTahunAjaran();
   const { version, bump } = useDataVersion();
   const [loading, setLoading] = useState(true);
@@ -62,7 +63,7 @@ export default function ReferensiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected?.id_tahun, version]);
 
-  if (peran !== "Admin Madrasah") {
+  if (!(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList))) {
     return (
       <AppShell title="Referensi">
         <ErrorBlock message="Hanya Admin Madrasah yang dapat mengelola referensi." />

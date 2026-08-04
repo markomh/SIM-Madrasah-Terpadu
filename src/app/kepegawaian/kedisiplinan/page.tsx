@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -29,7 +30,7 @@ type RekapGuru = {
 };
 
 export default function KedisiplinanPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version, bump } = useDataVersion();
 
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -41,7 +42,7 @@ export default function KedisiplinanPage() {
   const [creatingSurat, setCreatingSurat] = useState<string | null>(null);
 
   useEffect(() => {
-    if (peran !== "Kepala Madrasah") return;
+    if (!(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) return;
 
     setLoading(true);
     services.sesiTatapMuka.getRekapKedisiplinan(selectedMonth)
@@ -52,7 +53,7 @@ export default function KedisiplinanPage() {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
 
-  }, [version, peran, selectedMonth]);
+  }, [version, selectedMonth]);
 
   const handleBuatTeguran = async (id_pegawai: string) => {
     if (!currentUser) return;
@@ -74,7 +75,7 @@ export default function KedisiplinanPage() {
     }
   };
 
-  if (peran !== "Kepala Madrasah") {
+  if (!(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) {
     return (
       <AppShell title="Kedisiplinan Guru">
         <ErrorBlock message="Halaman ini khusus untuk Kepala Madrasah." />

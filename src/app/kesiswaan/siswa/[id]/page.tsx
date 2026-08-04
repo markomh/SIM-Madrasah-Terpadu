@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -23,23 +24,53 @@ import { siswaFormSchema, type SiswaFormValues } from "@/lib/schemas";
 import { services } from "@/services";
 import type { Siswa } from "@/types";
 
+import type { MasterProvinsi, MasterKabupaten, MasterKecamatan, MasterDesa } from "@/types/wilayah";
+
 export default function DetailSiswaPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { peran } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { bump } = useDataVersion();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [siswa, setSiswa] = useState<Siswa | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const canEdit = peran === "Admin Madrasah" || peran === "Operator Kesiswaan";
+  const [provinsi, setProvinsi] = useState<MasterProvinsi[]>([]);
+  const [kabupaten, setKabupaten] = useState<MasterKabupaten[]>([]);
+  const [kecamatan, setKecamatan] = useState<MasterKecamatan[]>([]);
+  const [desa, setDesa] = useState<MasterDesa[]>([]);
+  
+  const [selectedProv, setSelectedProv] = useState("");
+  const [selectedKab, setSelectedKab] = useState("");
+  const [selectedKec, setSelectedKec] = useState("");
+  const canEdit = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList));
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SiswaFormValues>({ resolver: zodResolver(siswaFormSchema) });
+
+  useEffect(() => {
+    services.wilayah.getProvinsi().then(setProvinsi).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (selectedProv) services.wilayah.getKabupaten(selectedProv).then(setKabupaten).catch(() => {});
+    else setKabupaten([]);
+  }, [selectedProv]);
+
+  useEffect(() => {
+    if (selectedKab) services.wilayah.getKecamatan(selectedKab).then(setKecamatan).catch(() => {});
+    else setKecamatan([]);
+  }, [selectedKab]);
+
+  useEffect(() => {
+    if (selectedKec) services.wilayah.getDesa(selectedKec).then(setDesa).catch(() => {});
+    else setDesa([]);
+  }, [selectedKec]);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +95,19 @@ export default function DetailSiswaPage() {
           nama_ibu_kandung: data.nama_ibu_kandung,
           status_siswa: data.status_siswa,
           jalur_masuk: data.jalur_masuk,
+          alamat_detail: data.alamat_detail || "",
+          id_desa: data.id_desa || "",
         });
+
+        if (data.id_desa) {
+          services.wilayah.getAncestors(data.id_desa).then(ans => {
+            if (ans) {
+              setSelectedProv(ans.id_provinsi);
+              setSelectedKab(ans.id_kabupaten);
+              setSelectedKec(ans.id_kecamatan);
+            }
+          }).catch(() => {});
+        }
       })
       .catch((e: Error) => {
         if (!cancelled) setError(e.message);
@@ -145,6 +188,41 @@ export default function DetailSiswaPage() {
               <Field label="Agama" error={errors.agama?.message}>
                 <input className={inputClass} disabled={!canEdit} {...register("agama")} />
               </Field>
+
+              {/* Wilayah Alamat Berjenjang */}
+              <div className="md:col-span-2 grid gap-4 md:grid-cols-4 p-4 border border-border rounded-[6px] bg-paper">
+                <div className="md:col-span-4 mb-2"><h3 className="text-sm font-semibold">Alamat Domisili</h3></div>
+                <div className="md:col-span-4">
+                  <Field label="Detail Alamat (Jalan, RT/RW)" error={errors.alamat_detail?.message}>
+                    <input className={inputClass} disabled={!canEdit} {...register("alamat_detail")} />
+                  </Field>
+                </div>
+                <Field label="Provinsi">
+                  <select className={inputClass} disabled={!canEdit} value={selectedProv} onChange={(e) => { setSelectedProv(e.target.value); setSelectedKab(""); setSelectedKec(""); reset({...watch(), id_desa: ""}); }}>
+                    <option value="">-- Pilih --</option>
+                    {provinsi.map(p => <option key={p.id_provinsi} value={p.id_provinsi}>{p.nama_provinsi}</option>)}
+                  </select>
+                </Field>
+                <Field label="Kabupaten/Kota">
+                  <select className={inputClass} disabled={!canEdit || !selectedProv} value={selectedKab} onChange={(e) => { setSelectedKab(e.target.value); setSelectedKec(""); reset({...watch(), id_desa: ""}); }}>
+                    <option value="">-- Pilih --</option>
+                    {kabupaten.map(p => <option key={p.id_kabupaten} value={p.id_kabupaten}>{p.nama_kabupaten}</option>)}
+                  </select>
+                </Field>
+                <Field label="Kecamatan">
+                  <select className={inputClass} disabled={!canEdit || !selectedKab} value={selectedKec} onChange={(e) => { setSelectedKec(e.target.value); reset({...watch(), id_desa: ""}); }}>
+                    <option value="">-- Pilih --</option>
+                    {kecamatan.map(p => <option key={p.id_kecamatan} value={p.id_kecamatan}>{p.nama_kecamatan}</option>)}
+                  </select>
+                </Field>
+                <Field label="Desa/Kelurahan" error={errors.id_desa?.message}>
+                  <select className={inputClass} disabled={!canEdit || !selectedKec} {...register("id_desa")}>
+                    <option value="">-- Pilih --</option>
+                    {desa.map(p => <option key={p.id_desa} value={p.id_desa}>{p.nama_desa}</option>)}
+                  </select>
+                </Field>
+              </div>
+
               <Field label="Status" error={errors.status_siswa?.message}>
                 <select className={inputClass} disabled={!canEdit} {...register("status_siswa")}>
                   <option value="Aktif">Aktif</option>

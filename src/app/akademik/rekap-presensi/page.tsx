@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -19,11 +20,11 @@ import { services } from "@/services";
 import type { AbsensiSiswa, Rombel, Siswa, SesiTatapMuka, JadwalPelajaran, MataPelajaran } from "@/types";
 
 export default function AbsensiPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, ekstraList } = useAuth();
   const { selected } = useTahunAjaran();
   const { version, bump } = useDataVersion();
   const [tanggal, setTanggal] = useState(new Date().toISOString().slice(0, 10));
-  const [rombelList, setRombelList] = useState<Rombel[]>([]);
+  const [rombelList, setLocalRombelList] = useState<Rombel[]>([]);
   const [idRombel, setIdRombel] = useState("");
   
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
@@ -35,7 +36,7 @@ export default function AbsensiPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const canAccess = peran === "Wali Kelas" || peran === "Guru Mapel" || peran === "Admin Madrasah";
+  const canAccess = (currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) || (currentUser?.tugas_utama === "Guru") || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
 
   useEffect(() => {
     if (!canAccess) return;
@@ -44,17 +45,17 @@ export default function AbsensiPage() {
       .getRombel({ id_tahun: selected?.id_tahun })
       .then(async (rb) => {
         let filtered = rb;
-        if (peran === "Wali Kelas" && currentUser) {
+        if ((currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) && currentUser) {
           filtered = rb.filter((r) => r.id_wali_kelas === currentUser.id_pegawai);
         }
-        setRombelList(filtered);
+        setLocalRombelList(filtered);
         const first = filtered[0]?.id_rombel ?? "";
         setIdRombel((prev) => prev || first);
         setError(null);
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [selected?.id_tahun, peran, currentUser, canAccess]);
+  }, [selected?.id_tahun, currentUser, canAccess]);
 
   useEffect(() => {
     if (!idRombel || !canAccess) return;
@@ -113,7 +114,7 @@ export default function AbsensiPage() {
           <span className="text-[10px] text-muted">{jadwal?.jam_mulai} - {jadwal?.jam_selesai}</span>
           {belumDiisi && (
             <Link 
-              href={`/guru-tendik/presensi-siswa?rombel=${idRombel}&tanggal=${tanggal}&sesi=${sesi.id_sesi}`}
+              href={`/akademik/presensi-siswa?rombel=${idRombel}&tanggal=${tanggal}&sesi=${sesi.id_sesi}`}
               className="text-[10px] text-primary hover:underline bg-primary-soft px-2 py-0.5 rounded border border-primary/20"
             >
               Isi Presensi

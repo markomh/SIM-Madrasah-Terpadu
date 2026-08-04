@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -17,14 +18,14 @@ import type { RekomendasiJadwal } from "@/services/wawasan.service";
 import type { Siswa } from "@/types";
 
 export default function WawasanPage() {
-  const { peran } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version } = useDataVersion();
   const [risiko, setRisiko] = useState<Siswa[]>([]);
   const [rekom, setRekom] = useState<RekomendasiJadwal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const canAccess = peran === "Kepala Madrasah" || peran === "Wali Kelas" || peran === "Admin Madrasah";
+  const canAccess = (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
 
   useEffect(() => {
     if (!canAccess) return;

@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +26,7 @@ import { z } from "zod";
 type FormValues = z.infer<typeof pindahRombelSchema>;
 
 export default function PindahRombelPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { selected } = useTahunAjaran();
   const { version, bump } = useDataVersion();
   const [siswa, setSiswa] = useState<Siswa[]>([]);
@@ -35,7 +36,7 @@ export default function PindahRombelPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  const canAjukan = peran === "Operator Kesiswaan" || peran === "Admin Madrasah";
+  const canAjukan = (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
 
   const {
     register,

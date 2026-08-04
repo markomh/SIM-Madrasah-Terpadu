@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -22,7 +23,7 @@ import { services } from "@/services";
 import type { Surat } from "@/types";
 
 export default function PersuratanPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version, bump } = useDataVersion();
   const [surat, setSurat] = useState<Surat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export default function PersuratanPage() {
   const [mockMsg, setMockMsg] = useState<string | null>(null);
 
   const canAccess =
-    peran === "Admin Madrasah" || peran === "Operator Kesiswaan" || peran === "Kepala Madrasah";
+    (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
 
   useEffect(() => {
     if (!canAccess) return;
@@ -158,7 +159,7 @@ export default function PersuratanPage() {
                           Ajukan TTD
                         </button>
                       ) : null}
-                      {s.status === "Menunggu Tanda Tangan" && peran === "Kepala Madrasah" ? (
+                      {s.status === "Menunggu Tanda Tangan" && (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) ? (
                         <button
                           type="button"
                           className="text-left text-xs font-semibold text-primary"

@@ -231,15 +231,33 @@ Mengadaptasi pola dashboard EMIS GTK/EMIS 4.0 namun disederhanakan: Header, Side
 - Data awal (*seed*) keempat tabel ini wajib diimpor dari sumber resmi Kemendagri/Kemenag sebelum modul Kesiswaan digunakan produksi — bukan diinput manual satu per satu oleh Admin.
 - **Field alamat yang sama berlaku juga untuk `pegawai`** (lihat Bab 9B) — konsisten satu standar wilayah untuk seluruh entitas yang punya alamat.
 
-### B. Entitas Guru & Tendik (Tabel: `pegawai`)
+### B. Entitas Guru & Tendik (Tabel: `pegawai`) *(diperbaiki — lihat penjelasan penting di bawah)*
 - `id_pegawai` (PK)
 - `nik` (16 digit, terenkripsi)
 - `nip`, `npk`
 - `nama_lengkap_gelar`
 - `status_kepegawaian` (PNS, Non-PNS, Honorer)
-- `tugas_utama` (Guru Mapel, Guru BK, Tendik, **Pembina Ekstrakurikuler** *(baru)*)
-- `alamat_detail`, `id_desa` *(baru, sama seperti `siswa` — lihat Bab 9A.1)*
-- `mapel_sertifikasi` *(baru, nullable)* — array/tabel pivot ke `mata_pelajaran`, dipakai memvalidasi linearitas jam mengajar yang dijanjikan Bab 4B tapi sebelumnya tidak punya data untuk dicocokkan
+- `tugas_utama` *(disederhanakan)* — hanya **"Guru"** atau **"Tendik"**. Ini murni kategori kepegawaian dasar (apakah orang ini mengajar atau tidak), **bukan** tempat menyimpan jabatan/tugas tambahan.
+- `alamat_detail`, `id_desa` *(sama seperti `siswa` — lihat Bab 9A.1)*
+- `mapel_sertifikasi` *(nullable)* — array/tabel pivot ke `mata_pelajaran`, dipakai memvalidasi linearitas jam mengajar yang dijanjikan Bab 4B
+
+> **Koreksi penting — hasil klarifikasi ulang:** rancangan sebelumnya keliru menaruh "Guru BK" dan "Pembina Ekstrakurikuler" sebagai nilai `tugas_utama`, dan versi RBAC sebelumnya (revisi pertama Bab 12) juga masih keliru menaruh "Kepala Madrasah", "Admin Madrasah", dan "Operator Kesiswaan" sebagai satu nilai `Peran` eksklusif. **Keduanya salah dengan alasan yang sama**: di lapangan, **Guru adalah satu entitas tunggal** yang dapat menyandang kombinasi jabatan/tugas tambahan apa pun secara bersamaan — termasuk menjadi Kepala Madrasah (paling umum: Kepala Madrasah tetap seorang guru aktif mengajar, bukan jabatan struktural terpisah), menjadi Operator Kesiswaan (lazim di madrasah kecil dengan staf terbatas), sekaligus Wali Kelas, sekaligus Pembina Ekstrakurikuler. Seluruh jabatan/tugas tambahan ini **tidak boleh disimpan sebagai field tunggal di `pegawai`** — lihat entitas `penugasan_jabatan` di bawah, yang menggantikan pendekatan field tunggal tersebut sepenuhnya.
+
+### B.1 Entitas Penugasan Jabatan *(baru — model terpadu untuk jabatan yang TIDAK punya "rumah" alami di entitas lain)*
+Satu tabel yang menaungi jabatan/tugas tambahan yang cakupannya **seluruh madrasah** (bukan terikat ke satu rombel/ekstrakurikuler spesifik yang sudah punya FK sendiri):
+
+- `penugasan_jabatan`: `id_penugasan` (PK), `id_pegawai` (FK), `jenis_jabatan` (enum: **Kepala Madrasah, Admin Madrasah, Operator Kesiswaan, Guru BK**), `id_tahun` (FK — penugasan berlaku per tahun ajaran, karena jabatan seperti Kepala Madrasah lazim berganti tiap periode), `tanggal_mulai`, `tanggal_selesai` (nullable), `status` (Aktif/Berakhir)
+- Satu pegawai bisa punya **banyak baris aktif sekaligus** di tabel ini (itulah intinya) — mis. satu baris `jenis_jabatan` = "Kepala Madrasah", satu baris lagi `jenis_jabatan` = "Guru BK", keduanya `status` = "Aktif" pada tahun ajaran yang sama, untuk `id_pegawai` yang sama.
+- **Sengaja TIDAK mencakup Wali Kelas dan Pembina Ekstrakurikuler** — dua jabatan itu sudah punya sumber kebenaran sendiri yang lebih tepat: `rombel.id_wali_kelas` (Bab 9C) dan `ekstrakurikuler.id_pembina` (Bab 9N). Menduplikasinya ke sini akan menciptakan dua sumber kebenaran yang berisiko saling bertentangan — dihindari sepenuhnya.
+- **"Guru Mapel" dan "Guru Kelas" juga sengaja TIDAK ada di enum ini** — keduanya bukan jabatan yang perlu ditugaskan secara terpisah, melainkan **konsekuensi otomatis dari baris `jadwal_pelajaran`** yang dimiliki pegawai tersebut (lihat penjelasan pola "Guru Kelas vs Guru Mapel" di Bab 10 poin 21).
+- **Ringkasan lengkap seluruh sumber status jabatan** (supaya tidak ambigu di mana mencari status apa):
+
+  | Jabatan/Status | Sumber Kebenaran | Cakupan |
+  |---|---|---|
+  | Kepala Madrasah, Admin Madrasah, Operator Kesiswaan, Guru BK | `penugasan_jabatan.jenis_jabatan` | Seluruh madrasah |
+  | Wali Kelas | `rombel.id_wali_kelas` | Per rombel |
+  | Pembina Ekstrakurikuler | `ekstrakurikuler.id_pembina` | Per ekstrakurikuler |
+  | Guru Kelas / Guru Mapel (pola mengajar) | `jadwal_pelajaran` (pola distribusi baris, lihat Bab 10 poin 21) | Per rombel+mapel+semester |
 
 ### C. Entitas Akademik & Referensi
 - `tahun_ajaran` *(diperbaiki — granularitas semula per-semester berisiko membuat rombel "berpindah" palsu tiap semester)*: `id_tahun` (PK), `nama_tahun` (contoh: "2026/2027"), `status_aktif`. **Satu baris mewakili satu tahun ajaran penuh (2 semester), bukan per-semester.** `semester` dipindah menjadi field di `jadwal_pelajaran` (lihat di bawah).
@@ -323,10 +341,10 @@ Dirancang secukupnya untuk dua kebutuhan yang sudah dijanjikan tapi belum punya 
 - Validasi tingkat aplikasi: `id_pegawai_penilai` harus guru yang memang terjadwal mengajar `id_mapel` (via `komponen_nilai` → `mata_pelajaran`) di `id_rombel` tersebut pada semester terkait — mencegah guru menilai mapel/rombel yang bukan tanggung jawabnya.
 
 ### N. Entitas Ekstrakurikuler & Bimbingan Konseling *(baru)*
-- `ekstrakurikuler`: `id_ekstra` (PK), `nama_ekstra`, `id_pembina` (FK ke `pegawai`, `tugas_utama` = "Pembina Ekstrakurikuler"), `id_tahun` (FK)
+- `ekstrakurikuler`: `id_ekstra` (PK), `nama_ekstra`, `id_pembina` (FK ke `pegawai` — pegawai mana pun dengan `tugas_utama` = "Guru", tidak dibatasi jabatan tambahan tertentu; status "Pembina" untuk ekstrakurikuler ini justru **didefinisikan oleh** keberadaan FK ini, bukan sebaliknya — lihat Bab 9B.1), `id_tahun` (FK)
 - `keanggotaan_ekstra`: `id_keanggotaan` (PK), `id_siswa` (FK), `id_ekstra` (FK), `tanggal_mulai`, `tanggal_selesai` (nullable), `status` (Aktif/Keluar) — mengikuti pola riwayat yang sama seperti `anggota_rombel` (Bab 9D), bukan relasi langsung tanpa jejak waktu
 - `absensi_ekstra`: `id_absensi_ekstra` (PK), `id_keanggotaan` (FK), `tanggal`, `status` (Hadir/Tidak Hadir) — terpisah dari `absensi_siswa` karena jadwal ekstrakurikuler tidak terikat `jadwal_pelajaran`/sesi tatap muka reguler
-- `catatan_bk`: `id_catatan` (PK), `id_siswa` (FK), `id_pegawai_bk` (FK ke `pegawai`, `tugas_utama` = "Guru BK"), `tanggal`, `kategori` (Akademik/Perilaku/Pribadi/Sosial), `catatan` (teks), `tingkat_kerahasiaan` (Umum/Rahasia — "Rahasia" hanya bisa dibaca Guru BK bersangkutan dan Kepala Madrasah, tidak oleh Wali Kelas/Operator, lihat Bab 12)
+- `catatan_bk`: `id_catatan` (PK), `id_siswa` (FK), `id_pegawai_bk` (FK ke `pegawai` — pegawai dengan baris `penugasan_jabatan.jenis_jabatan` = "Guru BK" berstatus Aktif, lihat Bab 9B.1, bukan lagi merujuk `tugas_utama`), `tanggal`, `kategori` (Akademik/Perilaku/Pribadi/Sosial), `catatan` (teks), `tingkat_kerahasiaan` (Umum/Rahasia — "Rahasia" hanya bisa dibaca Guru BK bersangkutan dan Kepala Madrasah, tidak oleh Wali Kelas/Operator, lihat Bab 12)
 
 ---
 
@@ -400,7 +418,14 @@ Dirancang secukupnya untuk dua kebutuhan yang sudah dijanjikan tapi belum punya 
 
 16. **Granularitas semester:** `tahun_ajaran` merepresentasikan satu tahun penuh (2 semester); `rombel` dan `anggota_rombel` **tidak berubah** saat pergantian semester dalam tahun ajaran yang sama — hanya `jadwal_pelajaran` (termasuk field `semester`-nya) yang berbeda. Proses kenaikan kelas (Bab 10 poin 7) tetap hanya terjadi di **akhir tahun ajaran**, bukan tiap pergantian semester.
 
-17. **Validasi input nilai:** sistem menolak `nilai_siswa` jika `id_pegawai_penilai` bukan guru yang terjadwal (`jadwal_pelajaran`) mengajar `id_mapel` terkait di `id_rombel` dan `semester` yang sama — mencegah guru menilai di luar tanggung jawabnya.
+17. **Validasi input nilai — berbasis relasi, bukan berbasis label peran:** sistem menolak `nilai_siswa` jika `id_pegawai_penilai` bukan guru yang terjadwal (`jadwal_pelajaran`) mengajar `id_mapel` terkait di `id_rombel` dan `semester` yang sama — mencegah guru menilai di luar tanggung jawabnya. Validasi ini murni memeriksa keberadaan baris `jadwal_pelajaran` yang cocok, **tidak peduli** apakah `id_pegawai_penilai` tersebut juga berstatus wali kelas di rombel itu atau bukan — status wali kelas tidak menambah maupun mengurangi hak input nilai, karena hak itu murni berasal dari relasi mengajar.
+
+20. **Rangkap jabatan (diperbaiki total — revisi kedua):** jabatan berskala seluruh madrasah — **Kepala Madrasah, Admin Madrasah, Operator Kesiswaan, Guru BK** — disimpan sebagai baris di `penugasan_jabatan` (Bab 9B.1). Jabatan berskala per-rombel/per-kegiatan — **Wali Kelas** (`rombel.id_wali_kelas`) dan **Pembina Ekstrakurikuler** (`ekstrakurikuler.id_pembina`) — tetap memakai FK yang sudah ada di entitas masing-masing, bukan diduplikasi ke `penugasan_jabatan`. Satu pegawai dapat memiliki kombinasi jabatan dari **kedua kelompok sumber ini sekaligus**, dalam jumlah berapa pun — termasuk kombinasi yang terdengar tidak lazim di organisasi umum tapi sangat lazim di madrasah: Kepala Madrasah yang tetap mengajar dan menjadi wali kelas, atau guru yang merangkap Operator Kesiswaan karena keterbatasan staf. Seluruh hak akses dari tiap jabatan/status bersifat **aditif**, dihitung ulang dari sumber kebenaran masing-masing (bukan disimpan sebagai satu field gabungan) — tidak boleh ada logika (UI maupun backend) yang mengasumsikan satu pegawai hanya bisa punya satu jabatan aktif pada satu waktu.
+
+21. **Pola "Guru Kelas" vs "Guru Mapel" (baru — klarifikasi, tidak mengubah struktur data):** kedua pola mengajar ini **tidak butuh entitas atau field terpisah** — keduanya adalah bentuk distribusi data yang berbeda pada tabel `jadwal_pelajaran` yang sama:
+ - **Pola "Guru Kelas"** (umum di jenjang MI/SD): satu guru punya banyak baris `jadwal_pelajaran` dengan `id_rombel` yang **sama** tapi `id_mapel` **berbeda-beda** (mengajar hampir semua mapel di satu rombel yang sama). Guru ini pada umumnya (meski tidak selalu) juga tercatat sebagai Wali Kelas rombel tersebut di `penugasan_jabatan`.
+ - **Pola "Guru Mapel"** (umum di jenjang MTs/MA): satu guru punya banyak baris `jadwal_pelajaran` dengan `id_mapel` yang **sama** tapi `id_rombel` **berbeda-beda** (mengajar satu/beberapa mapel spesialisasi di banyak rombel).
+ - Hak input presensi (`sesi_tatap_muka`) dan nilai (`nilai_siswa`) **identik untuk kedua pola** — keduanya divalidasi murni dari keberadaan baris `jadwal_pelajaran` yang cocok (Bab 10 poin 17), tanpa perlu tahu pola mana yang sedang berlaku. Sistem tidak perlu — dan sebaiknya tidak — membedakan "tipe guru" secara eksplisit; cukup membaca `jadwal_pelajaran` apa adanya.
 
 18. **Keanggotaan ekstrakurikuler** mengikuti pola riwayat yang sama seperti keanggotaan rombel (Bab 10 poin 6): satu siswa hanya boleh punya satu baris `keanggotaan_ekstra` aktif (`tanggal_selesai IS NULL`) per `id_ekstra` yang sama pada satu waktu, meski boleh aktif di lebih dari satu ekstrakurikuler berbeda secara bersamaan.
 
@@ -426,8 +451,18 @@ erDiagram
         string npk
         string nama_lengkap
         string status_kepegawaian
-        string tugas_utama "Guru Mapel/Guru BK/Tendik/Pembina Ekstra"
+        enum tugas_utama "Guru/Tendik"
         int id_desa FK
+    }
+
+    PENUGASAN_JABATAN {
+        int id_penugasan PK
+        int id_pegawai FK
+        enum jenis_jabatan "Kepala Madrasah/Admin Madrasah/Operator Kesiswaan/Guru BK"
+        int id_tahun FK
+        date tanggal_mulai
+        date tanggal_selesai "Null jika masih aktif"
+        enum status "Aktif/Berakhir"
     }
 
     SISWA {
@@ -622,6 +657,8 @@ erDiagram
     }
 
     %% Relasi (Business Rules)
+    PEGAWAI ||--o{ PENUGASAN_JABATAN : "menyandang jabatan"
+    TAHUN_AJARAN ||--o{ PENUGASAN_JABATAN : "berlaku pada"
     TAHUN_AJARAN ||--o{ ROMBEL : "mempunyai"
     TINGKAT_PENDIDIKAN ||--o{ ROMBEL : "mengelompokkan"
     PEGAWAI ||--o{ ROMBEL : "menjadi wali kelas"
@@ -662,6 +699,7 @@ erDiagram
 
 ### Penjelasan Relasi Kunci
 
+- **`PENUGASAN_JABATAN`** adalah jawaban atas prinsip "Guru sebagai satu entitas tunggal" (Bab 12): satu `id_pegawai` bisa punya banyak baris aktif sekaligus di sini (Kepala Madrasah + Guru BK + apa pun kombinasinya), karena jabatan-jabatan ini tidak saling eksklusif di kenyataan lapangan. Sengaja **tidak** menampung Wali Kelas/Pembina Ekstrakurikuler — keduanya tetap bersumber dari FK yang sudah ada (`ROMBEL.id_wali_kelas`, `EKSTRAKURIKULER.id_pembina`) supaya tidak ada dua sumber kebenaran untuk hal yang sama.
 - **`SISWA` (N) ke (M) `ROMBEL`** melalui `ANGGOTA_ROMBEL`: sengaja tidak menaruh `id_rombel` langsung di tabel `SISWA` agar riwayat kenaikan kelas, pindah rombel, dan mutasi tetap terlacak tanpa menghapus data lama (prinsip normalisasi 3NF). Kolom `tanggal_mulai`/`tanggal_selesai` pada tabel ini yang menjawab kebutuhan **kenaikan kelas** dan **pindah rombel** — setiap perubahan status keanggotaan cukup menutup baris lama dan membuka baris baru, tanpa kehilangan histori.
 - **`TINGKAT_PENDIDIKAN`** dipisah dari `ROMBEL` (bukan sekadar string) agar validasi urutan kenaikan (10 → 11, bukan 10 → 9) dapat dilakukan otomatis oleh sistem, dan agar **satu tingkat dapat menaungi banyak rombel** (10-A, 10-B, 10-C) secara konsisten di seluruh modul.
 - **`PEMETAAN_KENAIKAN`** menjawab kebutuhan **proses kenaikan kelas massal di akhir tahun ajaran**: Admin memetakan rombel asal ke rombel tujuan satu kali, lalu sistem menerapkannya ke seluruh siswa dalam rombel tersebut sekaligus (mendukung fitur *split-screen bulk transfer* di Bab 8).
@@ -679,18 +717,35 @@ erDiagram
 
 ## 12. Matriks Hak Akses (RBAC)
 
-| Peran | Hak Akses Utama |
-|---|---|
-| **Admin Madrasah** | Akses penuh (CRUD) semua modul, sinkronisasi EMIS/Verval, setting tahun ajaran aktif, manajemen pengguna, **mencatat `izin_guru`** yang dilaporkan lisan/WA, mengatur ambang kedisiplinan (Bab 10 poin 15). **Perkecualian eksplisit:** tidak termasuk membaca `catatan_bk` berstatus "Rahasia" — kerahasiaan BK berlaku bahkan terhadap Admin (Bab 10 poin 19) |
-| **Kepala Madrasah** *(baru)* | Dashboard eksekutif (*read-only*), approval SK/Surat Tugas, **approval pindah rombel lintas tingkat**, **approval mutasi masuk & mutasi keluar** (wajib via akun sendiri, lihat Bab 10 poin 9–11), melihat laporan siswa berisiko dari AI Layer, **mencatat `izin_guru`** (alternatif dari Admin), **meninjau flag kedisiplinan "Digantikan Mendadak" & realisasi JTM**, menandatangani draf Surat Teguran |
-| **Operator Kesiswaan** | CRUD profil siswa, kenaikan kelas massal, pindah rombel sesama tingkat (langsung berlaku), **mengajukan** pindah rombel lintas tingkat & **mengeksekusi input** mutasi masuk/keluar (keduanya menunggu approval Kepala Madrasah), persuratan siswa |
-| **Wali Kelas** | *View* siswa di rombelnya, input absensi harian, *view* jadwal rombel, menerima peringatan dini AI untuk siswanya, **validasi nilai siswa di rombelnya untuk keperluan akhir semester** |
-| **Guru Mapel** | *View* jadwal mengajar pribadi, **input presensi siswa per sesi tatap muka** (aksi ini yang otomatis menjadi bukti kehadirannya sendiri — tidak ada menu presensi terpisah), *view* realisasi JTM pribadi, **input nilai siswa untuk mapel & rombel yang diampu** (Bab 10 poin 17). **Tidak memiliki akses untuk mencatat izinnya sendiri** — sesuai SOP, dicatat oleh Admin/Kepala Madrasah |
-| **Pembina Ekstrakurikuler** *(baru)* | CRUD keanggotaan & presensi ekstrakurikuler untuk kegiatan yang dibinanya saja, tidak memiliki akses ke data akademik/nilai |
-| **Guru BK** *(baru)* | CRUD `catatan_bk` untuk siswa yang ditanganinya; entri "Rahasia" hanya bisa dibaca oleh dirinya sendiri dan Kepala Madrasah — **tidak bisa dibaca Wali Kelas atau Operator Kesiswaan**, termasuk lewat akses admin biasa sekalipun (Bab 10 poin 19) |
-| **Orang Tua/Wali** *(baru, fase lanjutan)* | *View-only* data absensi & pengumuman anak sendiri, tidak dapat mengakses data siswa lain |
+### Prinsip Dasar *(revisi kedua — Guru sebagai satu entitas tunggal, seluruh jabatan bersifat aditif)*
 
-**Catatan implementasi:** gunakan model RBAC + *row-level scoping* (mis. Wali Kelas hanya bisa `SELECT` siswa dengan `id_rombel` miliknya), bukan hanya pembatasan di level menu UI, agar tidak bisa ditembus lewat API langsung.
+**Guru adalah satu entitas tunggal (baris `pegawai`), bukan kumpulan peran yang saling eksklusif.** Model RBAC dipisah jadi tiga lapis, masing-masing dengan sumber kebenaran sendiri, dan **saling menjumlah**, bukan saling menggantikan:
+
+1. **Kategori kepegawaian dasar** — `pegawai.tugas_utama`: "Guru" atau "Tendik". Hanya menentukan apakah orang ini *bisa* muncul di `jadwal_pelajaran` (mengajar) — bukan jabatan apa yang disandangnya.
+2. **Jabatan berskala seluruh madrasah** — dari `penugasan_jabatan` (Bab 9B.1): Kepala Madrasah, Admin Madrasah, Operator Kesiswaan, Guru BK. Satu pegawai bisa punya beberapa baris aktif sekaligus di sini.
+3. **Jabatan/status berskala terbatas** — dihitung dari relasi di entitas lain, dipanggil ulang tiap kali dibutuhkan, tidak pernah disimpan sebagai field statis:
+   - `is_wali_kelas(id_pegawai)` — dari `rombel.id_wali_kelas`.
+   - `is_pembina_ekstrakurikuler(id_pegawai)` — dari `ekstrakurikuler.id_pembina`.
+   - `is_pengajar(id_pegawai, id_rombel, id_mapel, semester)` — dari `jadwal_pelajaran`, menentukan hak input presensi & nilai (Bab 10 poin 17, 21).
+
+**Contoh konkret yang harus bisa ditangani sistem tanpa masalah:** seorang pegawai dengan `tugas_utama` = "Guru" bisa, pada tahun ajaran yang sama, tercatat: (a) di `penugasan_jabatan` sebagai Kepala Madrasah, (b) di `rombel.id_wali_kelas` sebagai wali kelas 9-A, (c) di `jadwal_pelajaran` sebagai pengajar IPA di tiga rombel berbeda. Ketiganya aktif bersamaan pada satu akun — bukan situasi tepi yang jarang terjadi, tapi pola yang sangat umum terutama di madrasah kecil.
+
+### Matriks Hak Akses
+
+| Sumber Status | Hak Akses Utama |
+|---|---|
+| **Kepala Madrasah** *(`penugasan_jabatan`)* | Dashboard eksekutif (*read-only*), approval SK/Surat Tugas, **approval pindah rombel lintas tingkat**, **approval mutasi masuk & mutasi keluar** (wajib via akun sendiri, Bab 10 poin 9–11), melihat laporan siswa berisiko dari AI Layer, **mencatat `izin_guru`** (alternatif dari Admin), **meninjau flag kedisiplinan & realisasi JTM**, menandatangani draf Surat Teguran |
+| **Admin Madrasah** *(`penugasan_jabatan`)* | Akses penuh (CRUD) semua modul, sinkronisasi EMIS/Verval, setting tahun ajaran aktif, manajemen pengguna, **mencatat `izin_guru`**, mengatur ambang kedisiplinan (Bab 10 poin 15). **Perkecualian eksplisit:** tidak termasuk membaca `catatan_bk` "Rahasia" — berlaku bahkan untuk Admin (Bab 10 poin 19) |
+| **Operator Kesiswaan** *(`penugasan_jabatan`)* | CRUD profil siswa, kenaikan kelas massal, pindah rombel sesama tingkat (langsung berlaku), **mengajukan** pindah rombel lintas tingkat & **mengeksekusi input** mutasi masuk/keluar (menunggu approval Kepala Madrasah), persuratan siswa |
+| **Guru BK** *(`penugasan_jabatan`)* | CRUD `catatan_bk` untuk siswa yang ditanganinya; entri "Rahasia" hanya bisa dibaca oleh dirinya sendiri dan Kepala Madrasah — tidak bisa dibaca peran/status lain apa pun (Bab 10 poin 19) |
+| **Guru (tugas_utama) + `is_pengajar` benar** | *View* jadwal mengajar pribadi, **input presensi siswa per sesi tatap muka** (aksi ini otomatis jadi bukti kehadirannya sendiri), *view* realisasi JTM pribadi, **input nilai untuk setiap kombinasi rombel+mapel+semester tempat dia mengajar** (Bab 10 poin 17) — berlaku untuk pola Guru Kelas maupun Guru Mapel (Bab 10 poin 21) tanpa dibedakan. Tidak memiliki akses mencatat izinnya sendiri |
+| **`is_wali_kelas` benar** | *View* siswa di rombel tempat status ini berlaku, input absensi harian, **rekap lengkap kelengkapan nilai lintas-mapel** rombelnya (read-only untuk mapel yang bukan diajarnya sendiri; otomatis terisi untuk mapel yang dia ajar sendiri lewat hak di baris atas), menerima peringatan dini AI untuk siswanya |
+| **`is_pembina_ekstrakurikuler` benar** | CRUD keanggotaan & presensi ekstrakurikuler **hanya untuk kegiatan dengan `id_pembina` = dirinya** — tidak memengaruhi akses akademik/nilai dari status lain |
+| **Orang Tua/Wali** *(bukan `pegawai`, entitas terpisah — lihat catatan di bawah)* | *View-only* data absensi & pengumuman anak sendiri, tidak dapat mengakses data siswa lain |
+
+**Catatan implementasi:** gunakan model RBAC + *row-level scoping* di level backend/API (mis. hak input nilai divalidasi per baris `jadwal_pelajaran`, bukan per label peran statis) — bukan hanya pembatasan di level menu UI, agar tidak bisa ditembus lewat API langsung. Ketiga lapis status di atas dihitung ulang setiap request dari sumber kebenaran masing-masing (`penugasan_jabatan.status = "Aktif"`, `rombel.id_wali_kelas`, `ekstrakurikuler.id_pembina`, `jadwal_pelajaran`) — tidak pernah disimpan sebagai field gabungan yang bisa basi saat data berubah.
+
+**Catatan terbuka soal Orang Tua/Wali:** baris terakhir tabel di atas menandai gap yang belum diselesaikan di dokumen ini — belum ada entitas `orang_tua` formal yang menghubungkan akun ke `siswa` (relasi wali/orang tua). Portal Orang Tua (Bab 4D) masih dirancang sebagai konsep, belum punya fondasi data sendiri. Ini di luar cakupan pertanyaan rangkap jabatan guru, tapi perlu ditandai agar tidak terlewat sebelum Portal Orang Tua benar-benar dikerjakan (Fase 4, Bab 14).
 
 ---
 

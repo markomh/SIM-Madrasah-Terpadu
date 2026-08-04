@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -15,7 +16,7 @@ import { services } from "@/services";
 import type { AbsensiSiswa, Siswa } from "@/types";
 
 export default function PortalOrtuPage() {
-  const { peran } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const [siswa, setSiswa] = useState<Siswa | null>(null);
   const [absensi, setAbsensi] = useState<AbsensiSiswa[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ export default function PortalOrtuPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (peran !== "Orang Tua Wali" && peran !== "Admin Madrasah") {
+  if ((currentUser?.tugas_utama !== "Tendik") && !(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList))) {
     return (
       <AppShell title="Portal Orang Tua">
         <ErrorBlock message="Portal read-only untuk peran Orang Tua/Wali (fase lanjutan)." />

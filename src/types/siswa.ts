@@ -13,5 +13,7 @@ export type Siswa = {
   nama_ibu_kandung: string;
   status_siswa: StatusSiswa;
   jalur_masuk: JalurMasuk;
+  alamat_detail: string | null;
+  id_desa: string | null;
   skor_risiko_ai: number | null;
 };

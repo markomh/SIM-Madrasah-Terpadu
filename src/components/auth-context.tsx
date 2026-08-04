@@ -1,73 +1,82 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { Pegawai, Peran } from "@/types";
+import type { Pegawai, PenugasanJabatan, Rombel, Ekstrakurikuler, JadwalPelajaran } from "@/types";
 import { services } from "@/services";
 
-const ROLE_STORAGE_KEY = "sim-madrasah-peran";
-
-const ROLE_TO_PEGAWAI: Record<Peran, string> = {
-  "Admin Madrasah": "pg_admin",
-  "Kepala Madrasah": "pg_kepala",
-  "Operator Kesiswaan": "pg_ops",
-  "Wali Kelas": "pg_wali_a",
-  "Guru Mapel": "pg_guru_1",
-  "Orang Tua Wali": "pg_ortu",
-};
-
 type AuthContextValue = {
-  peran: Peran;
-  setPeran: (peran: Peran) => void;
   currentUser: Pegawai | null;
-  canAccess: (allowed: Peran[]) => boolean;
+  setCurrentUserId: (id: string) => void;
+  // Arrays for role checks
+  penugasanList: PenugasanJabatan[];
+  rombelList: Rombel[];
+  ekstraList: Ekstrakurikuler[];
+  jadwalList: JadwalPelajaran[];
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const ALL_PERAN: Peran[] = [
-  "Admin Madrasah",
-  "Kepala Madrasah",
-  "Operator Kesiswaan",
-  "Wali Kelas",
-  "Guru Mapel",
-  "Orang Tua Wali",
-];
+const USER_STORAGE_KEY = "sim-madrasah-userid";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [peran, setPeranState] = useState<Peran>("Admin Madrasah");
+  const [userId, setUserId] = useState<string>("pg_demo_terpadu"); // Default user
   const [currentUser, setCurrentUser] = useState<Pegawai | null>(null);
+  
+  const [penugasanList, setPenugasanList] = useState<PenugasanJabatan[]>([]);
+  const [rombelList, setRombelList] = useState<Rombel[]>([]);
+  const [ekstraList, setEkstraList] = useState<Ekstrakurikuler[]>([]);
+  const [jadwalList, setJadwalList] = useState<JadwalPelajaran[]>([]);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(ROLE_STORAGE_KEY) as Peran | null;
-    if (saved && ALL_PERAN.includes(saved)) {
-      setPeranState(saved);
+    const saved = window.localStorage.getItem(USER_STORAGE_KEY);
+    if (saved) {
+      setUserId(saved);
     }
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    const id = ROLE_TO_PEGAWAI[peran];
-    services.pegawai.getById(id).then((user) => {
-      if (!cancelled) setCurrentUser(user);
+    
+    Promise.all([
+      services.pegawai.getById(userId).catch(() => null),
+      services.penugasanJabatan.getAll(),
+      services.referensi.getRombel(),
+      services.ekstrakurikuler.getAll(),
+      services.jadwal.getAll(),
+    ]).then(async ([user, penugasan, rombel, ekstra, jadwal]) => {
+      if (cancelled) return;
+      if (!user && userId !== "pg_demo_terpadu") {
+        const fallbackUser = await services.pegawai.getById("pg_demo_terpadu");
+        setCurrentUser(fallbackUser);
+      } else {
+        setCurrentUser(user);
+      }
+      setPenugasanList(penugasan || []);
+      setRombelList(rombel || []);
+      setEkstraList(ekstra || []);
+      setJadwalList(jadwal || []);
     });
+
     return () => {
       cancelled = true;
     };
-  }, [peran]);
+  }, [userId]);
 
-  const setPeran = (next: Peran) => {
-    setPeranState(next);
-    window.localStorage.setItem(ROLE_STORAGE_KEY, next);
+  const setCurrentUserId = (id: string) => {
+    setUserId(id);
+    window.localStorage.setItem(USER_STORAGE_KEY, id);
   };
 
   const value = useMemo(
     () => ({
-      peran,
-      setPeran,
       currentUser,
-      canAccess: (allowed: Peran[]) => allowed.includes(peran),
+      setCurrentUserId,
+      penugasanList,
+      rombelList,
+      ekstraList,
+      jadwalList,
     }),
-    [peran, currentUser],
+    [currentUser, penugasanList, rombelList, ekstraList, jadwalList]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -79,6 +88,3 @@ export function useAuth() {
   return ctx;
 }
 
-export function getAllPeran(): Peran[] {
-  return ALL_PERAN;
-}

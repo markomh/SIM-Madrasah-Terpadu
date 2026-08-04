@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -11,7 +12,7 @@ import type { PersetujuanItem } from "@/services/persetujuan.service";
 import type { Siswa } from "@/types";
 
 export default function DashboardPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version } = useDataVersion();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,11 +71,11 @@ export default function DashboardPage() {
   return (
     <AppShell title="Beranda">
       <PageHeader
-        title={`Halo, ${currentUser?.nama_lengkap_gelar ?? peran}`}
-        description="Ringkasan operasional sesuai peran aktif (demo role switcher)."
+        title={`Halo, ${currentUser?.nama_lengkap_gelar ?? "Pegawai"}`}
+        description="Ringkasan operasional sesuai jabatan & penugasan aktif (demo role switcher)."
       />
 
-      {peran === "Admin Madrasah" ? (
+      {(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) ? (
         <div className="grid gap-4 md:grid-cols-3">
           <SurfaceCard title="Siswa aktif">
             <p className="text-3xl font-semibold tabular text-ink">{siswaCount}</p>
@@ -153,7 +154,7 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {peran === "Kepala Madrasah" ? (
+      {(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) ? (
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             <SurfaceCard title="Menunggu persetujuan">
@@ -174,7 +175,7 @@ export default function DashboardPage() {
             <SurfaceCard title="Kedisiplinan Guru">
               <p className="text-3xl font-semibold tabular text-danger">{flaggedCount}</p>
               <p className="mt-1 text-sm text-muted">Guru dengan bendera indisipliner bulan ini.</p>
-              <Link href="/guru-tendik/kedisiplinan" className="mt-3 inline-block text-sm font-semibold text-primary">
+              <Link href="/kepegawaian/kedisiplinan" className="mt-3 inline-block text-sm font-semibold text-primary">
                 Cek rekap JTM & Disiplin →
               </Link>
             </SurfaceCard>
@@ -195,7 +196,7 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {peran === "Operator Kesiswaan" ? (
+      {(currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) ? (
         <div className="grid gap-4 md:grid-cols-2">
           <SurfaceCard title="Tugas tertunda">
             <p className="text-sm text-muted">Pengajuan yang masih menunggu Kepala Madrasah: {pending.length}</p>
@@ -219,10 +220,10 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {peran === "Wali Kelas" ? (
+      {(currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) ? (
         <div className="space-y-4">
           <SurfaceCard title="Absensi hari ini">
-            <Link href="/kesiswaan/absensi" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white">
+            <Link href="/akademik/presensi-siswa" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white">
               Input absensi rombel
             </Link>
           </SurfaceCard>
@@ -242,15 +243,15 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      {peran === "Guru Mapel" ? (
+      {(currentUser?.tugas_utama === "Guru") ? (
         <SurfaceCard title="Jadwal mengajar">
-          <Link href="/guru-tendik/jadwal" className="text-sm font-semibold text-primary">
+          <Link href="/akademik/jadwal" className="text-sm font-semibold text-primary">
             Lihat jadwal & bentrok →
           </Link>
         </SurfaceCard>
       ) : null}
 
-      {peran === "Orang Tua Wali" ? (
+      {(currentUser?.tugas_utama === "Tendik") ? (
         <SurfaceCard title="Portal informasi anak">
           <Link href="/portal-ortu" className="text-sm font-semibold text-primary">
             Buka portal orang tua →

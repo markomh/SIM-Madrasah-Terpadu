@@ -8,3 +8,8 @@ export type * from "./absensi";
 export type * from "./jadwal";
 export type * from "./persuratan";
 export type * from "./kehadiran-guru";
+export type * from "./wilayah";
+export type * from "./nilai";
+export type * from "./ekstrakurikuler";
+export type * from "./bk";
+export type * from "./penugasan-jabatan";

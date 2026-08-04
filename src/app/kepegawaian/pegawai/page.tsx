@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -10,7 +11,7 @@ import { maskNik, services } from "@/services";
 import type { Pegawai } from "@/types";
 
 export default function PegawaiPage() {
-  const { peran } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version } = useDataVersion();
   const [rows, setRows] = useState<Pegawai[]>([]);
   const [query, setQuery] = useState("");
@@ -29,7 +30,7 @@ export default function PegawaiPage() {
       .finally(() => setLoading(false));
   }, [query, version]);
 
-  if (peran !== "Admin Madrasah" && peran !== "Kepala Madrasah") {
+  if (!(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) && !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) {
     return (
       <AppShell title="Pegawai">
         <ErrorBlock message="Akses data pegawai terbatas untuk Admin dan Kepala Madrasah." />
@@ -63,7 +64,6 @@ export default function PegawaiPage() {
               { key: "nip", header: "NIP/NPK", render: (p) => p.nip ?? p.npk ?? "—" },
               { key: "status", header: "Kepegawaian", render: (p) => p.status_kepegawaian },
               { key: "tugas", header: "Tugas", render: (p) => p.tugas_utama },
-              { key: "peran", header: "Peran demo", render: (p) => <StatusBadge status={p.peran} /> },
             ]}
           />
         </SurfaceCard>

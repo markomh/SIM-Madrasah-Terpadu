@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
@@ -20,7 +21,7 @@ import { services } from "@/services";
 import type { Rombel, SesiTatapMuka, AnggotaRombel, Siswa, JadwalPelajaran, AbsensiSiswa } from "@/types";
 
 function PresensiSiswaContent() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version, bump } = useDataVersion();
   const searchParams = useSearchParams();
 
@@ -43,9 +44,17 @@ function PresensiSiswaContent() {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    services.referensi.getRombel().then(setRombels);
-    services.jadwal.getAll().then(setJadwals);
-  }, []);
+    if (!currentUser) return;
+    Promise.all([
+      services.referensi.getRombel(),
+      services.jadwal.getAll()
+    ]).then(([allRombel, allJadwal]) => {
+      const myJadwalRombelIds = new Set(allJadwal.filter(j => j.id_pegawai === currentUser.id_pegawai).map(j => j.id_rombel));
+      const allowed = allRombel.filter(r => r.id_wali_kelas === currentUser.id_pegawai || myJadwalRombelIds.has(r.id_rombel));
+      setRombels(allowed);
+      setJadwals(allJadwal);
+    });
+  }, [currentUser]);
 
   useEffect(() => {
     if (selectedRombel && tanggal) {
@@ -125,7 +134,7 @@ function PresensiSiswaContent() {
     }
   };
 
-  if (peran !== "Wali Kelas" && peran !== "Guru Mapel") {
+  if (!(currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) && (currentUser?.tugas_utama !== "Guru")) {
     return (
       <AppShell title="Presensi Siswa (Sesi)">
         <ErrorBlock message="Halaman ini khusus untuk Wali Kelas dan Guru Mapel." />

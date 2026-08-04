@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import {
   Bell,
   BookOpen,
@@ -21,15 +21,24 @@ import {
   Inbox,
   UserCog,
 } from "lucide-react";
-import { getAllPeran, useAuth } from "@/components/auth-context";
+import { useAuth } from "@/components/auth-context";
 import { useTahunAjaran } from "@/components/app-providers";
-import type { Peran } from "@/types";
+import { services } from "@/services";
+import type { Pegawai } from "@/types";
+import {
+  isAdminMadrasah,
+  isKepalaMadrasah,
+  isOperatorKesiswaan,
+  isWaliKelas,
+  isPembinaEkstrakurikuler,
+  isGuruBk,
+} from "@/lib/access";
 
 type NavItem = {
   href: string;
   label: string;
   icon: typeof Home;
-  roles: Peran[];
+  visible: (ctx: ReturnType<typeof useAuth>) => boolean;
 };
 
 type NavGroup = { group: string; items: NavItem[] };
@@ -38,65 +47,84 @@ const navigation: NavGroup[] = [
   {
     group: "MADRASAH",
     items: [
-      { href: "/", label: "Beranda", icon: Home, roles: ["Admin Madrasah", "Kepala Madrasah", "Operator Kesiswaan", "Wali Kelas", "Guru Mapel", "Orang Tua Wali"] },
+      { href: "/", label: "Beranda", icon: Home, visible: () => true },
     ],
   },
   {
     group: "KESISWAAN",
     items: [
-      { href: "/kesiswaan/siswa", label: "Data Siswa Induk", icon: Users, roles: ["Admin Madrasah", "Operator Kesiswaan", "Wali Kelas", "Kepala Madrasah"] },
-      { href: "/kesiswaan/absensi", label: "Rekap Presensi", icon: ClipboardCheck, roles: ["Wali Kelas", "Guru Mapel", "Admin Madrasah"] },
-      { href: "/kesiswaan/kenaikan-kelas", label: "Kenaikan Kelas", icon: BookOpen, roles: ["Admin Madrasah", "Operator Kesiswaan"] },
-      { href: "/kesiswaan/pindah-rombel", label: "Pindah Rombel", icon: ArrowLeftRight, roles: ["Operator Kesiswaan", "Kepala Madrasah", "Admin Madrasah"] },
-      { href: "/kesiswaan/mutasi", label: "Mutasi", icon: Shield, roles: ["Operator Kesiswaan", "Kepala Madrasah", "Admin Madrasah"] },
+      { href: "/kesiswaan/siswa", label: "Data Siswa Induk", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) },
+      { href: "/kesiswaan/kenaikan-kelas", label: "Kenaikan Kelas", icon: BookOpen, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kesiswaan/pindah-rombel", label: "Pindah Rombel", icon: ArrowLeftRight, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kesiswaan/mutasi", label: "Mutasi", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
-    group: "GURU & TENDIK",
+    group: "AKADEMIK",
     items: [
-      { href: "/guru-tendik/pegawai", label: "Data Pegawai", icon: Users, roles: ["Admin Madrasah", "Kepala Madrasah"] },
-      { href: "/guru-tendik/jadwal", label: "Penjadwalan", icon: CalendarDays, roles: ["Admin Madrasah", "Guru Mapel", "Kepala Madrasah"] },
-      { href: "/guru-tendik/presensi-siswa", label: "Presensi Siswa (Sesi)", icon: ClipboardCheck, roles: ["Wali Kelas", "Guru Mapel", "Admin Madrasah"] },
-      { href: "/guru-tendik/izin", label: "Izin Guru", icon: FileText, roles: ["Admin Madrasah", "Kepala Madrasah"] },
-      { href: "/guru-tendik/kedisiplinan", label: "Kedisiplinan & JTM", icon: Shield, roles: ["Kepala Madrasah", "Admin Madrasah"] },
+      { href: "/akademik/jadwal", label: "Penjadwalan", icon: CalendarDays, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || ctx.currentUser?.tugas_utama === "Guru" },
+      { href: "/akademik/presensi-siswa", label: "Presensi Siswa (Sesi)", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || ctx.currentUser?.tugas_utama === "Guru" },
+      { href: "/akademik/rekap-presensi", label: "Rekap Presensi", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || ctx.currentUser?.tugas_utama === "Guru" },
+      { href: "/akademik/nilai", label: "Nilai Harian", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || ctx.currentUser?.tugas_utama === "Guru" },
+    ],
+  },
+  {
+    group: "KEPEGAWAIAN",
+    items: [
+      { href: "/kepegawaian/pegawai", label: "Data Pegawai", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kepegawaian/izin", label: "Izin Guru", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kepegawaian/kedisiplinan", label: "Kedisiplinan & JTM", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+    ],
+  },
+  {
+    group: "EKSTRAKURIKULER & BK",
+    items: [
+      { href: "/ekstrakurikuler", label: "Ekstrakurikuler", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPembinaEkstrakurikuler(ctx.currentUser?.id_pegawai ?? "", ctx.ekstraList) },
+      { href: "/bk", label: "Bimbingan Konseling", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isGuruBk(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
     group: "PERSURATAN",
     items: [
-      { href: "/persuratan", label: "Buat & Arsip Surat", icon: FileText, roles: ["Admin Madrasah", "Operator Kesiswaan", "Kepala Madrasah"] },
+      { href: "/persuratan", label: "Buat & Arsip Surat", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
     group: "WAWASAN",
     items: [
-      { href: "/wawasan", label: "Dashboard AI", icon: Sparkles, roles: ["Kepala Madrasah", "Wali Kelas", "Admin Madrasah"] },
-      { href: "/persetujuan", label: "Kotak Persetujuan", icon: Inbox, roles: ["Kepala Madrasah"] },
+      { href: "/wawasan", label: "Dashboard AI", icon: Sparkles, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) },
+      { href: "/persetujuan", label: "Kotak Persetujuan", icon: Inbox, visible: (ctx) => isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
     group: "REFERENSI",
     items: [
-      { href: "/referensi", label: "Mapel, Tingkat, Libur", icon: Settings2, roles: ["Admin Madrasah"] },
+      { href: "/referensi", label: "Mapel, Tingkat, Libur", icon: Settings2, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
     group: "AKUN",
     items: [
-      { href: "/akun", label: "Kelola Akun & Demo", icon: UserCog, roles: ["Admin Madrasah"] },
-      { href: "/portal-ortu", label: "Portal Orang Tua", icon: School, roles: ["Orang Tua Wali", "Admin Madrasah"] },
+      { href: "/akun", label: "Kelola Akun & Penugasan", icon: UserCog, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/portal-ortu", label: "Portal Orang Tua", icon: School, visible: () => true },
     ],
   },
 ];
 
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const pathname = usePathname() || "/";
-  const { peran, setPeran, currentUser } = useAuth();
+  const authCtx = useAuth();
+  const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList } = authCtx;
   const { list: tahunList, selected, setSelectedId } = useTahunAjaran();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
+
+  useEffect(() => {
+    services.pegawai.getAll().then((data) => setAllPegawai(data));
+  }, []);
 
   const visible = navigation
-    .map((g) => ({ ...g, items: g.items.filter((i) => i.roles.includes(peran)) }))
+    .map((g) => ({ ...g, items: g.items.filter((i) => i.visible(authCtx)) }))
     .filter((g) => g.items.length > 0);
 
   const Nav = () => (
@@ -173,11 +201,11 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                   </button>
                   <div className="hidden items-center gap-2 rounded-[4px] border border-border px-2 py-1.5 sm:flex">
                     <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-primary-soft text-xs font-bold text-primary">
-                      {(currentUser?.nama_lengkap_gelar ?? peran).slice(0, 2).toUpperCase()}
+                      {currentUser?.nama_lengkap_gelar?.slice(0, 2).toUpperCase() ?? "P"}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold">{currentUser?.nama_lengkap_gelar ?? peran}</p>
-                      <p className="text-[10px] text-muted">{peran}</p>
+                      <p className="truncate text-xs font-semibold">{currentUser?.nama_lengkap_gelar ?? "Demo Pegawai"}</p>
+                      <p className="text-[10px] text-muted">{currentUser?.tugas_utama}</p>
                     </div>
                   </div>
                 </div>
@@ -201,18 +229,29 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                 <span className="rounded-[4px] border border-border bg-surface px-2 py-1 text-xs">
                   Semester: {selected?.semester ?? "—"}
                 </span>
-                <label className="ml-auto flex items-center gap-2 rounded-[4px] border border-amber/40 bg-[#F5EADF] px-2 py-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-amber">Demo Role</span>
+                <label className="ml-auto flex items-center gap-2 rounded-[4px] border border-amber/40 bg-[#F5EADF] px-2 py-1 max-w-[300px]">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-amber shrink-0">Demo Pegawai</span>
                   <select
-                    className="bg-transparent text-sm outline-none"
-                    value={peran}
-                    onChange={(e) => setPeran(e.target.value as Peran)}
+                    className="bg-transparent text-sm outline-none truncate"
+                    value={currentUser?.id_pegawai ?? ""}
+                    onChange={(e) => setCurrentUserId(e.target.value)}
                   >
-                    {getAllPeran().map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
+                    {allPegawai.map((p) => {
+                      const jabatanStruktural = penugasanList.filter((j) => j.id_pegawai === p.id_pegawai && j.status === "Aktif").map((j) => j.jenis_jabatan).join(", ");
+                      const isWK = isWaliKelas(p.id_pegawai, rombelList);
+                      const isPembina = isPembinaEkstrakurikuler(p.id_pegawai, ekstraList);
+                      
+                      const parts: string[] = [p.tugas_utama];
+                      if (jabatanStruktural) parts.push(jabatanStruktural);
+                      if (isWK) parts.push("Wali Kelas");
+                      if (isPembina) parts.push("Pembina Ekstra");
+                      
+                      return (
+                        <option key={p.id_pegawai} value={p.id_pegawai}>
+                          {p.nama_lengkap_gelar} ({parts.join(", ")})
+                        </option>
+                      );
+                    })}
                   </select>
                 </label>
               </div>
@@ -235,3 +274,4 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
     </div>
   );
 }
+

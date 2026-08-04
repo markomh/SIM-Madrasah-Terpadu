@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -20,7 +21,7 @@ import { services } from "@/services";
 import type { JadwalPelajaran, MataPelajaran, Pegawai, Rombel } from "@/types";
 
 export default function JadwalPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { selected } = useTahunAjaran();
   const { version, bump } = useDataVersion();
   const [jadwal, setJadwal] = useState<JadwalPelajaran[]>([]);
@@ -39,11 +40,11 @@ export default function JadwalPage() {
   });
   const [aiNote, setAiNote] = useState<string | null>(null);
 
-  const canEdit = peran === "Admin Madrasah";
+  const canEdit = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
 
   useEffect(() => {
     setLoading(true);
-    const pegawaiFilter = peran === "Guru Mapel" && currentUser ? { id_pegawai: currentUser.id_pegawai } : undefined;
+    const pegawaiFilter = (currentUser?.tugas_utama === "Guru") && currentUser ? { id_pegawai: currentUser.id_pegawai } : undefined;
     Promise.all([
       services.jadwal.getAll(pegawaiFilter),
       services.referensi.getRombel({ id_tahun: selected?.id_tahun }),
@@ -65,7 +66,7 @@ export default function JadwalPage() {
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [selected?.id_tahun, version, peran, currentUser]);
+  }, [selected?.id_tahun, version, currentUser]);
 
   return (
     <AppShell title="Penjadwalan">

@@ -36,6 +36,8 @@ export const mutasiMock: MutasiService = {
       jenis_kelamin: data.jenis_kelamin,
       agama: data.agama,
       nama_ibu_kandung: data.nama_ibu_kandung,
+      alamat_detail: "",
+      id_desa: "",
       status_siswa: "Aktif",
       jalur_masuk: "Mutasi Masuk",
       skor_risiko_ai: null,

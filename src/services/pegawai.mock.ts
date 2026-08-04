@@ -6,7 +6,7 @@ export const pegawaiMock: PegawaiService = {
     await simulateLatency();
     maybeThrowSimulatedError();
     let result = [...loadStore().pegawai];
-    if (filter?.peran) result = result.filter((p) => p.peran === filter.peran);
+    if (filter?.tugas_utama) result = result.filter((p) => p.tugas_utama === filter.tugas_utama);
     if (filter?.query) {
       const q = filter.query.toLowerCase();
       result = result.filter(
@@ -23,7 +23,7 @@ export const pegawaiMock: PegawaiService = {
     maybeThrowSimulatedError();
     return loadStore().pegawai.find((p) => p.id_pegawai === id_pegawai) ?? null;
   },
-  async getByPeran(peran) {
-    return this.getAll({ peran });
+  async getByTugasUtama(tugas_utama) {
+    return this.getAll({ tugas_utama });
   },
 };

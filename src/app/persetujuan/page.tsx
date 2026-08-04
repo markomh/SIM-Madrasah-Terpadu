@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -19,7 +20,7 @@ import type { PersetujuanItem } from "@/services/persetujuan.service";
 import type { Siswa } from "@/types";
 
 export default function PersetujuanPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version, bump } = useDataVersion();
   const [items, setItems] = useState<PersetujuanItem[]>([]);
   const [siswaMap, setSiswaMap] = useState<Record<string, Siswa>>({});
@@ -40,7 +41,7 @@ export default function PersetujuanPage() {
       .finally(() => setLoading(false));
   }, [version]);
 
-  if (peran !== "Kepala Madrasah") {
+  if (!(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) {
     return (
       <AppShell title="Persetujuan">
         <ErrorBlock message="Kotak masuk persetujuan hanya untuk peran Kepala Madrasah. Gunakan Role Switcher demo." />

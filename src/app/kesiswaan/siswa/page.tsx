@@ -1,5 +1,6 @@
 "use client";
 
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -23,7 +24,7 @@ import type { AnggotaRombel, Rombel, Siswa, TingkatPendidikan } from "@/types";
 type Row = Siswa & { rombel_nama: string; id_rombel: string | null };
 
 export default function SiswaListPage() {
-  const { peran, currentUser } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { selected } = useTahunAjaran();
   const { version } = useDataVersion();
   const [loading, setLoading] = useState(true);
@@ -36,7 +37,7 @@ export default function SiswaListPage() {
   const [rombelFilter, setRombelFilter] = useState("all");
   const [tingkatFilter, setTingkatFilter] = useState("all");
 
-  const canEdit = peran === "Admin Madrasah" || peran === "Operator Kesiswaan";
+  const canEdit = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList));
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +72,7 @@ export default function SiswaListPage() {
             };
           });
 
-        if (peran === "Wali Kelas" && currentUser) {
+        if ((currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) && currentUser) {
           const myRombel = rb.filter((r) => r.id_wali_kelas === currentUser.id_pegawai).map((r) => r.id_rombel);
           mapped = mapped.filter((s) => s.id_rombel && myRombel.includes(s.id_rombel));
         }
@@ -90,7 +91,7 @@ export default function SiswaListPage() {
     return () => {
       cancelled = true;
     };
-  }, [statusFilter, selected?.id_tahun, version, peran, currentUser]);
+  }, [statusFilter, selected?.id_tahun, version, currentUser]);
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {

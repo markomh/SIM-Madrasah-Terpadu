@@ -1,7 +1,12 @@
-import type { Pegawai, Peran } from "@/types";
+import type { Pegawai } from "@/types";
 
-export interface PegawaiService {
-  getAll(filter?: { peran?: Peran; query?: string }): Promise<Pegawai[]>;
+export type PegawaiFilter = {
+  query?: string;
+  tugas_utama?: "Guru" | "Tendik";
+};
+
+export type PegawaiService = {
+  getAll(filter?: PegawaiFilter): Promise<Pegawai[]>;
   getById(id_pegawai: string): Promise<Pegawai | null>;
-  getByPeran(peran: Peran): Promise<Pegawai[]>;
-}
+  getByTugasUtama(tugas_utama: "Guru" | "Tendik"): Promise<Pegawai[]>;
+};
