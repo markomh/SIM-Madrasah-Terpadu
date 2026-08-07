@@ -6,12 +6,14 @@ import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { PageHeader, SurfaceCard, LoadingBlock, ErrorBlock, PrimaryButton, StatusBadge } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
+import { useToast } from "@/components/toast-context";
 import { services } from "@/services";
 import type { Ekstrakurikuler, KeanggotaanEkstra } from "@/types/ekstrakurikuler";
 import type { Pegawai, Siswa } from "@/types";
 
 export default function EkstrakurikulerPage() {
   const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
+  const { toast } = useToast();
   const canAccess = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList));
 
   const [ekstra, setEkstra] = useState<Ekstrakurikuler[]>([]);
@@ -62,7 +64,7 @@ export default function EkstrakurikulerPage() {
         description="Kelola program ekstrakurikuler, keanggotaan, dan presensi." 
         action={
           (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) && (
-            <PrimaryButton type="button" onClick={() => alert("Form Tambah Ekstrakurikuler (Placeholder)")}>
+            <PrimaryButton type="button" onClick={() => toast("Fitur Tambah Ekstrakurikuler belum tersedia", "info")}>
               Tambah Ekstrakurikuler
             </PrimaryButton>
           )
@@ -75,7 +77,8 @@ export default function EkstrakurikulerPage() {
         <EkstraDetail 
           ekstra={selectedEkstra} 
           pembinaName={pegawaiMap[selectedEkstra.id_pembina]} 
-          onBack={() => setSelectedEkstra(null)} 
+          onBack={() => setSelectedEkstra(null)}
+          canManage={(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || currentUser?.id_pegawai === selectedEkstra.id_pembina}
         />
       ) : (
         <SurfaceCard title="Daftar Ekstrakurikuler">
@@ -98,10 +101,11 @@ export default function EkstrakurikulerPage() {
   );
 }
 
-function EkstraDetail({ ekstra, pembinaName, onBack }: { ekstra: Ekstrakurikuler, pembinaName: string, onBack: () => void }) {
+function EkstraDetail({ ekstra, pembinaName, onBack, canManage }: { ekstra: Ekstrakurikuler, pembinaName: string, onBack: () => void, canManage: boolean }) {
   const [keanggotaan, setKeanggotaan] = useState<KeanggotaanEkstra[]>([]);
   const [siswaMap, setSiswaMap] = useState<Record<string, Siswa>>({});
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -129,9 +133,11 @@ function EkstraDetail({ ekstra, pembinaName, onBack }: { ekstra: Ekstrakurikuler
           <p><span className="text-muted">Pembina:</span> {pembinaName}</p>
         </div>
         
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-semibold">Keanggotaan</h3>
-          <PrimaryButton type="button" onClick={() => alert("Tambah Anggota (Placeholder)")}>+ Tambah Anggota</PrimaryButton>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-ink">Anggota Aktif</h2>
+          {canManage && (
+            <PrimaryButton type="button" onClick={() => toast("Fitur Tambah Anggota belum tersedia", "info")}>+ Tambah Anggota</PrimaryButton>
+          )}
         </div>
         
         {loading ? <LoadingBlock /> : (
@@ -143,6 +149,15 @@ function EkstraDetail({ ekstra, pembinaName, onBack }: { ekstra: Ekstrakurikuler
               { key: "tgl_mulai", header: "Tgl Bergabung", render: (a) => a.tanggal_mulai },
               { key: "status", header: "Status", render: (a) => <StatusBadge status={a.status} /> },
             ]}
+            emptyTitle="Belum ada anggota"
+            emptyDescription="Ekstrakurikuler ini belum memiliki anggota aktif."
+            emptyAction={
+              canManage ? (
+                <PrimaryButton type="button" onClick={() => toast("Fitur Tambah Anggota belum tersedia", "info")}>
+                  + Tambah Anggota Pertama
+                </PrimaryButton>
+              ) : undefined
+            }
           />
         )}
       </SurfaceCard>

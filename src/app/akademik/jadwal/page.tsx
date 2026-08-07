@@ -22,7 +22,7 @@ import type { JadwalPelajaran, MataPelajaran, Pegawai, Rombel } from "@/types";
 
 export default function JadwalPage() {
   const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
-  const { selected } = useTahunAjaran();
+  const { selected, selectedSemester } = useTahunAjaran();
   const { version, bump } = useDataVersion();
   const [jadwal, setJadwal] = useState<JadwalPelajaran[]>([]);
   const [rombel, setRombel] = useState<Rombel[]>([]);
@@ -30,10 +30,19 @@ export default function JadwalPage() {
   const [mapel, setMapel] = useState<MataPelajaran[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    id_rombel: string;
+    id_pegawai: string;
+    id_mapel: string;
+    semester: "Ganjil" | "Genap";
+    hari: string;
+    jam_mulai: string;
+    jam_selesai: string;
+  }>({
     id_rombel: "",
     id_pegawai: "",
     id_mapel: "",
+    semester: selectedSemester,
     hari: "Senin",
     jam_mulai: "07:00",
     jam_selesai: "08:30",
@@ -41,10 +50,12 @@ export default function JadwalPage() {
   const [aiNote, setAiNote] = useState<string | null>(null);
 
   const canEdit = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
+  const canAccess = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser?.tugas_utama === "Guru");
 
   useEffect(() => {
+    if (!canAccess) return;
     setLoading(true);
-    const pegawaiFilter = (currentUser?.tugas_utama === "Guru") && currentUser ? { id_pegawai: currentUser.id_pegawai } : undefined;
+    const pegawaiFilter = (currentUser?.tugas_utama === "Guru" && !canEdit && !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) && currentUser ? { id_pegawai: currentUser.id_pegawai } : undefined;
     Promise.all([
       services.jadwal.getAll(pegawaiFilter),
       services.referensi.getRombel({ id_tahun: selected?.id_tahun }),
@@ -66,12 +77,20 @@ export default function JadwalPage() {
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [selected?.id_tahun, version, currentUser]);
+  }, [selected?.id_tahun, version, currentUser, canAccess, canEdit]);
+
+  if (!canAccess) {
+    return (
+      <AppShell title="Penjadwalan">
+        <ErrorBlock message="Halaman penjadwalan khusus untuk Guru, Admin Madrasah, dan Kepala Madrasah." />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell title="Penjadwalan">
       <PageHeader
-        title="Jadwal Pelajaran"
+        title="Penjadwalan Pelajaran"
         description="Deteksi bentrok klien: kombinasi guru + hari + jam harus unik."
         action={
           <SecondaryButton
@@ -86,7 +105,7 @@ export default function JadwalPage() {
         }
       />
       {aiNote ? (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[6px] border border-ai/30 bg-[#EDE9F4] p-3 text-sm text-ai">
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[6px] border border-ai/30 bg-ai-soft p-3 text-sm text-ai">
           <AiLabel />
           <span>{aiNote}</span>
         </div>
@@ -100,6 +119,7 @@ export default function JadwalPage() {
             <DataTable
               data={jadwal}
               columns={[
+                { key: "semester", header: "Semester", render: (j) => j.semester },
                 { key: "hari", header: "Hari", render: (j) => j.hari },
                 {
                   key: "jam",
@@ -157,6 +177,12 @@ export default function JadwalPage() {
                   }
                 }}
               >
+                <Field label="Semester">
+                  <select className={inputClass} value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value as "Ganjil" | "Genap" })}>
+                    <option value="Ganjil">Ganjil</option>
+                    <option value="Genap">Genap</option>
+                  </select>
+                </Field>
                 <Field label="Rombel">
                   <select className={inputClass} value={form.id_rombel} onChange={(e) => setForm({ ...form, id_rombel: e.target.value })}>
                     {rombel.map((r) => (

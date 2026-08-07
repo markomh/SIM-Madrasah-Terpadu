@@ -49,7 +49,7 @@ export default function PortalOrtuPage() {
   return (
     <AppShell title="Portal Orang Tua">
       <PageHeader
-        title="Portal Informasi Anak"
+        title="Portal Orang Tua (Informasi Anak)"
         description="Placeholder fase lanjutan — read-only absensi & pengumuman. Notifikasi WhatsApp belum aktif (mock)."
       />
       {loading ? <LoadingBlock /> : null}

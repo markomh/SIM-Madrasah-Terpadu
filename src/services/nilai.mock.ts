@@ -11,9 +11,14 @@ const mockKomponen: KomponenNilai[] = [
   { id_komponen: "k_6", id_mapel: "mp_mtk", nama_komponen: "UAS", bobot: 40 },
   { id_komponen: "k_7", id_mapel: "mp_bind", nama_komponen: "Tugas", bobot: 40 },
   { id_komponen: "k_8", id_mapel: "mp_bind", nama_komponen: "Ulangan Harian", bobot: 60 },
-  { id_komponen: "k_9", id_mapel: "mp_bing", nama_komponen: "UAS", bobot: 100 },
-  { id_komponen: "k_10", id_mapel: "mp_ipa", nama_komponen: "UAS", bobot: 100 },
-  { id_komponen: "k_11", id_mapel: "mp_qur", nama_komponen: "UAS", bobot: 100 },
+  { id_komponen: "k_9", id_mapel: "mp_bing", nama_komponen: "UTS", bobot: 40 },
+  { id_komponen: "k_9b", id_mapel: "mp_bing", nama_komponen: "UAS", bobot: 60 },
+  { id_komponen: "k_10", id_mapel: "mp_ipa", nama_komponen: "Tugas Praktik", bobot: 40 },
+  { id_komponen: "k_10b", id_mapel: "mp_ipa", nama_komponen: "UAS", bobot: 60 },
+  { id_komponen: "k_11", id_mapel: "mp_qur", nama_komponen: "Hafalan", bobot: 50 },
+  { id_komponen: "k_11b", id_mapel: "mp_qur", nama_komponen: "UAS", bobot: 50 },
+  { id_komponen: "k_12", id_mapel: "mp_pjok", nama_komponen: "Praktik", bobot: 60 },
+  { id_komponen: "k_13", id_mapel: "mp_pjok", nama_komponen: "Teori", bobot: 40 },
 ];
 
 let mockNilai: NilaiSiswa[] = [];
@@ -45,24 +50,20 @@ export const mockNilaiService: NilaiService = {
 
     const store = loadStore();
     
-    // Validasi penilai ada di jadwal
-    const hasJadwal = store.jadwal.some((j) => 
+    // Validasi penilai ada di jadwal untuk semester terkait
+    const jadwalCocok = store.jadwal.find((j) => 
       j.id_pegawai === data.id_pegawai_penilai && 
       j.id_mapel === komponen.id_mapel && 
-      j.id_rombel === data.id_rombel
+      j.id_rombel === data.id_rombel &&
+      j.semester === data.semester
     );
 
-    if (!hasJadwal) {
-      throw new Error(`Anda tidak memiliki jadwal mengajar mata pelajaran ini di rombel tersebut.`);
+    if (!jadwalCocok) {
+      throw new Error(`Anda tidak memiliki jadwal mengajar mata pelajaran ini di rombel dan semester tersebut.`);
     }
 
     const rombel = store.rombel.find(r => r.id_rombel === data.id_rombel);
     if (!rombel) throw new Error("Rombel tidak ditemukan.");
-    
-    const tahunAjaran = store.tahunAjaran.find(t => t.id_tahun === rombel.id_tahun);
-    if (!tahunAjaran || tahunAjaran.semester !== data.semester) {
-      throw new Error(`Semester tidak sesuai dengan tahun ajaran rombel (Aktif: ${tahunAjaran?.semester}).`);
-    }
 
     const existingIdx = mockNilai.findIndex(n => n.id_siswa === data.id_siswa && n.id_komponen === data.id_komponen && n.semester === data.semester && n.id_tahun === data.id_tahun);
 

@@ -23,6 +23,7 @@ export const mutasiMasukSchema = z.object({
   nama_lengkap: z.string().min(3),
   tempat_lahir: z.string().min(2),
   tanggal_lahir: z.string().min(1),
+  alamat_lengkap: z.string().optional(),
   jenis_kelamin: z.enum(["L", "P"]),
   agama: z.string().min(1),
   nama_ibu_kandung: z.string().min(2),

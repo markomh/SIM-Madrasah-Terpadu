@@ -50,9 +50,9 @@ export default function PersetujuanPage() {
   }
 
   return (
-    <AppShell title="Persetujuan">
+    <AppShell title="Kotak Persetujuan">
       <PageHeader
-        title="Kotak Masuk Persetujuan"
+        title="Kotak Persetujuan Eksekutif"
         description="Setujui atau tolak pengajuan pindah rombel lintas tingkat dan mutasi."
       />
       {loading ? <LoadingBlock /> : null}

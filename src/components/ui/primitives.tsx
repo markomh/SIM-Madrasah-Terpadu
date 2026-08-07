@@ -1,9 +1,29 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { StatusPersetujuan } from "@/types";
+import { statusToTone, type Tone } from "@/lib/status-helpers";
+import { Button, type ButtonProps } from "./button";
+import { Badge } from "./badge";
 
-type StripTone = "primary" | "amber" | "danger" | "ai" | "neutral";
+export * from "./button";
+export * from "./badge";
+export * from "./input";
+export * from "./select";
+export * from "./textarea";
+export * from "./checkbox";
+export * from "./radio";
+export * from "./search-input";
+export * from "./modal";
+export * from "./confirm-dialog";
+export * from "./drawer";
+export * from "./tabs";
+export * from "./alert";
+export * from "./progress";
+export * from "./avatar";
+export * from "./tooltip";
+export * from "./pagination";
+
+export type StripTone = Tone;
 
 const stripColor: Record<StripTone, string> = {
   primary: "border-l-primary",
@@ -13,29 +33,11 @@ const stripColor: Record<StripTone, string> = {
   neutral: "border-l-border",
 };
 
-const badgeTone: Record<StripTone, string> = {
-  primary: "bg-primary-soft text-primary",
-  amber: "bg-[#F5EADF] text-amber",
-  danger: "bg-[#F8E8E6] text-danger",
-  ai: "bg-[#EDE9F4] text-ai",
-  neutral: "bg-paper text-muted",
-};
-
-export function statusToTone(status: StatusPersetujuan | string): StripTone {
-  if (status === "Disetujui" || status === "Aktif" || status === "Ditandatangani") return "primary";
-  if (status === "Menunggu Persetujuan" || status === "Menunggu Tanda Tangan") return "amber";
-  if (status === "Ditolak" || status === "Drop Out" || status === "Alpa") return "danger";
-  if (status === "Hasil AI" || status.includes("AI")) return "ai";
-  return "neutral";
-}
+export { statusToTone };
 
 export function StatusBadge({ status }: { status: string }) {
   const tone = statusToTone(status);
-  return (
-    <span className={`inline-flex rounded-[4px] px-2 py-0.5 text-xs font-semibold ${badgeTone[tone]}`}>
-      {status}
-    </span>
-  );
+  return <Badge variant={tone}>{status}</Badge>;
 }
 
 export function StatusStrip({
@@ -53,34 +55,35 @@ export function StatusStrip({
 }
 
 export function AiLabel() {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-[4px] border border-ai/30 bg-[#EDE9F4] px-2 py-0.5 text-xs font-semibold text-ai">
-      Hasil AI — perlu verifikasi
-    </span>
-  );
+  return <Badge variant="ai">Hasil AI — perlu verifikasi</Badge>;
+}
+
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-[4px] bg-muted/20 ${className}`} />;
 }
 
 export function LoadingBlock({ label = "Memuat data..." }: { label?: string }) {
   return (
-    <div className="rounded-[6px] border border-border bg-surface p-8 text-center text-sm text-muted">
-      {label}
+    <div className="flex flex-col items-center justify-center gap-4 rounded-[6px] border border-border bg-surface p-8">
+      <div className="flex w-full max-w-[200px] flex-col items-center gap-2">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-4/5" />
+        <Skeleton className="h-3 w-2/3" />
+      </div>
+      <p className="text-sm text-muted">{label}</p>
     </div>
   );
 }
 
 export function ErrorBlock({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="rounded-[6px] border border-danger/30 bg-[#F8E8E6] p-4 text-sm text-danger">
+    <div className="rounded-[6px] border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
       <p className="font-semibold">Terjadi kesalahan</p>
       <p className="mt-1">{message}</p>
       {onRetry ? (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-3 rounded-[4px] bg-danger px-3 py-1.5 text-xs font-semibold text-white"
-        >
+        <Button variant="danger" size="sm" onClick={onRetry} className="mt-3">
           Coba lagi
-        </button>
+        </Button>
       ) : null}
     </div>
   );
@@ -148,51 +151,40 @@ export function SurfaceCard({
   );
 }
 
-export function PrimaryButton({
-  children,
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+/** @deprecated Use <Button variant="primary"> instead */
+export function PrimaryButton({ children, className = "", ...props }: ButtonProps) {
   return (
-    <button
-      type="button"
-      className={`rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 ${className}`}
-      {...props}
-    >
+    <Button variant="primary" className={className} {...props}>
       {children}
-    </button>
+    </Button>
   );
 }
 
-export function SecondaryButton({
-  children,
-  className = "",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+/** @deprecated Use <Button variant="secondary"> instead */
+export function SecondaryButton({ children, className = "", ...props }: ButtonProps) {
   return (
-    <button
-      type="button"
-      className={`rounded-[4px] border border-border bg-surface px-3 py-2 text-sm font-semibold text-ink hover:bg-paper disabled:opacity-50 ${className}`}
-      {...props}
-    >
+    <Button variant="secondary" className={className} {...props}>
       {children}
-    </button>
+    </Button>
   );
 }
 
 export function Field({
   label,
   error,
+  helperText,
   children,
 }: {
   label: string;
   error?: string;
+  helperText?: string;
   children: ReactNode;
 }) {
   return (
     <label className="block text-sm">
       <span className="mb-1 block font-medium text-ink">{label}</span>
       {children}
+      {helperText && !error ? <span className="mt-1 block text-xs text-muted">{helperText}</span> : null}
       {error ? <span className="mt-1 block text-xs text-danger">{error}</span> : null}
     </label>
   );
@@ -200,3 +192,4 @@ export function Field({
 
 export const inputClass =
   "w-full rounded-[4px] border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary";
+

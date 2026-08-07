@@ -1,6 +1,7 @@
 import type { BkService } from "./bk.service";
 import type { CatatanBk } from "@/types/bk";
-import { simulateLatency, maybeThrowSimulatedError, createId } from "./store";
+import { simulateLatency, maybeThrowSimulatedError, createId, loadStore } from "./store";
+import { isKepalaMadrasah } from "@/lib/access";
 
 let mockCatatan: CatatanBk[] = [
   {
@@ -24,13 +25,16 @@ let mockCatatan: CatatanBk[] = [
 ];
 
 export const mockBkService: BkService = {
-  getBySiswa: async (id_siswa, requesterId, requesterRole) => {
+  getBySiswa: async (id_siswa, requesterId) => {
     await simulateLatency();
     maybeThrowSimulatedError();
+    const penugasanList = loadStore().penugasanJabatan;
+    const isKamad = isKepalaMadrasah(requesterId, penugasanList);
+
     return mockCatatan.filter(c => {
       if (c.id_siswa !== id_siswa) return false;
       if (c.tingkat_kerahasiaan === "Rahasia") {
-        return c.id_pegawai_bk === requesterId || requesterRole === "Kepala Madrasah";
+        return c.id_pegawai_bk === requesterId || isKamad;
       }
       return true;
     });

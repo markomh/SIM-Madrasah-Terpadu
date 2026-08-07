@@ -49,9 +49,9 @@ export default function WawasanPage() {
   }
 
   return (
-    <AppShell title="Wawasan AI">
+    <AppShell title="Dashboard AI">
       <PageHeader
-        title="Dashboard Prediksi & Rekomendasi"
+        title="Dashboard AI (Prediksi & Rekomendasi)"
         description="Seluruh output memakai token AI dan label verifikasi manusia."
       />
       {loading ? <LoadingBlock /> : null}

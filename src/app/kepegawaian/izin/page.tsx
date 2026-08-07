@@ -37,8 +37,10 @@ export default function IzinGuruPage() {
   const [saluran, setSaluran] = useState<IzinGuru["saluran_pelaporan"]>("Langsung/Tatap Muka");
   const [dilaporkanPada, setDilaporkanPada] = useState(new Date().toISOString().slice(0, 16));
 
+  const canAccess = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
+
   useEffect(() => {
-    if (!(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) && !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) return;
+    if (!canAccess) return;
     
     setLoading(true);
     Promise.all([
@@ -53,7 +55,15 @@ export default function IzinGuruPage() {
     }).finally(() => {
       setLoading(false);
     });
-  }, [version]);
+  }, [version, canAccess]);
+
+  if (!canAccess) {
+    return (
+      <AppShell title="Izin Guru">
+        <ErrorBlock message="Halaman pencatatan izin guru khusus untuk Admin Madrasah dan Kepala Madrasah." />
+      </AppShell>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,9 +120,9 @@ export default function IzinGuruPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <SurfaceCard className="md:col-span-1" title="Catat Izin Baru">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Field label="Guru yang Izin">
+            <Field label="Nama Pegawai / Guru">
               <select required className={inputClass} value={idPegawai} onChange={e => setIdPegawai(e.target.value)}>
-                <option value="">-- Pilih Guru --</option>
+                <option value="">— Pilih Pegawai / Guru —</option>
                 {pegawais.map(p => (
                   <option key={p.id_pegawai} value={p.id_pegawai}>{p.nama_lengkap_gelar}</option>
                 ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajarAktif } from "@/lib/access";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -75,93 +75,127 @@ export default function DashboardPage() {
         description="Ringkasan operasional sesuai jabatan & penugasan aktif (demo role switcher)."
       />
 
+      {/* Block: Admin Madrasah */}
       {(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) ? (
-        <div className="grid gap-4 md:grid-cols-3">
-          <SurfaceCard title="Siswa aktif">
-            <p className="text-3xl font-semibold tabular text-ink">{siswaCount}</p>
-            <p className="mt-1 text-sm text-muted">Termasuk seluruh rombel tahun aktif</p>
-            <Link href="/kesiswaan/siswa" className="mt-3 inline-block text-sm font-semibold text-primary">
-              Kelola siswa →
-            </Link>
-          </SurfaceCard>
-          <SurfaceCard title="Pengajuan menunggu">
-            <p className="text-3xl font-semibold tabular text-amber">{pending.length}</p>
-            <p className="mt-1 text-sm text-muted">Pindah rombel & mutasi</p>
-          </SurfaceCard>
-          <SurfaceCard title="Status sinkronisasi (mock)">
-            <p className="text-sm text-muted">Export EMIS/Verval siap — jalur API belum diaktifkan (Tahap 2).</p>
-            <p className="mt-2 text-xs font-semibold text-primary">Terakhir: mock sukses</p>
-          </SurfaceCard>
-          
-          <SurfaceCard title="Rekap Kehadiran Pagi" className="md:col-span-3">
-            {rekapPagi ? (
-              <div className="space-y-3">
-                <div className="flex gap-4 mb-4">
-                  <div className="flex-1 bg-paper p-3 rounded text-center">
-                    <p className="text-2xl font-bold text-ink tabular">{rekapPagi.terjadwal}</p>
-                    <p className="text-xs text-muted">Sesi Terjadwal</p>
-                  </div>
-                  <div className="flex-1 bg-paper p-3 rounded text-center">
-                    <p className="text-2xl font-bold text-ink tabular">{rekapPagi.tepatWaktu}</p>
-                    <p className="text-xs text-muted">Tepat Waktu</p>
-                  </div>
-                  <div className="flex-1 bg-paper p-3 rounded text-center">
-                    <p className="text-2xl font-bold text-ink tabular">{rekapPagi.terlambat}</p>
-                    <p className="text-xs text-muted">Terlambat</p>
-                  </div>
-                  <div className="flex-1 bg-paper p-3 rounded text-center">
-                    <p className="text-2xl font-bold text-ink tabular">{rekapPagi.digantikan}</p>
-                    <p className="text-xs text-muted">Diganti</p>
-                  </div>
-                </div>
-                
-                {rekapPagi.daftarDetail.length > 0 && (
-                  <div className="overflow-x-auto text-sm">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-border text-muted">
-                          <th className="py-2 text-left font-medium">Jadwal Sesi</th>
-                          <th className="py-2 text-left font-medium">Guru</th>
-                          <th className="py-2 text-left font-medium">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {rekapPagi.daftarDetail.map((d, idx) => (
-                          <tr key={idx}>
-                            <td className="py-2">{d.mapel} - {d.rombel}</td>
-                            <td className="py-2">
-                              {d.nama_guru_seharusnya}
-                              {d.nama_guru_pelaksana && d.nama_guru_pelaksana !== d.nama_guru_seharusnya && (
-                                <span className="block text-xs text-amber mt-1">
-                                  Diwakili: {d.nama_guru_pelaksana}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-2">
-                              <StatusBadge status={d.status === "Terlambat" || d.status.includes("Mendadak") ? "Menunggu Persetujuan" : (d.status === "Tepat Waktu" || d.status.includes("Terjadwal") ? "Disetujui" : d.status)} />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-primary" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Ringkasan Administrator Madrasah</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <SurfaceCard title="Siswa aktif">
+              <p className="text-3xl font-semibold tabular text-ink">{siswaCount}</p>
+              <p className="mt-1 text-sm text-muted">Termasuk seluruh rombel tahun aktif</p>
+              <Link href="/kesiswaan/siswa" className="mt-3 inline-block text-sm font-semibold text-primary">
+                Kelola siswa →
+              </Link>
+            </SurfaceCard>
+            <SurfaceCard title="Pengajuan menunggu">
+              <p className="text-3xl font-semibold tabular text-amber">{pending.length}</p>
+              <p className="mt-1 text-sm text-muted">Pindah rombel & mutasi</p>
+            </SurfaceCard>
+            <SurfaceCard title="Status sinkronisasi (mock)">
+              <p className="text-sm text-muted">Export EMIS/Verval siap — jalur API belum diaktifkan (Tahap 2).</p>
+              <p className="mt-2 text-xs font-semibold text-primary">Terakhir: mock sukses</p>
+            </SurfaceCard>
+            <SurfaceCard title="Monitoring Akademik">
+              <p className="text-sm text-muted">Akses monitoring menyeluruh.</p>
+              <div className="mt-3 flex flex-col gap-2">
+                <Link href="/akademik/rekap-presensi" className="text-sm font-semibold text-primary">
+                  Rekap Kehadiran Siswa →
+                </Link>
+                <Link href="/akademik/nilai" className="text-sm font-semibold text-primary">
+                  Monitoring Rekap Nilai →
+                </Link>
               </div>
-            ) : (
-              <p className="text-sm text-muted">Memuat data...</p>
-            )}
-          </SurfaceCard>
+            </SurfaceCard>
+
+            <SurfaceCard title="Rekap Kehadiran Pagi" className="md:col-span-3">
+              {rekapPagi ? (
+                <div className="space-y-3">
+                  <div className="flex gap-4 mb-4">
+                    <div className="flex-1 bg-paper p-3 rounded text-center">
+                      <p className="text-2xl font-bold text-ink tabular">{rekapPagi.terjadwal}</p>
+                      <p className="text-xs text-muted">Sesi Terjadwal</p>
+                    </div>
+                    <div className="flex-1 bg-paper p-3 rounded text-center">
+                      <p className="text-2xl font-bold text-ink tabular">{rekapPagi.tepatWaktu}</p>
+                      <p className="text-xs text-muted">Tepat Waktu</p>
+                    </div>
+                    <div className="flex-1 bg-paper p-3 rounded text-center">
+                      <p className="text-2xl font-bold text-ink tabular">{rekapPagi.terlambat}</p>
+                      <p className="text-xs text-muted">Terlambat</p>
+                    </div>
+                    <div className="flex-1 bg-paper p-3 rounded text-center">
+                      <p className="text-2xl font-bold text-ink tabular">{rekapPagi.digantikan}</p>
+                      <p className="text-xs text-muted">Diganti</p>
+                    </div>
+                  </div>
+
+                  {rekapPagi.daftarDetail.length > 0 && (
+                    <div className="overflow-x-auto text-sm">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border text-muted">
+                            <th className="py-2 text-left font-medium">Jadwal Sesi</th>
+                            <th className="py-2 text-left font-medium">Guru</th>
+                            <th className="py-2 text-left font-medium">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {rekapPagi.daftarDetail.map((d, idx) => (
+                            <tr key={idx}>
+                              <td className="py-2">{d.mapel} - {d.rombel}</td>
+                              <td className="py-2">
+                                {d.nama_guru_seharusnya}
+                                {d.nama_guru_pelaksana && d.nama_guru_pelaksana !== d.nama_guru_seharusnya && (
+                                  <span className="block text-xs text-amber mt-1">
+                                    Diwakili: {d.nama_guru_pelaksana}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-2">
+                                <StatusBadge status={d.status === "Terlambat" || d.status.includes("Mendadak") ? "Menunggu Persetujuan" : (d.status === "Tepat Waktu" || d.status.includes("Terjadwal") ? "Disetujui" : d.status)} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted">Memuat data...</p>
+              )}
+            </SurfaceCard>
+          </div>
         </div>
       ) : null}
 
+      {/* Block: Kepala Madrasah */}
       {(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) ? (
-        <div className="space-y-4">
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-amber" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Eksekutif Kepala Madrasah</h2>
+          </div>
           <div className="grid gap-4 md:grid-cols-3">
             <SurfaceCard title="Menunggu persetujuan">
               <p className="text-3xl font-semibold tabular text-amber">{pending.length}</p>
               <Link href="/persetujuan" className="mt-3 inline-block text-sm font-semibold text-primary">
                 Buka kotak masuk →
               </Link>
+            </SurfaceCard>
+            <SurfaceCard title="Monitoring Akademik">
+              <p className="text-sm text-muted mb-2">Pantau rekapitulasi data akademik madrasah.</p>
+              <div className="flex flex-col gap-2">
+                <Link href="/akademik/rekap-presensi" className="text-sm font-semibold text-primary hover:underline">
+                  Rekap Kehadiran Siswa →
+                </Link>
+                <Link href="/akademik/nilai" className="text-sm font-semibold text-primary hover:underline">
+                  Monitoring Rekap Nilai →
+                </Link>
+              </div>
             </SurfaceCard>
             <SurfaceCard title="Siswa aktif">
               <p className="text-3xl font-semibold tabular">{siswaCount}</p>
@@ -196,67 +230,134 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
+      {/* Block: Operator Kesiswaan */}
       {(currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <SurfaceCard title="Tugas tertunda">
-            <p className="text-sm text-muted">Pengajuan yang masih menunggu Kepala Madrasah: {pending.length}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link href="/kesiswaan/kenaikan-kelas" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white">
-                Kenaikan kelas
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-sky-500" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Operator Kesiswaan</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <SurfaceCard title="Tugas tertunda">
+              <p className="text-sm text-muted">Pengajuan yang masih menunggu Kepala Madrasah: {pending.length}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link href="/kesiswaan/kenaikan-kelas" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white">
+                  Kenaikan kelas
+                </Link>
+                <Link href="/kesiswaan/mutasi" className="rounded-[4px] border border-border px-3 py-2 text-sm font-semibold">
+                  Mutasi
+                </Link>
+                <Link href="/kesiswaan/pindah-rombel" className="rounded-[4px] border border-border px-3 py-2 text-sm font-semibold">
+                  Pindah rombel
+                </Link>
+              </div>
+            </SurfaceCard>
+            <SurfaceCard title="Shortcut data siswa">
+              <Link href="/kesiswaan/siswa" className="text-sm font-semibold text-primary">
+                Buka daftar siswa induk →
               </Link>
-              <Link href="/kesiswaan/mutasi" className="rounded-[4px] border border-border px-3 py-2 text-sm font-semibold">
-                Mutasi
-              </Link>
-              <Link href="/kesiswaan/pindah-rombel" className="rounded-[4px] border border-border px-3 py-2 text-sm font-semibold">
-                Pindah rombel
-              </Link>
-            </div>
-          </SurfaceCard>
-          <SurfaceCard title="Shortcut data siswa">
-            <Link href="/kesiswaan/siswa" className="text-sm font-semibold text-primary">
-              Buka daftar siswa induk →
-            </Link>
-          </SurfaceCard>
+            </SurfaceCard>
+          </div>
         </div>
       ) : null}
 
+      {/* Block: Wali Kelas */}
       {(currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) ? (
-        <div className="space-y-4">
-          <SurfaceCard title="Absensi hari ini">
-            <Link href="/akademik/presensi-siswa" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white">
-              Input absensi rombel
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Wali Kelas</h2>
+          </div>
+          <div className="space-y-4">
+            <SurfaceCard title="Presensi Hari Ini">
+              <Link href="/akademik/presensi-siswa" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white">
+                Input Presensi Rombel
+              </Link>
+            </SurfaceCard>
+            <SurfaceCard title="Siswa berisiko di pantauan">
+              <div className="mb-2">
+                <AiLabel />
+              </div>
+              <ul className="space-y-2">
+                {risiko.slice(0, 5).map((s) => (
+                  <StatusStrip key={s.id_siswa} tone="ai" className="rounded-[4px] p-3">
+                    <p className="text-sm font-semibold">{s.nama_lengkap}</p>
+                    <p className="tabular text-xs text-muted">Skor {s.skor_risiko_ai}</p>
+                  </StatusStrip>
+                ))}
+              </ul>
+            </SurfaceCard>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Block: Pembina Ekstrakurikuler */}
+      {(currentUser && isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList)) ? (
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-purple-500" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Pembina Ekstrakurikuler</h2>
+          </div>
+          <SurfaceCard title="Pembinaan Ekstrakurikuler">
+            <p className="text-sm text-muted font-medium">Anda terdaftar sebagai Pembina Ekstrakurikuler.</p>
+            <Link href="/ekstrakurikuler" className="mt-3 inline-block text-sm font-semibold text-primary">
+              Kelola kegiatan & presensi ekstrakurikuler →
             </Link>
-          </SurfaceCard>
-          <SurfaceCard title="Siswa berisiko di pantauan">
-            <div className="mb-2">
-              <AiLabel />
-            </div>
-            <ul className="space-y-2">
-              {risiko.slice(0, 5).map((s) => (
-                <StatusStrip key={s.id_siswa} tone="ai" className="rounded-[4px] p-3">
-                  <p className="text-sm font-semibold">{s.nama_lengkap}</p>
-                  <p className="tabular text-xs text-muted">Skor {s.skor_risiko_ai}</p>
-                </StatusStrip>
-              ))}
-            </ul>
           </SurfaceCard>
         </div>
       ) : null}
 
-      {(currentUser?.tugas_utama === "Guru") ? (
-        <SurfaceCard title="Jadwal mengajar">
-          <Link href="/akademik/jadwal" className="text-sm font-semibold text-primary">
-            Lihat jadwal & bentrok →
-          </Link>
-        </SurfaceCard>
+      {/* Block: Guru BK */}
+      {(currentUser && isGuruBk(currentUser.id_pegawai, penugasanList)) ? (
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-rose-500" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Bimbingan Konseling (BK)</h2>
+          </div>
+          <SurfaceCard title="Bimbingan Konseling (BK)">
+            <p className="text-sm text-muted font-medium">Layanan konseling & catatan kerahasiaan siswa.</p>
+            <Link href="/bk" className="mt-3 inline-block text-sm font-semibold text-primary">
+              Kelola catatan BK →
+            </Link>
+          </SurfaceCard>
+        </div>
       ) : null}
 
-      {(currentUser?.tugas_utama === "Tendik") ? (
-        <SurfaceCard title="Portal informasi anak">
-          <Link href="/portal-ortu" className="text-sm font-semibold text-primary">
-            Buka portal orang tua →
-          </Link>
-        </SurfaceCard>
+      {/* Block: Guru Mata Pelajaran */}
+      {(currentUser && isPengajarAktif(currentUser.id_pegawai, jadwalList)) ? (
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-indigo-500" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Guru Mata Pelajaran</h2>
+          </div>
+          <SurfaceCard title="Sesi Mengajar & Presensi Kelas">
+            <p className="text-sm text-muted mb-3">Akses cepat ke sesi mengajar aktif hari ini untuk pencatatan presensi siswa per jam pelajaran.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/akademik/presensi-siswa" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
+                ⚡ Mode Sesi Mengajar Aktif (Presensi)
+              </Link>
+              <Link href="/akademik/nilai" className="rounded-[4px] border border-border bg-surface px-3 py-2 text-sm font-semibold text-ink hover:bg-paper">
+                Input Nilai Harian
+              </Link>
+              <Link href="/akademik/jadwal" className="text-sm font-semibold text-primary hover:underline ml-auto">
+                Lihat jadwal & bentrok →
+              </Link>
+            </div>
+          </SurfaceCard>
+        </div>
+      ) : null}
+
+      {/* Block: Staf Tendik */}
+      {(currentUser?.tugas_utama === "Tendik" && !isAdminMadrasah(currentUser.id_pegawai, penugasanList) && !isKepalaMadrasah(currentUser.id_pegawai, penugasanList) && !isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) ? (
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 border-b border-border pb-1">
+            <span className="h-2 w-2 rounded-full bg-slate-400" />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Staf Tenaga Kependidikan (Tendik)</h2>
+          </div>
+          <SurfaceCard title="Informasi Staf Tendik">
+            <p className="text-sm text-muted">Anda terdaftar sebagai Tenaga Kependidikan (Tendik). Akses terbatas pada tugas operasional staf.</p>
+          </SurfaceCard>
+        </div>
       ) : null}
     </AppShell>
   );

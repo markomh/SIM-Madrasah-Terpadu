@@ -96,18 +96,40 @@ export type TingkatPendidikan = {
 
 export type TahunAjaran = {
   id_tahun: string;
-  nama_tahun: string;     // "2026/2027"
-  semester: "Ganjil" | "Genap";
+  nama_tahun: string;     // "2026/2027" — satu baris = satu tahun ajaran PENUH (2 semester)
   status_aktif: boolean;
 };
+// PENTING: `semester` SENGAJA TIDAK ADA di sini — dipindah ke JadwalPelajaran (lihat types/jadwal.ts
+// di bawah). Ini koreksi atas gap SRS Bab 10 poin 16 yang sebelumnya tidak ikut dipropagasikan ke
+// kontrak frontend ini. Jika ditemukan field `semester` pada TahunAjaran di kode manapun, atau logika
+// yang membandingkan `tahunAjaran.semester`, itu adalah sisa model lama yang salah — lihat instruksi
+// koreksi terpisah untuk migrasinya. Konsekuensinya jika dibiarkan: ROMBEL/ANGGOTA_ROMBEL akan
+// "berpindah" secara palsu setiap pergantian semester, padahal komposisi rombel seharusnya tetap
+// sama sepanjang satu tahun ajaran penuh.
 
 export type Rombel = {
   id_rombel: string;
   nama_rombel: string;    // "10-A"
   id_tingkat: string;
-  id_tahun: string;
+  id_tahun: string;       // FK ke TahunAjaran — tahun PENUH, bukan per-semester
   id_wali_kelas: string | null; // FK ke Pegawai
 };
+
+// types/jadwal.ts (baru — diformalkan, sebelumnya tidak pernah ada definisi tipe resmi di kontrak ini
+// meski file `jadwal.ts` sudah lama dipakai di implementasi; celah yang sama seperti kasus AbsensiSiswa)
+export type JadwalPelajaran = {
+  id_jadwal: string;
+  id_rombel: string;
+  id_pegawai: string;     // guru pengajar
+  id_mapel: string;
+  semester: "Ganjil" | "Genap";  // WAJIB ADA — sumber kebenaran semester, bukan TahunAjaran
+  hari: string;
+  jam_mulai: string;
+  jam_selesai: string;
+};
+// Kunci unik: (id_pegawai, hari, jam_mulai, semester) — sesuai SRS Bab 10 poin 3. Validasi bentrok
+// jadwal, validasi input nilai (Bab 10 poin 17), dan validasi is_pengajar (Bab 12) SEMUA mengacu ke
+// `semester` pada baris JadwalPelajaran ini — bukan ke TahunAjaran.
 
 // types/siswa.ts
 export type StatusSiswa = "Aktif" | "Lulus" | "Mutasi Keluar" | "Drop Out";
@@ -130,6 +152,14 @@ export type Siswa = {
   skor_risiko_ai: number | null;   // 0–100, read-only di UI, hanya tampilan
 };
 
+// types/orang-tua.ts (Placeholder Fase 4)
+export type OrangTua = {
+  id_orang_tua: string;
+  nik: string;
+  nama_lengkap: string;
+  nomor_telepon: string | null;
+  pekerjaan: string | null;
+};
 // types/keanggotaan.ts
 export type StatusKeanggotaan =
   | "Aktif" | "Pindah Rombel" | "Naik Kelas" | "Tinggal Kelas" | "Lulus" | "Keluar";
@@ -288,6 +318,7 @@ export type SesiTatapMuka = {
   waktu_input: string | null;       // timestamp
   is_guru_pengganti: boolean;       // read-only, dihitung sistem — jangan diinput manual di form
   id_izin_terkait: string | null;   // FK ke IzinGuru
+  jurnal_materi: string | null;
   status_kehadiran_guru: StatusKehadiranGuru; // read-only, dihitung sistem
 };
 
@@ -462,8 +493,8 @@ Satu-satunya cara menulis `AbsensiSiswa` adalah lewat `SesiTatapMukaService.cata
 | `/kesiswaan/mutasi` | Form Mutasi Masuk/Keluar + status | Operator (ajukan), Kepala Madrasah (approve) |
 | `/akademik/jadwal` *(pindah dari `/guru-tendik/jadwal`)* | Penjadwalan (drag-and-drop bentrok-cek, kini memvalidasi `semester` sebagai bagian kunci unik) | Admin |
 | `/akademik/presensi-siswa` *(pindah dari `/guru-tendik/presensi-siswa`)* | **Satu-satunya jalur input presensi siswa** — Input Presensi per Sesi Tatap Muka (halaman ini yang otomatis membuktikan kehadiran guru — tidak ada halaman "presensi guru" terpisah, dan tidak ada jalur input lain di halaman manapun) | Wali Kelas, Guru Mapel |
-| `/akademik/rekap-presensi` *(pindah dari `/kesiswaan/absensi`, nama rute berubah — tautkan ulang seluruh referensi/`Link` yang lama)* | Rekap Presensi Siswa (read-only) — matriks siswa × sesi, tautan "Isi Presensi" ke sesi yang belum lengkap | Wali Kelas, Guru Mapel, Admin Madrasah |
-| `/akademik/nilai` *(baru)* | **Akses berbasis relasi, bukan label peran** (lihat Bab 12 SRS induk "Rangkap Jabatan"): siapa pun dengan `isPengajar(currentUser, id_rombel, id_mapel, semester)` bernilai benar bisa **input** nilai untuk kombinasi itu — termasuk pegawai yang kebetulan juga Wali Kelas rombel lain atau rombel yang sama. Siapa pun dengan `isWaliKelas(currentUser, id_rombel)` benar melihat **rekap lengkap lintas-mapel** rombel itu (read-only untuk mapel yang bukan diajarnya sendiri). Satu akun bisa punya kedua hak sekaligus di rombel yang sama | Guru Mapel (jabatan pokok), + status turunan Wali Kelas jika relevan |
+| `/akademik/rekap-presensi` *(pindah dari `/kesiswaan/absensi`, nama rute berubah — tautkan ulang seluruh referensi/`Link` yang lama)* | Rekap Presensi Siswa (read-only) — matriks siswa × sesi, tautan "Isi Presensi" ke sesi yang belum lengkap. **Kepala Madrasah** memiliki akses monitoring read-only ke seluruh rombel se-madrasah. | Wali Kelas, Guru Mapel, Admin Madrasah, Kepala Madrasah |
+| `/akademik/nilai` *(baru)* | **Akses berbasis relasi, bukan label peran** (lihat Bab 12 SRS induk "Rangkap Jabatan"): siapa pun dengan `isPengajar(currentUser, id_rombel, id_mapel, semester)` bernilai benar bisa **input** nilai untuk kombinasi itu — termasuk pegawai yang kebetulan juga Wali Kelas rombel lain atau rombel yang sama. Siapa pun dengan `isWaliKelas(currentUser, id_rombel)` benar melihat **rekap lengkap lintas-mapel** rombel itu (read-only untuk mapel yang bukan diajarnya sendiri). **Kepala Madrasah** memiliki akses *read-only* untuk memonitor rekap nilai seluruh rombel se-madrasah. Satu akun bisa punya kedua hak sekaligus di rombel yang sama | Guru Mapel (jabatan pokok), + status turunan Wali Kelas jika relevan, Kepala Madrasah |
 | `/kepegawaian/pegawai` *(pindah dari `/guru-tendik/pegawai`)* | Daftar Guru & Tendik — form kini menyertakan alamat berjenjang dan `mapel_sertifikasi` | Admin |
 | `/kepegawaian/izin` *(pindah dari `/guru-tendik/izin`)* | Catat Izin Guru (H-1 / Mendesak-Darurat), lihat riwayat izin per guru | Admin, Kepala Madrasah |
 | `/kepegawaian/kedisiplinan` *(pindah dari `/guru-tendik/kedisiplinan`)* | Rekap Kehadiran Guru, Realisasi JTM, Flag "Digantikan Mendadak" berulang, draf Surat Teguran | Kepala Madrasah |
@@ -537,7 +568,15 @@ Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 
 | Tanggal | Modul | Deviasi/Asumsi | Alasan |
 |---|---|---|---|
-| 2026-08-04 | Arsitektur | Menggantikan pendekatan `Peran` menjadi `tugas_utama` (Guru/Tendik) + `PenugasanJabatan` aditif | Pegawai (terutama Guru) dapat memiliki lebih dari satu jabatan skala-madrasah (seperti Kepala Madrasah atau Guru BK) sekaligus tetap aktif mengajar dan menjadi wali kelas, sehingga model role eksklusif tidak realistis. |
+| 2026-08-04 | Arsitektur / Referensi & Akademik | Migrasi field `semester` dari `TahunAjaran` ke `JadwalPelajaran`. Penanganan semester global di header UI menggunakan state `selectedSemester` pada `TahunAjaranProvider`. | Konsisten dengan SRS v2 Bab 10 poin 16 & Bab 12. Satu baris `TahunAjaran` merepresentasikan 1 tahun ajaran penuh (2 semester) agar rombel/anggota rombel tidak berpindah secara palsu tiap semester. |
+| 2026-08-04 | Audit Tampilan / Proteksi Akses | Menambahkan blok Dashboard komposit untuk Pembina Ekstra & Guru BK (`page.tsx`), serta proteksi akses langsung URL dengan `ErrorBlock` pada halaman kedisiplinan, izin, mutasi, pindah rombel, dan jadwal. | Memastikan setiap pegawai (terutama `pg_demo_terpadu` dan pegawai non-admin) melihat dashboard komposit lengkap dan diblokir secara eksplisit dengan `ErrorBlock` saat mengakses URL terlarang secara langsung. |
+| 2026-08-04 | UX / Referensi Master Data | Restrukturisasi halaman `/referensi` dari grid 2x2 bertumpuk menjadi 3 Tab Domain terpisah (Kurikulum & Mapel, Rombongan Belajar, Kalender & Hari Libur) dilengkapi indikator badge count. | Menyelaraskan Information Architecture (IA) dengan standar administrasi nasional EMIS Kemenag 4.0 & Rapor Digital Madrasah (RDM) agar lebih fokus dan fungsional tanpa merusak rute canonical `/referensi`. |
+| 2026-08-05 | UX / Kesiswaan | Komponen baru `GlobalContextFilter` (`src/components/global-context-filter.tsx`) — bar filter global Tahun Ajaran & Semester yang menempel di bawah `<PageHeader>`. Halaman Tabel Siswa, Presensi, dan Nilai bereaksi terhadap state `TahunAjaranProvider`. | Mengurangi klik & konteks berpindah: operator tidak perlu memilih tahun ajaran ulang di setiap halaman. |
+| 2026-08-05 | UX / Kesiswaan | Refaktor `kesiswaan/siswa/page.tsx`: Signature Element border-l-3px per baris tabel berdasarkan status siswa & AI risk (primary = Aktif, amber = Mutasi/Pending, danger = Keluar/DO, ai = Risiko AI ≥50). Smart Default Filter Rombel: jika currentUser isWaliKelas, dropdown rombel otomatis terpilih ke rombel miliknya saat halaman pertama dimuat. | Sesuai FRONTEND.md Bab 3 "strip warna kiri 3px" dan prinsip frictionless UX untuk operator harian yang memindai banyak baris. |
+| 2026-08-05 | Arsitektur / Persuratan | Menambahkan entitas `ProfilMadrasah` dan `TemplateSurat` ke `DemoStore` serta membuat `LembagaService`. | Diperlukan sebagai sumber data identitas lembaga/kop surat dinamis dan manajemen template dokumen untuk wizard persuratan otomatis. |
+| 2026-08-05 | Arsitektur / Persuratan | Desain skema `Surat` dengan Snapshot `meta_penandatangan` alih-alih merelasikan langsung saat dokumen dicetak. | Mematuhi "Aturan Kekekalan Arsip" di mana dokumen legal tidak boleh berubah (termasuk nama/NIP Kepsek) meskipun penjabatnya berganti di masa depan. |
+| 2026-08-06 | State Management / Demo | Penggunaan `STORAGE_KEY_V5` (`sim-madrasah-demo-store-v5`) di `src/services/store.ts` untuk versi store demo client-side. | Memastikan browser user yang menyimpan cache/localStorage skema lama otomatis ter-reset ke data seed yang valid tanpa menyebabkan crash akibat perbedaan skema surat dan template. |
+| 2026-08-06 | Kontrak Data / Kesiswaan | Formalisasi interface `OrangTua` (`src/types/orang-tua.ts`) di Bab 4 sebagai Placeholder (Read-Only/Mock) Fase 4. | Menjaga konsistensi tipe data di codebase dengan dokumen kontrak, sambil secara tegas mengkategorikan modul ini sebagai peruntukan Fase 4 SRS. |
 
 ---
 

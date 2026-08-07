@@ -13,3 +13,5 @@ export type * from "./nilai";
 export type * from "./ekstrakurikuler";
 export type * from "./bk";
 export type * from "./penugasan-jabatan";
+export type * from "./lembaga";
+export type * from "./orang-tua";

@@ -1,6 +1,6 @@
 "use client";
 
-import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar, isPengajarAktif } from "@/lib/access";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -17,56 +17,51 @@ import {
 } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
-import type { AbsensiSiswa, Rombel, Siswa, SesiTatapMuka, JadwalPelajaran, MataPelajaran } from "@/types";
+import type { AbsensiSiswa, AnggotaRombel, Rombel, Siswa, SesiTatapMuka, JadwalPelajaran, MataPelajaran } from "@/types";
 
 export default function AbsensiPage() {
-  const { currentUser, penugasanList, ekstraList } = useAuth();
+  const { currentUser, penugasanList, ekstraList, rombelList: contextRombel, jadwalList: contextJadwal } = useAuth();
   const { selected } = useTahunAjaran();
   const { version, bump } = useDataVersion();
-  const [tanggal, setTanggal] = useState(new Date().toISOString().slice(0, 10));
-  const [rombelList, setLocalRombelList] = useState<Rombel[]>([]);
-  const [idRombel, setIdRombel] = useState("");
-  
+
+  const [rombelList, setRombelList] = useState<Rombel[]>([]);
+  const [idRombel, setIdRombel] = useState<string>("");
+  const [tanggal, setTanggal] = useState<string>(new Date().toISOString().split("T")[0]);
+
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
-  const [absensiList, setAbsensiList] = useState<AbsensiSiswa[]>([]);
   const [sesiList, setSesiList] = useState<SesiTatapMuka[]>([]);
+  const [absensiList, setAbsensiList] = useState<AbsensiSiswa[]>([]);
   const [jadwalList, setJadwalList] = useState<JadwalPelajaran[]>([]);
   const [mapelList, setMapelList] = useState<MataPelajaran[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const canAccess = (currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) || (currentUser?.tugas_utama === "Guru") || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
+  const canAccess = currentUser && (
+    isAdminMadrasah(currentUser.id_pegawai, penugasanList) ||
+    isKepalaMadrasah(currentUser.id_pegawai, penugasanList) ||
+    isWaliKelas(currentUser.id_pegawai, contextRombel) ||
+    isPengajarAktif(currentUser.id_pegawai, contextJadwal)
+  );
 
   useEffect(() => {
-    if (!canAccess) return;
-    setLoading(true);
-    services.referensi
-      .getRombel({ id_tahun: selected?.id_tahun })
-      .then(async (rb) => {
-        let filtered = rb;
-        if ((currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) && currentUser) {
-          filtered = rb.filter((r) => r.id_wali_kelas === currentUser.id_pegawai);
-        }
-        setLocalRombelList(filtered);
-        const first = filtered[0]?.id_rombel ?? "";
-        setIdRombel((prev) => prev || first);
-        setError(null);
-      })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [selected?.id_tahun, currentUser, canAccess]);
+    services.referensi.getRombel({ id_tahun: selected?.id_tahun }).then(r => {
+      setRombelList(r);
+      if (r.length > 0 && !idRombel) setIdRombel(r[0].id_rombel);
+    });
+  }, [selected?.id_tahun, idRombel]);
 
   useEffect(() => {
     if (!idRombel || !canAccess) return;
     setLoading(true);
+    
     Promise.all([
       services.sesiTatapMuka.getByRombelTanggal(idRombel, tanggal),
       services.absensi.getRekapHarian(idRombel, tanggal),
-      services.siswa.getAll(),
+      services.siswa.getAll({ id_rombel: idRombel }),
       services.jadwal.getAll(),
       services.referensi.getMapel(),
-      services.keanggotaan.getAnggotaAktif({ id_rombel: idRombel })
+      services.keanggotaan.getAnggotaAktif(),
     ])
       .then(([sesi, abs, siswa, jadwal, mapel, anggota]) => {
         setSesiList(sesi);
@@ -74,8 +69,8 @@ export default function AbsensiPage() {
         setJadwalList(jadwal);
         setMapelList(mapel);
         
-        const activeIds = anggota.map((a: any) => a.id_siswa);
-        setSiswaList(siswa.filter(s => activeIds.includes(s.id_siswa)));
+        const activeIds = anggota.map((a: AnggotaRombel) => a.id_siswa);
+        setSiswaList(siswa.filter((s: Siswa) => activeIds.includes(s.id_siswa)));
         
         setError(null);
       })
@@ -92,7 +87,7 @@ export default function AbsensiPage() {
   }
 
   // Create columns based on sessions
-  const columns: any[] = [
+  const columns: { key: string; header: React.ReactNode; render: (s: Siswa) => React.ReactNode; className?: string }[] = [
     {
       key: "nama",
       header: "Nama Siswa",
@@ -134,7 +129,7 @@ export default function AbsensiPage() {
   return (
     <AppShell title="Rekap Presensi">
       <PageHeader
-        title="Rekap Presensi Harian"
+        title="Rekap Presensi Siswa"
         description="Melihat rekap kehadiran siswa per sesi mata pelajaran. Klik tombol pada kolom jadwal untuk mengisi presensi."
       />
       <div className="mb-4 flex flex-wrap gap-2">

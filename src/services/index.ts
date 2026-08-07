@@ -16,6 +16,7 @@ import { mockNilaiService } from "./nilai.mock";
 import { mockEkstrakurikulerService } from "./ekstrakurikuler.mock";
 import { mockBkService } from "./bk.mock";
 import { mockPenugasanJabatanService } from "./penugasan-jabatan.mock";
+import { lembagaMock } from "./lembaga.mock";
 import { loadStore, resetStore, SIMULATE_ERROR_KEY } from "./store";
 
 /** Single entry point — Stage 2 swaps mock implementations here. */
@@ -38,6 +39,7 @@ export const services = {
   ekstrakurikuler: mockEkstrakurikulerService,
   bk: mockBkService,
   penugasanJabatan: mockPenugasanJabatanService,
+  lembaga: lembagaMock,
 };
 
 export function getAuditLog() {

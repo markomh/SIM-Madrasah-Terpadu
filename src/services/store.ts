@@ -19,9 +19,11 @@ import type {
   KeanggotaanEkstra,
   AbsensiEkstra,
   PenugasanJabatan,
+  ProfilMadrasah,
+  TemplateSurat,
 } from "@/types";
 
-export const STORAGE_KEY = "sim-madrasah-demo-store-v1";
+export const STORAGE_KEY = "sim-madrasah-demo-store-v5";
 export const SIMULATE_ERROR_KEY = "sim-madrasah-simulate-error";
 
 export type DemoStore = {
@@ -51,6 +53,8 @@ export type DemoStore = {
   keanggotaanEkstra: KeanggotaanEkstra[];
   absensiEkstra: AbsensiEkstra[];
   penugasanJabatan: PenugasanJabatan[];
+  profilMadrasah: ProfilMadrasah;
+  templateSurat: TemplateSurat[];
 };
 
 export function createId(prefix: string): string {
@@ -84,8 +88,8 @@ export function maybeThrowSimulatedError(): void {
 
 function buildSeed(): DemoStore {
   const tahunAjaran: TahunAjaran[] = [
-    { id_tahun: "ta_2526", nama_tahun: "2025/2026", semester: "Genap", status_aktif: false },
-    { id_tahun: "ta_2627", nama_tahun: "2026/2027", semester: "Ganjil", status_aktif: true },
+    { id_tahun: "ta_2526", nama_tahun: "2025/2026", status_aktif: false },
+    { id_tahun: "ta_2627", nama_tahun: "2026/2027", status_aktif: true },
   ];
 
   const tingkat: TingkatPendidikan[] = [
@@ -101,6 +105,7 @@ function buildSeed(): DemoStore {
     { id_mapel: "mp_bing", kode_mapel: "BIG", nama_mapel: "Bahasa Inggris", kelompok_mapel: "Umum" },
     { id_mapel: "mp_ipa", kode_mapel: "IPA", nama_mapel: "Ilmu Pengetahuan Alam", kelompok_mapel: "Umum" },
     { id_mapel: "mp_qur", kode_mapel: "QUR", nama_mapel: "Al-Qur'an Hadis", kelompok_mapel: "Agama" },
+    { id_mapel: "mp_pjok", kode_mapel: "PJK", nama_mapel: "PJOK", kelompok_mapel: "Umum" },
   ];
 
   const pegawai: Pegawai[] = [
@@ -113,11 +118,10 @@ function buildSeed(): DemoStore {
     { id_pegawai: "pg_guru_1", nik: "3175010701910007", nip: null, npk: "NPK-007", nama_lengkap_gelar: "Dewi Kartika, S.Pd.", status_kepegawaian: "Non-PNS", tugas_utama: "Guru", alamat_detail: "Jl. Anggrek No.7", id_desa: "desa_3", mapel_sertifikasi: ["mp_bind", "mp_bing"] },
     { id_pegawai: "pg_guru_2", nik: "3175010801890008", nip: "198908082011011005", npk: null, nama_lengkap_gelar: "Hendra Wijaya, M.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Flamboyan No.8", id_desa: "desa_4", mapel_sertifikasi: ["mp_mtk", "mp_ipa"] },
     { id_pegawai: "pg_tendik", nik: "3175010901920009", nip: null, npk: "NPK-009", nama_lengkap_gelar: "Maya Anggraini", status_kepegawaian: "Honorer", tugas_utama: "Tendik", alamat_detail: "Jl. Kenanga No.9", id_desa: "desa_1", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_ortu", nik: "3175011001750010", nip: null, npk: null, nama_lengkap_gelar: "Suryani (Wali)", status_kepegawaian: "—", tugas_utama: "Guru", alamat_detail: null, id_desa: null, mapel_sertifikasi: [] },
     { id_pegawai: "pg_pembina", nik: "3175011101850011", nip: null, npk: "NPK-011", nama_lengkap_gelar: "Agus Salim, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Veteran No.10", id_desa: "desa_2", mapel_sertifikasi: [] },
     { id_pegawai: "pg_bk", nik: "3175011201900012", nip: null, npk: "NPK-012", nama_lengkap_gelar: "Siti Aminah, S.Psi.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Diponegoro No.11", id_desa: "desa_3", mapel_sertifikasi: [] },
     { id_pegawai: "pg_demo_terpadu", nik: "3175999900000099", nip: "199901012020011001", npk: null, nama_lengkap_gelar: "Siti Nurhaliza (Demo Terpadu), S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Demo Terpadu", id_desa: "desa_1", mapel_sertifikasi: ["mp_mtk"] },
-    { id_pegawai: "pg_guru_polos", nik: "3175011301900013", nip: null, npk: "NPK-013", nama_lengkap_gelar: "Bambang Pamungkas, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Polos No.13", id_desa: "desa_4", mapel_sertifikasi: [] },
+    { id_pegawai: "pg_guru_polos", nik: "3175011301900013", nip: null, npk: "NPK-013", nama_lengkap_gelar: "Bambang Pamungkas, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Polos No.13", id_desa: "desa_4", mapel_sertifikasi: ["mp_pjok"] },
   ];
 
   const rombel: Rombel[] = [
@@ -142,7 +146,7 @@ function buildSeed(): DemoStore {
 
   const siswa: Siswa[] = firstNames.map((fn, i) => {
     const jk: "L" | "P" = i % 2 === 0 ? "P" : "L";
-    const risk = i % 7 === 0 ? 72 + (i % 20) : i % 11 === 0 ? 55 + (i % 10) : null;
+    const risk = i % 5 === 0 ? 80 + (i % 15) : i % 3 === 0 ? 55 + (i % 20) : i % 4 === 0 ? 40 + (i % 10) : null;
     return {
       id_siswa: `sw_${String(i + 1).padStart(2, "0")}`,
       nik: `3175${String(100000000000 + i).slice(0, 12)}`,
@@ -264,18 +268,21 @@ function buildSeed(): DemoStore {
     }));
 
   const jadwal: JadwalPelajaran[] = [
-    { id_jadwal: "jd_1", id_rombel: "rb_10a", id_pegawai: "pg_demo_terpadu", id_mapel: "mp_mtk", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_2", id_rombel: "rb_10a", id_pegawai: "pg_guru_1", id_mapel: "mp_bind", hari: "Senin", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_3", id_rombel: "rb_10b", id_pegawai: "pg_wali_a", id_mapel: "mp_qur", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_4", id_rombel: "rb_11a", id_pegawai: "pg_guru_2", id_mapel: "mp_ipa", hari: "Selasa", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_5", id_rombel: "rb_11a", id_pegawai: "pg_wali_c", id_mapel: "mp_pai", hari: "Selasa", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_6", id_rombel: "rb_12a", id_pegawai: "pg_guru_1", id_mapel: "mp_bing", hari: "Rabu", jam_mulai: "10:00", jam_selesai: "11:30" },
+    { id_jadwal: "jd_1", id_rombel: "rb_10a", id_pegawai: "pg_demo_terpadu", id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_2", id_rombel: "rb_10a", id_pegawai: "pg_guru_1", id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "08:30", jam_selesai: "10:00" },
+    { id_jadwal: "jd_3", id_rombel: "rb_10b", id_pegawai: "pg_wali_a", id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_4", id_rombel: "rb_11a", id_pegawai: "pg_guru_2", id_mapel: "mp_ipa", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_5", id_rombel: "rb_11a", id_pegawai: "pg_wali_c", id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:30", jam_selesai: "10:00" },
+    { id_jadwal: "jd_6", id_rombel: "rb_12a", id_pegawai: "pg_guru_1", id_mapel: "mp_bing", semester: "Genap", hari: "Rabu", jam_mulai: "10:00", jam_selesai: "11:30" },
+    { id_jadwal: "jd_7", id_rombel: "rb_10a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_8", id_rombel: "rb_10b", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:30", jam_selesai: "10:00" },
+    { id_jadwal: "jd_9", id_rombel: "rb_11a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:00", jam_selesai: "08:30" },
   ];
 
   const surat: Surat[] = [
-    { id_surat: "sr_1", nomor_surat: "421/001/SK/2026", judul: "SK Kenaikan Kelas", jenis: "SK", status: "Menunggu Tanda Tangan", dibuat_oleh: "pg_ops", ditandatangani_oleh: null, tanggal_dibuat: todayIso(), isi_ringkas: "Surat keputusan kenaikan kelas tahun ajaran 2026/2027", hasil_ai: false },
-    { id_surat: "sr_2", nomor_surat: "421/014/SKT/2026", judul: "Surat Keterangan Aktif", jenis: "Surat Keterangan", status: "Ditandatangani", dibuat_oleh: "pg_ops", ditandatangani_oleh: "pg_kepala", tanggal_dibuat: "2026-07-20", isi_ringkas: "Keterangan siswa aktif belajar", hasil_ai: false },
-    { id_surat: "sr_3", nomor_surat: "DRAFT-AI-003", judul: "Surat Tugas Mengajar", jenis: "Surat Tugas", status: "Draft", dibuat_oleh: "pg_admin", ditandatangani_oleh: null, tanggal_dibuat: todayIso(), isi_ringkas: "Draf AI — perlu verifikasi sebelum ditandatangani", hasil_ai: true },
+    { id_surat: "sr_1", nomor_surat: "421/001/MTs.TerpaduNusantara/2026", perihal: "SK Kenaikan Kelas", jenis_surat: "SK", id_template: null, tanggal_surat: todayIso(), tujuan_surat: "Seluruh Siswa MTs Terpadu Nusantara", isi_surat: "Surat keputusan kenaikan kelas tahun ajaran 2026/2027", id_siswa_terkait: null, id_pegawai_terkait: null, status: "Menunggu TTD", dibuat_oleh: "pg_ops", id_penandatangan: "pg_kepala", hasil_ai: false, meta_penandatangan: null },
+    { id_surat: "sr_2", nomor_surat: "421/014/MTs.TerpaduNusantara/2026", perihal: "Surat Keterangan Aktif", jenis_surat: "Surat Keterangan", id_template: "tpl_01", tanggal_surat: "2026-07-20", tujuan_surat: "Pihak yang memerlukan", isi_surat: "Keterangan siswa aktif belajar", id_siswa_terkait: null, id_pegawai_terkait: null, status: "Diterbitkan", dibuat_oleh: "pg_ops", id_penandatangan: "pg_kepala", hasil_ai: false, meta_penandatangan: { id_pegawai: "pg_kepala", nama: "Dr. H. Syaiful Rahman, M.Pd.", nip: "19750501200101", jabatan: "Kepala Madrasah", tanggal_ttd: "2026-07-20" } },
+    { id_surat: "sr_3", nomor_surat: "DRAFT-AI-003", perihal: "Surat Tugas Mengajar", jenis_surat: "Surat Tugas", id_template: "tpl_02", tanggal_surat: todayIso(), tujuan_surat: "Pimpinan yang berwenang", isi_surat: "Draf AI — perlu verifikasi sebelum ditandatangani", id_siswa_terkait: null, id_pegawai_terkait: null, status: "Draf", dibuat_oleh: "pg_admin", id_penandatangan: null, hasil_ai: true, meta_penandatangan: null },
   ];
 
   const hariLibur: HariLibur[] = [
@@ -332,6 +339,7 @@ function buildSeed(): DemoStore {
       is_guru_pengganti: false,
       id_izin_terkait: null,
       status_kehadiran_guru: "Tepat Waktu",
+      jurnal_materi: "Membahas Persamaan Kuadrat dan aplikasinya dalam kehidupan sehari-hari.",
     },
     {
       id_sesi: "st_2",
@@ -342,6 +350,7 @@ function buildSeed(): DemoStore {
       is_guru_pengganti: true,
       id_izin_terkait: "iz_1",
       status_kehadiran_guru: "Digantikan Terjadwal",
+      jurnal_materi: "Latihan menulis teks eksplanasi.",
     },
     {
       id_sesi: "st_3",
@@ -352,6 +361,7 @@ function buildSeed(): DemoStore {
       is_guru_pengganti: false,
       id_izin_terkait: null,
       status_kehadiran_guru: "Terlambat",
+      jurnal_materi: "Murojaah juz 30.",
     },
     {
       id_sesi: "st_4",
@@ -362,6 +372,7 @@ function buildSeed(): DemoStore {
       is_guru_pengganti: true,
       id_izin_terkait: null,
       status_kehadiran_guru: "Digantikan Mendadak",
+      jurnal_materi: "Siswa diminta membaca mandiri karena guru berhalangan mendadak.",
     }
   ];
 
@@ -376,6 +387,84 @@ function buildSeed(): DemoStore {
     { id_penugasan: "pj_3", id_pegawai: "pg_ops", jenis_jabatan: "Operator Kesiswaan", id_tahun: "ta_2627", tanggal_mulai: "2024-07-01", tanggal_selesai: null, status: "Aktif" },
     { id_penugasan: "pj_4", id_pegawai: "pg_bk", jenis_jabatan: "Guru BK", id_tahun: "ta_2627", tanggal_mulai: "2024-07-01", tanggal_selesai: null, status: "Aktif" },
     { id_penugasan: "pj_5", id_pegawai: "pg_demo_terpadu", jenis_jabatan: "Kepala Madrasah", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
+  ];
+  const profilMadrasah: ProfilMadrasah = {
+    id_profil: "prof_01",
+    npsn: "10892345",
+    nsm: "121152710001",
+    nama_madrasah: "MTs Terpadu Nusantara",
+    jenjang: "MTs",
+    status_akreditasi: "A",
+    alamat: "Jl. Pendidikan No. 123, Kompleks Islamic Center",
+    kabupaten_kota: "Mataram",
+    id_desa: "desa_001",
+    telepon: "0370-123456",
+    email: "info@mtsterpadu.sch.id",
+    website: "www.mtsterpadu.sch.id",
+    logo_url: "/logo-madrasah-mock.png",
+    id_kepala_madrasah: "pg_kepala", // FK ke pegawai aktif Kamad
+    nama_kepala_madrasah: null,      // null = gunakan data dari pegawai via id_kepala_madrasah
+    nip_kepala_madrasah: null,
+  };
+
+  const templateSurat: TemplateSurat[] = [
+    {
+      id_template: "tpl_01",
+      kode_template: "SK-AKTIF",
+      nama_template: "Surat Keterangan Aktif Siswa",
+      kategori: "Keterangan",
+      header_html: null,
+      body_template: `<p>Yang bertanda tangan di bawah ini, Kepala {{NAMA_MADRASAH}}, menerangkan bahwa:</p>
+<table>
+  <tr><td>Nama</td><td>:</td><td>{{NAMA_SISWA}}</td></tr>
+  <tr><td>NISN</td><td>:</td><td>{{NISN}}</td></tr>
+  <tr><td>Kelas</td><td>:</td><td>{{NAMA_KELAS}}</td></tr>
+</table>
+<p>Adalah benar-benar siswa aktif di {{NAMA_MADRASAH}} pada Tahun Ajaran {{TAHUN_AJARAN}}.</p>
+<p>Surat keterangan ini dibuat untuk {{KEPERLUAN}}.</p>`,
+      // Backward compat aliases
+      get format_html() { return this.body_template; },
+      variabel_placeholder: ["NAMA_SISWA", "NISN", "NAMA_KELAS", "TAHUN_AJARAN", "KEPERLUAN", "NAMA_MADRASAH"],
+      get variabel_dibutuhkan() { return this.variabel_placeholder; },
+      aktif: true,
+    },
+    {
+      id_template: "tpl_02",
+      kode_template: "ST-TUGAS",
+      nama_template: "Surat Tugas Mengajar / Pengawas",
+      kategori: "Tugas",
+      header_html: null,
+      body_template: `<p>Yang bertanda tangan di bawah ini menugaskan:</p>
+<table>
+  <tr><td>Nama</td><td>:</td><td>{{NAMA_PEGAWAI}}</td></tr>
+  <tr><td>NIP/NPK</td><td>:</td><td>{{NIP_NPK}}</td></tr>
+  <tr><td>Jabatan</td><td>:</td><td>{{JABATAN}}</td></tr>
+</table>
+<p>Untuk melaksanakan tugas {{DESKRIPSI_TUGAS}} pada tanggal {{TANGGAL_TUGAS}}.</p>`,
+      get format_html() { return this.body_template; },
+      variabel_placeholder: ["NAMA_PEGAWAI", "NIP_NPK", "JABATAN", "DESKRIPSI_TUGAS", "TANGGAL_TUGAS"],
+      get variabel_dibutuhkan() { return this.variabel_placeholder; },
+      aktif: true,
+    },
+    {
+      id_template: "tpl_03",
+      kode_template: "SKP-MUTASI",
+      nama_template: "Surat Keterangan Pindah (SKP)",
+      kategori: "Keterangan",
+      header_html: null,
+      body_template: `<p>Yang bertanda tangan di bawah ini, Kepala {{NAMA_MADRASAH}}, menerangkan bahwa:</p>
+<table>
+  <tr><td>Nama</td><td>:</td><td>{{NAMA_SISWA}}</td></tr>
+  <tr><td>NISN</td><td>:</td><td>{{NISN}}</td></tr>
+  <tr><td>Kelas</td><td>:</td><td>{{NAMA_KELAS}}</td></tr>
+</table>
+<p>Telah mengajukan pindah ke sekolah {{SEKOLAH_TUJUAN}} dengan alasan {{ALASAN_PINDAH}}.</p>
+<p>Demikian surat keterangan pindah ini dibuat agar dapat dipergunakan sebagaimana mestinya.</p>`,
+      get format_html() { return this.body_template; },
+      variabel_placeholder: ["NAMA_SISWA", "NISN", "NAMA_KELAS", "NAMA_MADRASAH", "SEKOLAH_TUJUAN", "ALASAN_PINDAH"],
+      get variabel_dibutuhkan() { return this.variabel_placeholder; },
+      aktif: true,
+    },
   ];
 
   return {
@@ -401,8 +490,9 @@ function buildSeed(): DemoStore {
     keanggotaanEkstra,
     absensiEkstra,
     penugasanJabatan,
+    profilMadrasah,
+    templateSurat,
   };
-
 }
 
 let memoryStore: DemoStore | null = null;
@@ -418,12 +508,38 @@ export function loadStore(): DemoStore {
       if (raw) {
         const parsed = JSON.parse(raw);
         const seed = buildSeed();
+        
+        const parsedPjIds = new Set((parsed.penugasanJabatan || []).map((p: PenugasanJabatan) => p.id_penugasan));
+        const mergedPenugasan = [
+          ...(parsed.penugasanJabatan || []),
+          ...seed.penugasanJabatan.filter((s) => !parsedPjIds.has(s.id_penugasan)),
+        ];
+
+        const parsedJadwalIds = new Set((parsed.jadwal || []).map((j: JadwalPelajaran) => j.id_jadwal));
+        const mergedJadwal = [
+          ...(parsed.jadwal || []),
+          ...seed.jadwal.filter((s) => !parsedJadwalIds.has(s.id_jadwal)),
+        ];
+
+        const parsedMapelIds = new Set((parsed.mapel || []).map((m: MataPelajaran) => m.id_mapel));
+        const mergedMapel = [
+          ...(parsed.mapel || []),
+          ...seed.mapel.filter((s) => !parsedMapelIds.has(s.id_mapel)),
+        ];
+
+        const parsedTemplateIds = new Set((parsed.templateSurat || []).map((t: TemplateSurat) => t.id_template));
+        const mergedTemplate = [
+          ...(parsed.templateSurat || []),
+          ...seed.templateSurat.filter((s) => !parsedTemplateIds.has(s.id_template)),
+        ];
+
         const store: DemoStore = {
           ...seed,
           ...parsed,
-          penugasanJabatan: Array.isArray(parsed?.penugasanJabatan) && parsed.penugasanJabatan.length > 0 
-            ? parsed.penugasanJabatan 
-            : seed.penugasanJabatan,
+          penugasanJabatan: mergedPenugasan,
+          jadwal: mergedJadwal,
+          mapel: mergedMapel,
+          templateSurat: mergedTemplate,
         };
         memoryStore = store;
         return store;

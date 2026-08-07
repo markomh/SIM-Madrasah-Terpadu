@@ -16,4 +16,5 @@ export type RiwayatMutasi = {
   disetujui_oleh: string | null;
   tanggal_persetujuan: string | null;
   id_tahun: string;
+  id_surat_skp?: string | null;
 };

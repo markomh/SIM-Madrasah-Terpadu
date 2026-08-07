@@ -12,9 +12,10 @@ export type SesiTatapMuka = {
   tanggal: string;
   id_pegawai_pelaksana: string | null;
   waktu_input: string | null;
-  is_guru_pengganti: boolean;
-  id_izin_terkait: string | null;
-  status_kehadiran_guru: StatusKehadiranGuru;
+  is_guru_pengganti: boolean;       // read-only, dihitung sistem — jangan diinput manual di form
+  id_izin_terkait: string | null;   // FK ke IzinGuru
+  jurnal_materi: string | null;
+  status_kehadiran_guru: StatusKehadiranGuru; // read-only, dihitung sistem
 };
 
 export type SaluranPelaporan = "Langsung/Tatap Muka" | "WA Pribadi Kepala Madrasah" | "WA Group";

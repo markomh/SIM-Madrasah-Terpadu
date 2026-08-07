@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <circle cx="40" cy="40" r="38" fill="#e8f5ee" stroke="#1a6f4b" stroke-width="2"/>
+  <path d="M40 18 L40 22 M40 58 L40 62 M18 40 L22 40 M58 40 L62 40" stroke="#1a6f4b" stroke-width="2" stroke-linecap="round"/>
+  <path d="M28 30 Q40 20 52 30 L52 45 Q40 55 28 45 Z" fill="#1a6f4b" opacity="0.15"/>
+  <path d="M32 35 L48 35 L48 50 L32 50 Z" fill="none" stroke="#1a6f4b" stroke-width="1.5"/>
+  <path d="M35 50 L35 45 L45 45 L45 50" fill="#1a6f4b" opacity="0.4"/>
+  <path d="M28 30 Q40 20 52 30 L52 35 Q40 25 28 35 Z" fill="#1a6f4b" opacity="0.6"/>
+  <text x="40" y="68" text-anchor="middle" font-family="serif" font-size="7" fill="#1a6f4b" font-weight="bold">MTs</text>
+</svg>

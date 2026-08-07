@@ -21,6 +21,7 @@ export const jadwalMock: JadwalService = {
     return all.filter(
       (j) =>
         j.id_pegawai === candidate.id_pegawai &&
+        j.semester === candidate.semester &&
         j.hari === candidate.hari &&
         overlaps(j.jam_mulai, j.jam_selesai, candidate.jam_mulai, candidate.jam_selesai),
     );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { AuthProvider } from "@/components/auth-context";
 import { DataVersionProvider, TahunAjaranProvider } from "@/components/app-providers";
+import { ToastProvider } from "@/components/toast-context";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -21,7 +22,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-full bg-paper font-sans text-ink">
         <AuthProvider>
           <DataVersionProvider>
-            <TahunAjaranProvider>{children}</TahunAjaranProvider>
+            <TahunAjaranProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </TahunAjaranProvider>
           </DataVersionProvider>
         </AuthProvider>
       </body>

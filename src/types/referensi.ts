@@ -7,7 +7,6 @@ export type TingkatPendidikan = {
 export type TahunAjaran = {
   id_tahun: string;
   nama_tahun: string;
-  semester: "Ganjil" | "Genap";
   status_aktif: boolean;
 };
 

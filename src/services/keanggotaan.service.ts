@@ -12,4 +12,10 @@ export interface KeanggotaanService {
     tanggal_efektif: string;
     diajukan_oleh: string;
   }): Promise<AnggotaRombel>;
+  pindahRombelMassal(input: {
+    id_siswa_list: string[];
+    id_rombel_tujuan: string;
+    tanggal_efektif: string;
+    diajukan_oleh: string;
+  }): Promise<{ processed: number }>;
 }

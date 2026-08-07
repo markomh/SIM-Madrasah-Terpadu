@@ -32,6 +32,7 @@ import {
   isWaliKelas,
   isPembinaEkstrakurikuler,
   isGuruBk,
+  isPengajarAktif,
 } from "@/lib/access";
 
 type NavItem = {
@@ -63,9 +64,9 @@ const navigation: NavGroup[] = [
     group: "AKADEMIK",
     items: [
       { href: "/akademik/jadwal", label: "Penjadwalan", icon: CalendarDays, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || ctx.currentUser?.tugas_utama === "Guru" },
-      { href: "/akademik/presensi-siswa", label: "Presensi Siswa (Sesi)", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || ctx.currentUser?.tugas_utama === "Guru" },
-      { href: "/akademik/rekap-presensi", label: "Rekap Presensi", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || ctx.currentUser?.tugas_utama === "Guru" },
-      { href: "/akademik/nilai", label: "Nilai Harian", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || ctx.currentUser?.tugas_utama === "Guru" },
+      { href: "/akademik/presensi-siswa", label: "Presensi Siswa (Sesi)", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/rekap-presensi", label: "Rekap Presensi", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/nilai", label: "Nilai Harian", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
     ],
   },
   {
@@ -115,7 +116,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const pathname = usePathname() || "/";
   const authCtx = useAuth();
   const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList } = authCtx;
-  const { list: tahunList, selected, setSelectedId } = useTahunAjaran();
+  const { list: tahunList, selected, setSelectedId, selectedSemester, setSelectedSemester } = useTahunAjaran();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
 
@@ -161,8 +162,14 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
 
   return (
     <div className="min-h-screen bg-paper text-ink">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-[4px] focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none"
+      >
+        Skip to main content
+      </a>
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <aside className="hidden w-64 shrink-0 border-r border-border bg-surface px-4 py-5 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
+        <aside className="hidden w-64 shrink-0 border-r border-border bg-surface px-4 py-5 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col print:hidden">
           <div className="mb-6 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-primary text-white">
               <School size={18} />
@@ -178,7 +185,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-border bg-surface">
+          <header className="border-b border-border bg-surface print:hidden">
             <div className="flex flex-col gap-3 px-4 py-3 sm:px-6">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -204,7 +211,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                       {currentUser?.nama_lengkap_gelar?.slice(0, 2).toUpperCase() ?? "P"}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold">{currentUser?.nama_lengkap_gelar ?? "Demo Pegawai"}</p>
+                      <p className="truncate text-xs font-semibold">{currentUser?.nama_lengkap_gelar ?? "Pegawai"}</p>
                       <p className="text-[10px] text-muted">{currentUser?.tugas_utama}</p>
                     </div>
                   </div>
@@ -226,29 +233,51 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                     ))}
                   </select>
                 </label>
-                <span className="rounded-[4px] border border-border bg-surface px-2 py-1 text-xs">
-                  Semester: {selected?.semester ?? "—"}
-                </span>
-                <label className="ml-auto flex items-center gap-2 rounded-[4px] border border-amber/40 bg-[#F5EADF] px-2 py-1 max-w-[300px]">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-amber shrink-0">Demo Pegawai</span>
+                <label className="flex items-center gap-2">
+                  <span className="text-xs text-muted">Semester</span>
                   <select
-                    className="bg-transparent text-sm outline-none truncate"
+                    className="rounded-[4px] border border-border bg-surface px-2 py-1 text-sm"
+                    value={selectedSemester}
+                    onChange={(e) => setSelectedSemester(e.target.value as "Ganjil" | "Genap")}
+                  >
+                    <option value="Ganjil">Ganjil</option>
+                    <option value="Genap">Genap</option>
+                  </select>
+                </label>
+                <label className="ml-auto flex items-center gap-1.5 rounded-[4px] border border-amber/40 bg-amber-soft px-2 py-1 max-w-full sm:max-w-[260px] min-w-0">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-amber shrink-0 whitespace-nowrap">Simulasi Akun</span>
+                  <select
+                    className="bg-transparent text-xs sm:text-sm outline-none truncate w-full min-w-0 cursor-pointer"
                     value={currentUser?.id_pegawai ?? ""}
                     onChange={(e) => setCurrentUserId(e.target.value)}
                   >
                     {allPegawai.map((p) => {
-                      const jabatanStruktural = penugasanList.filter((j) => j.id_pegawai === p.id_pegawai && j.status === "Aktif").map((j) => j.jenis_jabatan).join(", ");
+                      const jabatanStruktural = penugasanList
+                        .filter((j) => j.id_pegawai === p.id_pegawai && j.status === "Aktif")
+                        .map((j) => {
+                          if (j.jenis_jabatan === "Kepala Madrasah") return "Kamad";
+                          if (j.jenis_jabatan === "Admin Madrasah") return "Admin";
+                          if (j.jenis_jabatan === "Operator Kesiswaan") return "Ops";
+                          if (j.jenis_jabatan === "Guru BK") return "BK";
+                          return j.jenis_jabatan;
+                        });
                       const isWK = isWaliKelas(p.id_pegawai, rombelList);
                       const isPembina = isPembinaEkstrakurikuler(p.id_pegawai, ekstraList);
                       
-                      const parts: string[] = [p.tugas_utama];
-                      if (jabatanStruktural) parts.push(jabatanStruktural);
-                      if (isWK) parts.push("Wali Kelas");
-                      if (isPembina) parts.push("Pembina Ekstra");
+                      const parts: string[] = [];
+                      if (jabatanStruktural.length > 0) parts.push(...jabatanStruktural);
+                      if (isWK) parts.push("WK");
+                      if (isPembina) parts.push("Pembina");
+
+                      if (parts.length === 0) {
+                        parts.push(p.tugas_utama === "Tendik" ? "Tendik" : "Guru Mapel");
+                      }
+
+                      const cleanName = p.nama_lengkap_gelar.replace(" (Demo Terpadu)", "");
                       
                       return (
                         <option key={p.id_pegawai} value={p.id_pegawai}>
-                          {p.nama_lengkap_gelar} ({parts.join(", ")})
+                          {cleanName} ({parts.join(", ")})
                         </option>
                       );
                     })}
@@ -258,7 +287,9 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             </div>
           </header>
 
-          <main className="flex-1 p-4 sm:p-6">{children}</main>
+          <main id="main-content" className="flex-1 p-4 sm:p-6">
+            <div className="max-w-7xl mx-auto w-full">{children}</div>
+          </main>
         </div>
       </div>
 

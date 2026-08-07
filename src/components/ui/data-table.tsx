@@ -1,6 +1,22 @@
 "use client";
 
+/**
+ * DataTable — komponen tabel universal dengan paginasi bawaan.
+ *
+ * Footer menampilkan: "Menampilkan X-Y dari Z  [Prev] [Next]"
+ *
+ * Props:
+ *  - data        : array data apapun
+ *  - columns     : definisi kolom (key, header, render, className)
+ *  - pageSize    : jumlah baris per halaman (default 10)
+ *  - rowClassName: opsional — fungsi (row, idx) => string untuk kelas per baris
+ *                  → dipakai untuk Signature Element border-l-3px (FRONTEND.md Bab 3)
+ *  - emptyTitle / emptyDescription: pesan kosong
+ */
+
 import { useMemo, useState, type ReactNode } from "react";
+import { Pagination } from "./pagination";
+import { EmptyBlock } from "./primitives";
 
 type Column<T> = {
   key: string;
@@ -13,33 +29,39 @@ export function DataTable<T>({
   data,
   columns,
   pageSize = 10,
+  rowClassName,
   emptyTitle = "Tidak ada data",
   emptyDescription = "Belum ada data untuk ditampilkan.",
+  emptyAction,
 }: {
   data: T[];
   columns: Column<T>[];
   pageSize?: number;
+  rowClassName?: (row: T, idx: number) => string;
   emptyTitle?: string;
   emptyDescription?: string;
+  emptyAction?: ReactNode;
 }) {
   const [page, setPage] = useState(0);
+
+  // Reset ke halaman 0 saat data berubah (misal filter)
   const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+
   const slice = useMemo(() => {
-    const start = page * pageSize;
+    const start = safePage * pageSize;
     return data.slice(start, start + pageSize);
-  }, [data, page, pageSize]);
+  }, [data, safePage, pageSize]);
 
   if (data.length === 0) {
     return (
-      <div className="rounded-[6px] border border-dashed border-border bg-paper p-8 text-center">
-        <p className="font-semibold text-ink">{emptyTitle}</p>
-        <p className="mt-1 text-sm text-muted">{emptyDescription}</p>
-      </div>
+      <EmptyBlock title={emptyTitle} description={emptyDescription} action={emptyAction} />
     );
   }
 
   return (
     <div>
+      {/* ── Tabel ──────────────────────────────────────────────────────── */}
       <div className="overflow-x-auto rounded-[6px] border border-border">
         <table className="min-w-full divide-y divide-border text-sm">
           <thead className="bg-paper text-left text-xs font-semibold uppercase tracking-wide text-muted">
@@ -53,9 +75,15 @@ export function DataTable<T>({
           </thead>
           <tbody className="divide-y divide-border bg-surface">
             {slice.map((row, idx) => (
-              <tr key={idx} className="hover:bg-paper/80">
+              <tr
+                key={idx}
+                className={`hover:bg-paper/80 ${rowClassName ? rowClassName(row, idx) : ""}`}
+              >
                 {columns.map((col) => (
-                  <td key={col.key} className={`px-3 py-2.5 align-middle ${col.className ?? ""}`}>
+                  <td
+                    key={col.key}
+                    className={`px-3 py-2.5 align-middle ${col.className ?? ""}`}
+                  >
                     {col.render(row)}
                   </td>
                 ))}
@@ -64,29 +92,16 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
-      <div className="mt-3 flex items-center justify-between text-xs text-muted">
-        <span>
-          Menampilkan {page * pageSize + 1}-{Math.min((page + 1) * pageSize, data.length)} dari {data.length}
-        </span>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            disabled={page === 0}
-            onClick={() => setPage((p) => p - 1)}
-            className="rounded-[4px] border border-border px-2 py-1 disabled:opacity-40"
-          >
-            Prev
-          </button>
-          <button
-            type="button"
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => p + 1)}
-            className="rounded-[4px] border border-border px-2 py-1 disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+
+      {/* ── Footer paginasi ─────────────────────────────────────────────── */}
+      <Pagination
+        page={safePage}
+        totalPages={totalPages}
+        totalItems={data.length}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        className="mt-3"
+      />
     </div>
   );
 }

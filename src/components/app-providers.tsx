@@ -51,6 +51,8 @@ function tahunReducer(state: TahunState, action: TahunAction): TahunState {
 type TahunContextValue = TahunState & {
   selected: TahunAjaran | null;
   setSelectedId: (id: string) => void;
+  selectedSemester: "Ganjil" | "Genap";
+  setSelectedSemester: (sem: "Ganjil" | "Genap") => void;
   refresh: () => Promise<void>;
 };
 
@@ -64,6 +66,8 @@ export function TahunAjaranProvider({ children }: { children: ReactNode }) {
     loading: true,
     error: null,
   });
+
+  const [selectedSemester, setSelectedSemester] = useState<"Ganjil" | "Genap">("Ganjil");
 
   const refresh = useCallback(async () => {
     dispatch({ type: "loading" });
@@ -92,9 +96,11 @@ export function TahunAjaranProvider({ children }: { children: ReactNode }) {
       ...state,
       selected,
       setSelectedId: (id: string) => dispatch({ type: "select", id }),
+      selectedSemester,
+      setSelectedSemester,
       refresh,
     }),
-    [state, selected, refresh],
+    [state, selected, selectedSemester, refresh],
   );
 
   return <TahunContext.Provider value={value}>{children}</TahunContext.Provider>;

@@ -25,8 +25,25 @@ export function isPembinaEkstrakurikuler(idPegawai: string, ekstraList?: Ekstrak
   return ekstraList.some(e => e.id_pembina === idPegawai);
 }
 
-export function isPengajar(idPegawai: string, jadwalList?: JadwalPelajaran[]): boolean {
+export function isPengajar(
+  idPegawai: string,
+  idRombel: string,
+  idMapel: string,
+  semester: string,
+  jadwalList?: JadwalPelajaran[]
+): boolean {
   if (!idPegawai || !Array.isArray(jadwalList)) return false;
-  return jadwalList.some(j => j.id_pegawai === idPegawai);
+  return jadwalList.some(
+    (j) =>
+      j.id_pegawai === idPegawai &&
+      j.id_rombel === idRombel &&
+      j.id_mapel === idMapel &&
+      j.semester === semester
+  );
+}
+
+export function isPengajarAktif(idPegawai: string, jadwalList?: JadwalPelajaran[]): boolean {
+  if (!idPegawai || !Array.isArray(jadwalList)) return false;
+  return jadwalList.some((j) => j.id_pegawai === idPegawai);
 }
 

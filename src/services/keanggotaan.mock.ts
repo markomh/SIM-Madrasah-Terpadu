@@ -189,4 +189,68 @@ export const keanggotaanMock: KeanggotaanService = {
     if (!result) throw new Error("Gagal mengajukan pindah rombel");
     return result;
   },
+
+  async pindahRombelMassal(input) {
+    await simulateLatency();
+    maybeThrowSimulatedError();
+    const store = loadStore();
+    
+    const rombelTujuan = store.rombel.find((r) => r.id_rombel === input.id_rombel_tujuan);
+    if (!rombelTujuan) throw new Error("Rombel tujuan tidak ditemukan.");
+    const tingkatTujuan = store.tingkat.find((t) => t.id_tingkat === rombelTujuan.id_tingkat);
+    if (!tingkatTujuan) throw new Error("Tingkat pendidikan rombel tujuan tidak ditemukan.");
+
+    let processed = 0;
+
+    mutateStore((s) => {
+      for (const id_siswa of input.id_siswa_list) {
+        const current = s.anggotaRombel.find(
+          (a) =>
+            a.id_siswa === id_siswa &&
+            a.tanggal_selesai === null &&
+            a.status_persetujuan !== "Menunggu Persetujuan",
+        );
+        if (!current) continue; // Skip jika tidak aktif
+        if (current.id_rombel === input.id_rombel_tujuan) continue; // Skip jika sudah di rombel tujuan
+
+        const rombelAsal = s.rombel.find((r) => r.id_rombel === current.id_rombel);
+        if (!rombelAsal) continue;
+        const tingkatAsal = s.tingkat.find((t) => t.id_tingkat === rombelAsal.id_tingkat);
+        if (!tingkatAsal) continue;
+
+        const sameLevel = tingkatAsal.urutan === tingkatTujuan.urutan;
+
+        current.tanggal_selesai = input.tanggal_efektif;
+        current.status_keanggotaan = sameLevel ? "Pindah Rombel" : "Naik Kelas";
+
+        const baru: AnggotaRombel = {
+          id_anggota: createId("ar"),
+          id_siswa: id_siswa,
+          id_rombel: input.id_rombel_tujuan,
+          tanggal_mulai: input.tanggal_efektif,
+          tanggal_selesai: null,
+          status_keanggotaan: "Aktif",
+          jenis_perpindahan: sameLevel ? "Pindah Rombel" : "Kenaikan Tingkat",
+          status_persetujuan: "Tidak Perlu", // Massal oleh admin dianggap langsung valid
+          diajukan_oleh: input.diajukan_oleh,
+          disetujui_oleh: null,
+          tanggal_persetujuan: null,
+        };
+        s.anggotaRombel.push(baru);
+
+        s.auditLog.unshift({
+          id_log: createId("au"),
+          id_user: input.diajukan_oleh,
+          nama_tabel: "anggota_rombel",
+          id_record: baru.id_anggota,
+          aksi: "Create",
+          timestamp: nowIso(),
+        });
+        
+        processed++;
+      }
+    });
+
+    return { processed };
+  },
 };

@@ -33,6 +33,7 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
             is_guru_pengganti: false,
             id_izin_terkait: null,
             status_kehadiran_guru: "Tidak Terlaksana",
+            jurnal_materi: null,
           };
           mutStore.sesiTatapMuka.push(sesi);
           isMutated = true;
@@ -50,7 +51,7 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
     );
   },
 
-  async catatPresensi(id_sesi, id_pegawai_pelaksana, absensiSiswa) {
+  async catatPresensi(id_sesi, id_pegawai_pelaksana, absensiSiswa, jurnal_materi) {
     maybeThrowSimulatedError();
     await simulateLatency();
     
@@ -64,6 +65,7 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
 
       sesi.id_pegawai_pelaksana = id_pegawai_pelaksana;
       sesi.waktu_input = nowIso();
+      sesi.jurnal_materi = jurnal_materi;
       
       const isGuruPengganti = id_pegawai_pelaksana !== jadwal.id_pegawai;
       sesi.is_guru_pengganti = isGuruPengganti;

@@ -14,6 +14,7 @@ import {
   LoadingBlock,
 } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
+import { useToast } from "@/components/toast-context";
 import { services } from "@/services";
 import type { RekapKedisiplinanGuru } from "@/services/sesi-tatap-muka.service";
 
@@ -32,6 +33,7 @@ type RekapGuru = {
 export default function KedisiplinanPage() {
   const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version, bump } = useDataVersion();
+  const { toast } = useToast();
 
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
@@ -41,8 +43,10 @@ export default function KedisiplinanPage() {
   const [error, setError] = useState<string | null>(null);
   const [creatingSurat, setCreatingSurat] = useState<string | null>(null);
 
+  const canAccess = currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList);
+
   useEffect(() => {
-    if (!(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) return;
+    if (!canAccess) return;
 
     setLoading(true);
     services.sesiTatapMuka.getRekapKedisiplinan(selectedMonth)
@@ -53,35 +57,42 @@ export default function KedisiplinanPage() {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
 
-  }, [version, selectedMonth]);
+  }, [version, selectedMonth, canAccess]);
+
+  if (!canAccess) {
+    return (
+      <AppShell title="Kedisiplinan & JTM">
+        <ErrorBlock message="Halaman ini khusus untuk Kepala Madrasah." />
+      </AppShell>
+    );
+  }
 
   const handleBuatTeguran = async (id_pegawai: string) => {
     if (!currentUser) return;
     setCreatingSurat(id_pegawai);
     try {
       await services.persuratan.create({
-        judul: "Surat Teguran Kedisiplinan",
-        jenis: "Surat Teguran", // Should be valid per persuratan.ts string type
+        nomor_surat: "",
+        perihal: "Surat Teguran Kedisiplinan",
+        jenis_surat: "Surat Teguran",
+        id_template: null,
+        tujuan_surat: "",
+        isi_surat: "Surat teguran otomatis atas pelanggaran kedisiplinan kehadiran",
+        id_siswa_terkait: null,
+        id_pegawai_terkait: id_pegawai,
         dibuat_oleh: currentUser.id_pegawai,
-        isi_ringkas: "Surat teguran otomatis atas pelanggaran kedisiplinan kehadiran",
         hasil_ai: true,
       });
-      alert("Draf Surat Teguran berhasil dibuat! Silakan cek modul Persuratan.");
+      toast("Draf Surat Teguran berhasil dibuat! Silakan cek modul Persuratan.", "success");
       bump();
     } catch (e: unknown) {
-      alert("Gagal membuat draf surat: " + (e instanceof Error ? e.message : String(e)));
+      toast("Gagal membuat draf surat: " + (e instanceof Error ? e.message : String(e)), "error");
     } finally {
       setCreatingSurat(null);
     }
   };
 
-  if (!(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) {
-    return (
-      <AppShell title="Kedisiplinan Guru">
-        <ErrorBlock message="Halaman ini khusus untuk Kepala Madrasah." />
-      </AppShell>
-    );
-  }
+
 
   if (loading && rekap.length === 0) {
     return (
@@ -93,9 +104,9 @@ export default function KedisiplinanPage() {
   }
 
   return (
-    <AppShell title="Rekap Kedisiplinan Guru">
+    <AppShell title="Kedisiplinan & JTM">
       <PageHeader
-        title="Kedisiplinan & Kehadiran Guru"
+        title="Kedisiplinan & JTM Guru"
         description="Rekapitulasi kehadiran, keterlambatan, penggantian kelas, dan JTM."
       />
 
@@ -122,7 +133,7 @@ export default function KedisiplinanPage() {
               render: (row) => (
                 <div className="flex flex-col">
                   <span className="font-semibold">{row.nama}</span>
-                  {row.isFlagged && <span className="text-xs text-danger font-semibold flex items-center gap-1 mt-1"><span className="w-2 h-2 rounded-full bg-danger"></span> Flagged: Sering Digantikan Mendadak</span>}
+                  {row.isFlagged && <span className="text-xs text-danger font-semibold flex items-center gap-1 mt-1"><span className="w-2 h-2 rounded-full bg-danger"></span> Indikasi Indisipliner: Sering Digantikan Mendadak</span>}
                 </div>
               )
             },

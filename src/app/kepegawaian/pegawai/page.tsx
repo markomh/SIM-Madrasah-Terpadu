@@ -5,13 +5,13 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion } from "@/components/app-providers";
-import { ErrorBlock, LoadingBlock, PageHeader, StatusBadge, SurfaceCard, inputClass } from "@/components/ui/primitives";
+import { ErrorBlock, LoadingBlock, PageHeader, StatusBadge, SurfaceCard, SearchInput } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
 import { maskNik, services } from "@/services";
 import type { Pegawai } from "@/types";
 
 export default function PegawaiPage() {
-  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
+  const { currentUser, penugasanList } = useAuth();
   const { version } = useDataVersion();
   const [rows, setRows] = useState<Pegawai[]>([]);
   const [query, setQuery] = useState("");
@@ -39,10 +39,10 @@ export default function PegawaiPage() {
   }
 
   return (
-    <AppShell title="Guru & Tendik">
+    <AppShell title="Data Pegawai">
       <PageHeader title="Data Pegawai" description="Profil PTK dari kontrak Pegawai Bab 4." />
       <div className="mb-4">
-        <input className={`${inputClass} max-w-sm`} placeholder="Cari nama / NIP / NPK" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <SearchInput className="max-w-sm" placeholder="Cari nama / NIP / NPK" value={query} onChange={setQuery} />
       </div>
       {loading ? <LoadingBlock /> : null}
       {error ? <ErrorBlock message={error} /> : null}
@@ -61,7 +61,7 @@ export default function PegawaiPage() {
                   </div>
                 ),
               },
-              { key: "nip", header: "NIP/NPK", render: (p) => p.nip ?? p.npk ?? "—" },
+              { key: "nip", header: "NIP/NPK", className: "tabular", render: (p) => <span className="tabular">{p.nip ?? p.npk ?? "—"}</span> },
               { key: "status", header: "Kepegawaian", render: (p) => p.status_kepegawaian },
               { key: "tugas", header: "Tugas", render: (p) => p.tugas_utama },
             ]}

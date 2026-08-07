@@ -43,7 +43,8 @@ export default function DetailSiswaPage() {
   const [selectedProv, setSelectedProv] = useState("");
   const [selectedKab, setSelectedKab] = useState("");
   const [selectedKec, setSelectedKec] = useState("");
-  const canEdit = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList));
+  const canAccess = currentUser && (isAdminMadrasah(currentUser.id_pegawai, penugasanList) || isOperatorKesiswaan(currentUser.id_pegawai, penugasanList));
+  const canEdit = canAccess;
 
   const {
     register,
@@ -143,9 +144,13 @@ export default function DetailSiswaPage() {
           </SecondaryButton>
         }
       />
-      {loading ? <LoadingBlock /> : null}
-      {error ? <ErrorBlock message={error} /> : null}
-      {submitError ? <div className="mb-4"><ErrorBlock message={submitError} /></div> : null}
+      {!canAccess ? (
+        <ErrorBlock message="Akses Ditolak: Anda tidak memiliki izin untuk melihat detail siswa." />
+      ) : (
+        <>
+          {loading ? <LoadingBlock /> : null}
+          {error ? <ErrorBlock message={error} /> : null}
+          {submitError ? <div className="mb-4"><ErrorBlock message={submitError} /></div> : null}
 
       {siswa && !loading ? (
         <div className="space-y-4">
@@ -167,33 +172,40 @@ export default function DetailSiswaPage() {
               <Field label="NISN" error={errors.nisn?.message}>
                 <input className={`${inputClass} tabular`} disabled={!canEdit} {...register("nisn")} />
               </Field>
-              <Field label="Nama lengkap" error={errors.nama_lengkap?.message}>
+              <Field label="Nama Lengkap Siswa" error={errors.nama_lengkap?.message}>
                 <input className={inputClass} disabled={!canEdit} {...register("nama_lengkap")} />
               </Field>
-              <Field label="Nama ibu kandung" error={errors.nama_ibu_kandung?.message}>
+              <Field label="Nama Ibu Kandung" error={errors.nama_ibu_kandung?.message}>
                 <input className={inputClass} disabled={!canEdit} {...register("nama_ibu_kandung")} />
               </Field>
-              <Field label="Tempat lahir" error={errors.tempat_lahir?.message}>
+              <Field label="Tempat Lahir" error={errors.tempat_lahir?.message}>
                 <input className={inputClass} disabled={!canEdit} {...register("tempat_lahir")} />
               </Field>
-              <Field label="Tanggal lahir" error={errors.tanggal_lahir?.message}>
+              <Field label="Tanggal Lahir" error={errors.tanggal_lahir?.message}>
                 <input type="date" className={inputClass} disabled={!canEdit} {...register("tanggal_lahir")} />
               </Field>
-              <Field label="Jenis kelamin" error={errors.jenis_kelamin?.message}>
+              <Field label="Jenis Kelamin" error={errors.jenis_kelamin?.message}>
                 <select className={inputClass} disabled={!canEdit} {...register("jenis_kelamin")}>
                   <option value="L">Laki-laki</option>
                   <option value="P">Perempuan</option>
                 </select>
               </Field>
               <Field label="Agama" error={errors.agama?.message}>
-                <input className={inputClass} disabled={!canEdit} {...register("agama")} />
+                <select className={inputClass} disabled={!canEdit} {...register("agama")}>
+                  <option value="Islam">Islam</option>
+                  <option value="Kristen">Kristen</option>
+                  <option value="Katolik">Katolik</option>
+                  <option value="Hindu">Hindu</option>
+                  <option value="Buddha">Buddha</option>
+                  <option value="Khonghucu">Khonghucu</option>
+                </select>
               </Field>
 
               {/* Wilayah Alamat Berjenjang */}
               <div className="md:col-span-2 grid gap-4 md:grid-cols-4 p-4 border border-border rounded-[6px] bg-paper">
-                <div className="md:col-span-4 mb-2"><h3 className="text-sm font-semibold">Alamat Domisili</h3></div>
+                <div className="md:col-span-4 mb-2"><h3 className="text-sm font-semibold">Alamat Domisili Siswa</h3></div>
                 <div className="md:col-span-4">
-                  <Field label="Detail Alamat (Jalan, RT/RW)" error={errors.alamat_detail?.message}>
+                  <Field label="Alamat Domisili Siswa (Jalan, RT/RW)" error={errors.alamat_detail?.message}>
                     <input className={inputClass} disabled={!canEdit} {...register("alamat_detail")} />
                   </Field>
                 </div>
@@ -248,6 +260,8 @@ export default function DetailSiswaPage() {
           </SurfaceCard>
         </div>
       ) : null}
+        </>
+      )}
     </AppShell>
   );
 }

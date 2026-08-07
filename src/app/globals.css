@@ -7,8 +7,11 @@
   --color-primary: #1f5d4c;
   --color-primary-soft: #e4eee9;
   --color-amber: #b8722a;
+  --color-amber-soft: #f5eadf;
   --color-danger: #a5342a;
+  --color-danger-soft: #f8e8e6;
   --color-ai: #5b4b8a;
+  --color-ai-soft: #ede9f4;
   --color-border: #d8ddd9;
   --color-muted: #5a6a72;
   --radius-sm: 4px;
@@ -22,8 +25,11 @@
   --color-primary: var(--color-primary);
   --color-primary-soft: var(--color-primary-soft);
   --color-amber: var(--color-amber);
+  --color-amber-soft: var(--color-amber-soft);
   --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
   --color-ai: var(--color-ai);
+  --color-ai-soft: var(--color-ai-soft);
   --color-border: var(--color-border);
   --color-muted: var(--color-muted);
   --font-sans: var(--font-plus-jakarta);
