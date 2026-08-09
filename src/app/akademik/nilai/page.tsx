@@ -22,6 +22,7 @@ import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useTahunAjaran } from "@/components/app-providers";
 import {
+  Button,
   PageHeader,
   SurfaceCard,
   LoadingBlock,
@@ -350,12 +351,14 @@ function PanelInputNilai({ currentUser, penugasanList }: PanelInputProps) {
               <strong>{siswa.length}</strong> siswa aktif &nbsp;·&nbsp;
               <strong>{komponen.length}</strong> komponen nilai
             </p>
-            <PrimaryButton
+            <Button
+              variant="primary"
               onClick={handleSave}
-              disabled={saving || siswa.length === 0}
+              loading={saving}
+              disabled={siswa.length === 0}
             >
-              {saving ? "Menyimpan..." : "Simpan Nilai"}
-            </PrimaryButton>
+              Simpan Nilai
+            </Button>
           </div>
 
           <div className="overflow-x-auto border border-border rounded-[4px]">

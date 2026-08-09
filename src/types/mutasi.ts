@@ -2,6 +2,15 @@ import type { StatusPersetujuan } from "./keanggotaan";
 
 export type JenisMutasi = "Masuk" | "Keluar";
 
+export type BerkasPendukung = {
+  id_berkas: string;
+  nama_file: string;
+  ukuran_kb: number;
+  tipe_file: string;
+  data_url?: string;
+  diunggah_pada: string;
+};
+
 export type RiwayatMutasi = {
   id_mutasi: string;
   id_siswa: string;
@@ -17,4 +26,5 @@ export type RiwayatMutasi = {
   tanggal_persetujuan: string | null;
   id_tahun: string;
   id_surat_skp?: string | null;
+  berkas_pendukung?: BerkasPendukung[] | null;
 };

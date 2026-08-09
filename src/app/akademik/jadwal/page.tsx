@@ -1,18 +1,18 @@
 "use client";
 
-import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajarAktif } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion, useTahunAjaran } from "@/components/app-providers";
 import {
   AiLabel,
+  Button,
+  ConfirmDialog,
   ErrorBlock,
   Field,
   LoadingBlock,
   PageHeader,
-  PrimaryButton,
-  SecondaryButton,
   SurfaceCard,
   inputClass,
 } from "@/components/ui/primitives";
@@ -30,6 +30,8 @@ export default function JadwalPage() {
   const [mapel, setMapel] = useState<MataPelajaran[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [form, setForm] = useState<{
     id_rombel: string;
     id_pegawai: string;
@@ -50,12 +52,17 @@ export default function JadwalPage() {
   const [aiNote, setAiNote] = useState<string | null>(null);
 
   const canEdit = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
-  const canAccess = (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser?.tugas_utama === "Guru");
+  const isPengajar = currentUser && isPengajarAktif(currentUser.id_pegawai, jadwalList);
+  const canAccess = canEdit || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) || isPengajar;
+
+  useEffect(() => {
+    setForm((f) => ({ ...f, semester: selectedSemester }));
+  }, [selectedSemester]);
 
   useEffect(() => {
     if (!canAccess) return;
     setLoading(true);
-    const pegawaiFilter = (currentUser?.tugas_utama === "Guru" && !canEdit && !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) && currentUser ? { id_pegawai: currentUser.id_pegawai } : undefined;
+    const pegawaiFilter = (isPengajar && !canEdit && !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) && currentUser ? { id_pegawai: currentUser.id_pegawai } : undefined;
     Promise.all([
       services.jadwal.getAll(pegawaiFilter),
       services.referensi.getRombel({ id_tahun: selected?.id_tahun }),
@@ -72,12 +79,13 @@ export default function JadwalPage() {
           id_rombel: f.id_rombel || r[0]?.id_rombel || "",
           id_pegawai: f.id_pegawai || p[0]?.id_pegawai || "",
           id_mapel: f.id_mapel || m[0]?.id_mapel || "",
+          semester: selectedSemester,
         }));
         setError(null);
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [selected?.id_tahun, version, currentUser, canAccess, canEdit]);
+  }, [selected?.id_tahun, version, currentUser, canAccess, canEdit, selectedSemester]);
 
   if (!canAccess) {
     return (
@@ -93,15 +101,16 @@ export default function JadwalPage() {
         title="Penjadwalan Pelajaran"
         description="Deteksi bentrok klien: kombinasi guru + hari + jam harus unik."
         action={
-          <SecondaryButton
-            type="button"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={async () => {
               const rec = await services.wawasan.getRekomendasiJadwal();
               setAiNote(`${rec.label}: ${rec.ringkasan}`);
             }}
           >
             Lihat rekomendasi AI
-          </SecondaryButton>
+          </Button>
         }
       />
       {aiNote ? (
@@ -114,8 +123,8 @@ export default function JadwalPage() {
       {error ? <ErrorBlock message={error} /> : null}
 
       {!loading && !error ? (
-        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-          <SurfaceCard title="Grid jadwal">
+        <div className="grid gap-4 items-start lg:grid-cols-[1fr_340px]">
+          <SurfaceCard title="Grid Jadwal Pelajaran">
             <DataTable
               data={jadwal}
               columns={[
@@ -147,16 +156,15 @@ export default function JadwalPage() {
                   header: "",
                   render: (j) =>
                     canEdit ? (
-                      <button
+                      <Button
                         type="button"
-                        className="text-xs font-semibold text-danger"
-                        onClick={async () => {
-                          await services.jadwal.remove(j.id_jadwal);
-                          bump();
-                        }}
+                        variant="ghost"
+                        size="sm"
+                        className="text-danger font-semibold hover:bg-danger-soft"
+                        onClick={() => setDeletingId(j.id_jadwal)}
                       >
                         Hapus
-                      </button>
+                      </Button>
                     ) : null,
                 },
               ]}
@@ -164,7 +172,7 @@ export default function JadwalPage() {
           </SurfaceCard>
 
           {canEdit ? (
-            <SurfaceCard title="Tambah slot">
+            <SurfaceCard title="Tambah Slot Jadwal">
               <form
                 className="space-y-3"
                 onSubmit={async (e) => {
@@ -177,11 +185,10 @@ export default function JadwalPage() {
                   }
                 }}
               >
-                <Field label="Semester">
-                  <select className={inputClass} value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value as "Ganjil" | "Genap" })}>
-                    <option value="Ganjil">Ganjil</option>
-                    <option value="Genap">Genap</option>
-                  </select>
+                <Field label="Semester" helperText="Konteks dikelola secara global">
+                  <div className="w-full rounded-[4px] border border-border bg-paper px-3 py-2 text-sm font-semibold text-ink">
+                    Semester {selectedSemester}
+                  </div>
                 </Field>
                 <Field label="Rombel">
                   <select className={inputClass} value={form.id_rombel} onChange={(e) => setForm({ ...form, id_rombel: e.target.value })}>
@@ -192,7 +199,7 @@ export default function JadwalPage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Guru">
+                <Field label="Guru Pengajar">
                   <select className={inputClass} value={form.id_pegawai} onChange={(e) => setForm({ ...form, id_pegawai: e.target.value })}>
                     {pegawai.map((p) => (
                       <option key={p.id_pegawai} value={p.id_pegawai}>
@@ -201,7 +208,7 @@ export default function JadwalPage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Mapel">
+                <Field label="Mata Pelajaran">
                   <select className={inputClass} value={form.id_mapel} onChange={(e) => setForm({ ...form, id_mapel: e.target.value })}>
                     {mapel.map((m) => (
                       <option key={m.id_mapel} value={m.id_mapel}>
@@ -227,12 +234,41 @@ export default function JadwalPage() {
                     <input type="time" className={inputClass} value={form.jam_selesai} onChange={(e) => setForm({ ...form, jam_selesai: e.target.value })} />
                   </Field>
                 </div>
-                <PrimaryButton type="submit">Simpan slot</PrimaryButton>
+                <div className="pt-2">
+                  <Button type="submit" variant="primary" className="w-full">
+                    Simpan Slot Jadwal
+                  </Button>
+                </div>
               </form>
             </SurfaceCard>
           ) : null}
         </div>
       ) : null}
+
+      <ConfirmDialog
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        onConfirm={async () => {
+          if (!deletingId) return;
+          setIsDeleting(true);
+          try {
+            await services.jadwal.remove(deletingId);
+            bump();
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Gagal menghapus jadwal");
+          } finally {
+            setIsDeleting(false);
+            setDeletingId(null);
+          }
+        }}
+        title="Hapus Slot Jadwal"
+        description="Apakah Anda yakin ingin menghapus slot jadwal pelajaran ini?"
+        confirmLabel="Hapus Slot"
+        cancelLabel="Batal"
+        variant="danger"
+        loading={isDeleting}
+      />
     </AppShell>
   );
 }
+

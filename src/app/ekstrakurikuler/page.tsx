@@ -29,7 +29,11 @@ export default function EkstrakurikulerPage() {
     let cancelled = false;
     setLoading(true);
 
-    const filter = (currentUser && isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList)) ? { id_pembina: currentUser.id_pegawai } : undefined;
+    const isAdmin = currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList);
+    const isPembina = currentUser && isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList);
+    const isOnlyPembina = isPembina && !isAdmin;
+
+    const filter = (isOnlyPembina && currentUser) ? { id_pembina: currentUser.id_pegawai } : undefined;
 
     Promise.all([
       services.ekstrakurikuler.getAll(filter),

@@ -18,6 +18,10 @@ Jangan membuat aturan domain baru jika belum ada di dokumen acuan.
 
 Jika terjadi konflik antar dokumen: **STOP dan laporkan `CONTRACT GAP`**. Jangan menebak.
 
+### Synchronized Decision Logging
+
+Setiap keputusan arsitektural, penyesuaian tipe data, atau deviasi resmi wajib dicatat secara simultan pada `doc/FRONTEND.md` (Bab 9), `doc/backend.md` (Bab 8 & 12).
+
 ---
 
 ## 2. Frontend Rules
@@ -168,11 +172,53 @@ Page
 ├── Filter/Search
 ├── Content
 └── Actions berdasarkan capability
+
+
+
 ```
 
 Jangan membuat halaman berbeda hanya karena role jika struktur bisnisnya sama.
 
 Gunakan satu page dengan capability-aware components bila memungkinkan.
+
+**7.1. Larangan Komponen Spesifik Peran (Role-Agnostic Directive)**
+
+AI DILARANG KERAS membuat komponen atau halaman berbeda hanya karena perbedaan peran (Role) jika objek bisnisnya sama.
+
+Contoh Pelanggaran: Membuat DaftarSiswaGuru.tsx dan DaftarSiswaAdmin.tsx.
+
+Tindakan Wajib: Buat HANYA SATU DaftarSiswa.tsx. Gunakan capability flags (misal: canEdit, canDelete) dari lib/access.ts yang dilempar sebagai props untuk menentukan apakah tombol edit/hapus dirender di dalam komponen tunggal tersebut.
+
+**7.2. Kewajiban Penggunaan Komponen Primitif (The Primitive Mandate)**
+
+AI DILARANG membangun form input, tombol, kartu, atau tabel dari scratch (menggunakan tag HTML <div>, <button>, <input> dengan utility classes) kecuali tidak ada alternatif sama sekali.
+
+Prosedur: Asumsikan library komponen internal tersedia di src/components/ui. Gunakan komponen standar tersebut (misal: <Button variant="primary">, <InputText name="...">, <Card>).
+
+Jika AI tertangkap menggunakan <button className="bg-blue-500..."> saat <Button> tersedia, tugas dianggap GAGAL.
+
+**7.3. Aturan Tata Letak Stabil (Stable Grid Protocol)**
+
+Kartu (Cards) atau komponen list yang berdampingan TIDAK BOLEH merusak tata letak atau menyisakan ruang (gap) asimetris ketika panjang konten berbeda-beda.
+
+Prosedur Wajib: Gunakan CSS Grid untuk listing (contoh Tailwind: grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4).
+
+Elemen Card di dalam grid harus memanjang memenuhi tinggi baris. Pastikan komponen internal kartu tersebut menggunakan height: 100% (atau h-full di Tailwind) dan flex-col internal dengan flex-grow pada area konten agar footer (tombol aksi) selalu berada di dasar kartu yang sejajar.
+
+**7.4. Pembatasan Filter Semester (Global Context Rule)**
+
+Filter atau dropdown untuk "Semester" atau "Tahun Ajaran" TIDAK BOLEH ditambahkan pada formulir atau halaman baru.
+
+Alasan: Ini dikelola secara global oleh state aplikasi.
+
+Pengecualian: Hanya jika SRS secara eksplisit mewajibkan penggantian context semester pada form spesifik tersebut. Jika perlu ditampilkan untuk konteks pengguna, gunakan label teks (Read-Only), bukan dropdown.
+
+
+**7.5. Token**
+
+Dilarang harcode token color, space dan sebagainya
+
+Wajib gunakan token yang tersedia.
 
 ---
 
@@ -201,8 +247,14 @@ Jangan:
 * hardcode `"Admin"`, `"Guru"`, `"Kepala Madrasah"`, dll.;
 * membuat duplicate domain interface;
 * membuat API contract baru tanpa acuan;
-* mengubah database/business contract pada pekerjaan frontend;
+* memuat/mengubah database atau business contract pada pekerjaan frontend;
 * menghapus validasi bisnis untuk membuat UI "jalan".
+
+### Anti-Bloat & Enterprise Architecture Rules
+
+* **Dilarang Menambah Tabel Legacy Kaku:** Gunakan Service Layer (dinamis) & Policy Guard (state-based) daripada membuat tabel statis yang tidak ada di SSoT 29 Tabel.
+* **Sentralisasi Approval Eksekutif:** Otorisasi dan e-Signature Kepala Madrasah terpusat di `/persetujuan`. Halaman workbench (`pindah-rombel`, `mutasi`) bersifat input operator / monitoring read-only bagi Kamad.
+* **Kekekalan Arsip Legal:** Dokumen SKP/Piagam/Surat wajib menggunakan modul `surat` dengan snapshot `meta_penandatangan`.
 
 ---
 

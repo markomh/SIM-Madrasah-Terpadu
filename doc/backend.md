@@ -286,7 +286,8 @@ Dipetakan langsung dari service Tahap 1 (`FRONTEND.md` Bab 4-5) — setiap metho
 | Auth | — | `POST /login`, `POST /logout`, `GET /me` |
 | Siswa | `SiswaService` | `GET/POST /siswa`, `GET/PATCH /siswa/{id}` |
 | Keanggotaan | `KeanggotaanService`, kenaikan/pindah rombel | `POST /kenaikan-kelas/proses`, `POST /pindah-rombel`, `POST /pindah-rombel/{id}/approve`, `POST /pindah-rombel/{id}/reject` |
-| Mutasi | `MutasiService` | `POST /mutasi`, `POST /mutasi/{id}/approve`, `POST /mutasi/{id}/reject` |
+| Mutasi | `MutasiService` | `POST /mutasi`, `POST /mutasi/{id}/approve`, `POST /mutasi/{id}/reject`, `POST /mutasi/upload-berkas` |
+| Persetujuan | `PersetujuanService` | `GET /persetujuan/pending`, `POST /persetujuan/batch-approve` |
 | Jadwal | `JadwalService` | `GET/POST /jadwal` (validasi bentrok server-side wajib, jangan andalkan validasi client) |
 | Sesi & Presensi | `SesiTatapMukaService`, `AbsensiService` (read-only) | `GET /sesi?id_rombel=&tanggal=`, `POST /sesi/{id}/presensi`, `GET /presensi/rekap?id_rombel=&tanggal=` |
 | Izin Guru | `IzinGuruService` | `GET/POST /izin-guru` (Policy: hanya `isKepalaMadrasah`/`isAdminMadrasah`) |
@@ -316,6 +317,10 @@ Daftar ini adalah kumpulan aturan yang **berkali-kali diperbaiki lewat audit** d
 8. **Kerahasiaan `catatan_bk`** — ditegakkan lewat PostgreSQL Row-Level Security (4.6), bukan hanya query filter di Eloquent.
 9. **Model jabatan aditif** — satu `pegawai` bisa punya banyak `penugasan_jabatan` aktif sekaligus; tidak ada logika di mana pun (Policy, Resource, Observer) yang mengasumsikan satu pegawai = satu jabatan.
 10. **Semester milik `jadwal_pelajaran`, bukan `tahun_ajaran`** — pastikan tidak ada satu pun query yang membaca `tahun_ajaran.semester` (kolom itu tidak ada di skema Tahap 2).
+11. **Sentralisasi Penomoran SKP Mutasi** — nomor SKP wajib digenerate dinamis melalui sequence generator `421/{urutan}/{kodeInstansi}/{tahun}` dengan snapshot `meta_penandatangan` permanen.
+12. **Interval Predikat KKM Dinamis (Anti-Bloat Rule)** — predikat huruf (A, B, C, D) **wajib dihitung dinamis** di `NilaiService::calculatePredikat($nilai, $kkm)` menggunakan formula baku Kemenag `Interval = (100 - KKM) / 3`. **Dilarang** membuat tabel fisik legacy (`e_kkmgrade`, `e_kkmtingkat`) yang kaku, agar skema siap Kurikulum Merdeka (KKTP) dan K13 tanpa modifikasi DDL.
+13. **Penguncian Nilai (*Grade Lock*) Berbasis Policy & State** — mekanisme pembekuan nilai akademik setelah disahkan Kamad dikendalikan via `NilaiPolicy` dan endpoint `POST /api/v1/nilai/lock-rombel` (bukan tabel fisik `e_kelaslock`). Jika status rombel semester terkunci, mutasi nilai ditolak dan pencatatan audit log dilakukan secara otomatis.
+14. **Portofolio Prestasi Terintegrasi Dokumen Legal** — rekam jejak prestasi, penghargaan, dan kejuaraan siswa diformalkan melalui modul `surat` (Surat Keterangan / Piagam Penghargaan) dengan nomor registrasi dinamis dan snapshot `meta_penandatangan` permanen, bukan sekadar catatan teks tanpa kekuatan hukum seperti pada tabel legacy `e_prestasi`.
 
 ---
 
@@ -324,6 +329,21 @@ Daftar ini adalah kumpulan aturan yang **berkali-kali diperbaiki lewat audit** d
 - **`ExportEmisVervalJob`** (queued) — menghasilkan file Excel/CSV sesuai template terbaru (SRS Bab 3 jalur utama), dicatat di `sync_log`.
 - **`HitungRekapKedisiplinanJob`** (scheduled, harian) — pre-kalkulasi rekap kedisiplinan/JTM ke tabel cache/materialized view kalau volume data besar, supaya endpoint Bab 7 tidak menghitung ulang dari nol tiap request.
 - **`NotifikasiKetidakhadiranJob`** (queued, dipicu saat `absensi_siswa.status = 'Alpa'` disimpan) — sediakan *event* `SiswaTidakHadir`, listener pengiriman nyata (WhatsApp/email) menyusul di luar cakupan Tahap 2 awal (Bab 1).
+- **`SinkronisasiVervalEmisJob`** (queued, dipicu oleh event `MutasiKeluarApprovedEvent` dan `MutasiMasukApprovedEvent`) — mencatat perubahan keluar/masuk siswa ke antrean rekonsiliasi Verval PD / EMIS 4.0 secara asynchronous.
+
+### 9.1 Catatan Teknis Integrasi Backend (Penyempurnaan Tahap 2)
+
+Berdasarkan audit arsitektur menyeluruh terhadap kesiapan produksi (*Enterprise Readiness*), 3 spesifikasi berikut wajib diterapkan pada backend Laravel:
+
+1. **Storage Persistence & Media Adapter (`POST /api/v1/mutasi/upload-berkas`)**:
+   - Backend menyediakan handler multipart `upload-berkas` yang menyimpan scan PDF/JPG surat rekomendasi sekolah asal/tujuan ke Object Storage (MinIO / AWS S3).
+   - Penamaan file menggunakan format hashing aman: `storage/mutasi/{tahun}/{uuid}.{ext}` dan path URL relatifnya disimpan pada kolom `riwayat_mutasi.berkas_pendukung`.
+2. **Batch / Bulk Approval Transaction (`POST /api/v1/persetujuan/batch-approve`)**:
+   - Menerima payload array ID: `{ "id_pindah_list": [...], "id_mutasi_list": [...] }`.
+   - Menggunakan `DB::transaction()` terisolasi penuh (`SERIALIZABLE` atau `READ COMMITTED` dengan pessimistic locking) agar puluhan perpindahan rombel di awal semester dapat diproses secara atomik (seluruhnya berhasil atau rollback total jika ada 1 kegagalan).
+3. **Event Lifecycle & Webhook Outbox EMIS 4.0**:
+   - Setiap kali `approveMutasi` atau `approveAndSignMutasiSkp` sukses, model mutasi menembakkan event `MutasiKeluarApprovedEvent` atau `MutasiMasukApprovedEvent`.
+   - Listener memasukkan record ke tabel outbox `sync_log` untuk memicu webhook/job sinkronisasi berkala ke server EMIS Kemenag 4.0 tanpa memblokir response time UI pimpinan.
 
 ---
 
@@ -358,6 +378,7 @@ Daftar ini adalah kumpulan aturan yang **berkali-kali diperbaiki lewat audit** d
 |---|---|---|---|
 | 2026-08-05 | Persuratan | Desain skema `Surat` dengan Snapshot `meta_penandatangan` (kolom JSON/Text terpisah) alih-alih merelasikan `id_pegawai` saat dokumen dicetak. Serta pendaftaran endpoint API dan tipe data `ProfilMadrasah` & `TemplateSurat` untuk sumber data form persuratan otomatis. | Mematuhi "Aturan Kekekalan Arsip" di mana dokumen legal tidak boleh berubah (termasuk nama/NIP Kepsek) meskipun penjabatnya berganti di masa depan. |
 | 2026-08-06 | DDL / Database | Penambahan tabel `profil_madrasah` dan `template_surat` di Bab 4.7 yang diturunkan dari kebutuhan `LembagaService` FE. | SRS Induk belum mendefinisikan tabel pendukung Kop Surat dan Template; kedua tabel ini wajib ada di PostgreSQL agar modul Persuratan Tahap 2 berfungsi penuh. |
+| 2026-08-09 | Asesmen & Nilai | Standarisasi logika predikat KKM dihitung dinamis di `NilaiService`, penguncian nilai via `NilaiPolicy` + state, dan sertifikat prestasi dialirkan ke modul `surat` tanpa penambahan tabel fisik yang kaku. | Mencegah *Database Bloat*, menjamin keabsahan hukum piagam prestasi, dan membuat arsitektur fleksibel terhadap Kurikulum 2013 maupun Kurikulum Merdeka (KKTP). |
 
 ---
 

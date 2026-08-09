@@ -56,6 +56,7 @@ export const mutasiMock: MutasiService = {
       disetujui_oleh: null,
       tanggal_persetujuan: null,
       id_tahun: data.id_tahun,
+      berkas_pendukung: data.berkas_list ?? [],
     };
     mutateStore((store) => {
       store.siswa.push(draft);
@@ -96,6 +97,7 @@ export const mutasiMock: MutasiService = {
       disetujui_oleh: null,
       tanggal_persetujuan: null,
       id_tahun: data.id_tahun,
+      berkas_pendukung: data.berkas_list ?? [],
     };
     mutateStore((store) => {
       store.mutasi.unshift(mutasi);

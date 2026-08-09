@@ -10,7 +10,7 @@
  *  • Smart Default Rombel: jika isWaliKelas, rombelFilter otomatis ke rombel milik currentUser.
  */
 
-import { isAdminMadrasah, isOperatorKesiswaan, isWaliKelas } from "@/lib/access";
+import { isAdminMadrasah, isOperatorKesiswaan, isWaliKelas, isKepalaMadrasah } from "@/lib/access";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -73,13 +73,15 @@ export default function SiswaListPage() {
     (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) ||
     (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList));
 
-  const isWK = currentUser
-    ? isWaliKelas(currentUser.id_pegawai, rombelList)
-    : false;
+  const isWK = currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false;
+  const isKamad = currentUser ? isKepalaMadrasah(currentUser.id_pegawai, penugasanList) : false;
+  
+  const canAccess = canEdit || isWK || isKamad;
+  const isOnlyWK = isWK && !canEdit && !isKamad;
 
   // ── Smart Default: auto-pilih rombel Wali Kelas ──────────────────────────
   useEffect(() => {
-    if (!currentUser || !isWK) {
+    if (!currentUser || !isOnlyWK) {
       // Reset ke "all" saat ganti user ke non-WK
       setRombelFilter("all");
       return;
@@ -133,8 +135,8 @@ export default function SiswaListPage() {
             };
           });
 
-        // Wali Kelas hanya melihat siswa rombelnya sendiri
-        if (isWK && currentUser) {
+        // Wali Kelas (murni) hanya melihat siswa rombelnya sendiri
+        if (isOnlyWK && currentUser) {
           const myRombels = rb
             .filter((r) => r.id_wali_kelas === currentUser.id_pegawai)
             .map((r) => r.id_rombel);
@@ -175,6 +177,14 @@ export default function SiswaListPage() {
   const riskCount = filtered.filter(
     (r) => r.skor_risiko_ai != null && r.skor_risiko_ai >= 50
   ).length;
+
+  if (!canAccess) {
+    return (
+      <AppShell title="Data Siswa Induk">
+        <ErrorBlock message="Anda tidak memiliki akses ke halaman ini. Halaman ini hanya untuk Admin, Operator, Kepala Madrasah, dan Wali Kelas." />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell title="Data Siswa Induk">

@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Shuffle, Info, AlertTriangle, ArrowRight, UserCheck } from "lucide-react";
+import { Shuffle, Info, AlertTriangle, ArrowRight, UserCheck, CheckCircle2, XCircle, Inbox, Clock } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion, useTahunAjaran } from "@/components/app-providers";
@@ -15,6 +16,7 @@ import {
   LoadingBlock,
   PageHeader,
   PrimaryButton,
+  SecondaryButton,
   StatusBadge,
   StatusStrip,
   SurfaceCard,
@@ -22,6 +24,7 @@ import {
 } from "@/components/ui/primitives";
 import { pindahRombelSchema } from "@/lib/schemas";
 import { services } from "@/services";
+import { AuditTimelineDrawer } from "@/components/audit-timeline-drawer";
 import type { AnggotaRombel, Rombel, Siswa } from "@/types";
 
 type FormValues = z.infer<typeof pindahRombelSchema> & { alasan?: string };
@@ -47,9 +50,18 @@ export default function PindahRombelPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
+  // Enterprise Feature 3: Visual Audit Timeline State
+  const [timelineTarget, setTimelineTarget] = useState<{
+    recordId: string;
+    title: string;
+    metadata?: any;
+  } | null>(null);
+
+  const isKamad = currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList);
   const canAjukan = (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
-  const canAccess = canAjukan || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
+  const canAccess = canAjukan || isKamad;
 
   const {
     register,
@@ -225,7 +237,23 @@ export default function PindahRombelPage() {
             </form>
           </SurfaceCard>
         ) : null}
+
         <SurfaceCard title="Menunggu Persetujuan (Lintas Tingkat)">
+          <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+            <span className="text-xs text-muted font-medium">
+              Total antrean: <strong className="text-ink">{pending.length}</strong>
+            </span>
+            {isKamad && (
+              <Link 
+                href="/persetujuan" 
+                className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+              >
+                <Inbox size={14} />
+                <span>Buka Kotak Persetujuan ➔</span>
+              </Link>
+            )}
+          </div>
+
           <div className="space-y-3">
             {pending.length === 0 ? (
               <div className="p-6 text-center text-xs text-muted border border-dashed border-border rounded-md">
@@ -235,11 +263,11 @@ export default function PindahRombelPage() {
             {pending.map((p) => {
               const s = siswa.find((x) => x.id_siswa === p.id_siswa);
               const rTujuan = rombel.find((r) => r.id_rombel === p.id_rombel);
-              const rAsalId = anggotaAktif.find((a) => a.id_siswa === p.id_siswa)?.id_rombel;
+              const rAsalId = anggotaAktif.find((a) => a.id_siswa === p.id_siswa && a.tanggal_selesai === null)?.id_rombel;
               const rAsal = rombel.find((r) => r.id_rombel === rAsalId);
 
               return (
-                <StatusStrip key={p.id_anggota} tone="amber" className="rounded-md p-3">
+                <StatusStrip key={p.id_anggota} tone="amber" className="rounded-md p-3.5 space-y-2.5">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold text-gray-900">
@@ -249,19 +277,67 @@ export default function PindahRombelPage() {
                         NISN: {s?.nisn ?? "-"}
                       </p>
                       <div className="mt-1 flex items-center gap-1 text-xs text-primary font-semibold">
-                        <span>{rAsal?.nama_rombel ?? "Asal"}</span>
+                        <span>{rAsal?.nama_rombel ?? "Kelas Asal"}</span>
                         <ArrowRight size={12} />
                         <span>{rTujuan?.nama_rombel ?? p.id_rombel}</span>
                       </div>
                     </div>
-                    <StatusBadge status={p.status_persetujuan} />
+                    <div className="flex flex-col items-end gap-1.5">
+                      <StatusBadge status={p.status_persetujuan} />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTimelineTarget({
+                            recordId: p.id_anggota,
+                            title: `Timeline Pindah Rombel: ${s?.nama_lengkap ?? p.id_siswa}`,
+                            metadata: {
+                              nama_siswa: s?.nama_lengkap,
+                              nisn: s?.nisn,
+                              asal: rAsal?.nama_rombel,
+                              tujuan: rTujuan?.nama_rombel,
+                              status_terkini: p.status_persetujuan,
+                            },
+                          })
+                        }
+                        className="text-[10px] text-muted hover:text-primary font-medium flex items-center gap-1"
+                      >
+                        <Clock size={11} />
+                        <span>Timeline</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Action link for Kepala Madrasah to centralized approval hub */}
+                  {isKamad && (
+                    <div className="flex items-center justify-between border-t border-border/60 pt-2 text-[11px]">
+                      <span className="text-muted italic">Perlu otorisasi pimpinan</span>
+                      <Link
+                        href="/persetujuan"
+                        className="font-bold text-primary hover:underline flex items-center gap-1"
+                      >
+                        <span>Proses di Kotak Persetujuan ➔</span>
+                      </Link>
+                    </div>
+                  )}
                 </StatusStrip>
               );
             })}
           </div>
         </SurfaceCard>
       </div>
+
+      {/* Visual Audit Log Timeline Drawer */}
+      {timelineTarget && (
+        <AuditTimelineDrawer
+          isOpen={true}
+          onClose={() => setTimelineTarget(null)}
+          recordId={timelineTarget.recordId}
+          recordType="anggota_rombel"
+          title={timelineTarget.title}
+          metadata={timelineTarget.metadata}
+        />
+      )}
     </AppShell>
   );
 }
+

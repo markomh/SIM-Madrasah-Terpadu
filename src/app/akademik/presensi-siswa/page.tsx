@@ -1,6 +1,6 @@
 "use client";
 
-import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajarAktif } from "@/lib/access";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
@@ -71,20 +71,20 @@ function ActiveTeachingDashboard({
     barColor = "bg-muted";
   } else if (isFinished) {
     statusText = "Sesi Selesai - Waktunya Pergantian Jam";
-    barColor = "bg-gray-500";
+    barColor = "bg-muted/80";
   } else {
     statusText = `${remainingMins} Menit ${remainingSecs} Detik Tersisa`;
     if (remainingMins < 5) {
-      barColor = "bg-amber-500";
+      barColor = "bg-amber";
       pulse = true;
     }
   }
 
   return (
-    <div className="bg-surface border border-border rounded-lg p-6 flex flex-col items-center text-center space-y-6">
+    <SurfaceCard className="flex flex-col items-center text-center space-y-6 p-6">
       <div className="space-y-1">
-        <h3 className="text-2xl font-bold text-ink">Mode Sesi Mengajar Aktif</h3>
-        <p className="text-muted">
+        <h3 className="text-xl font-bold text-ink">Mode Sesi Mengajar Aktif</h3>
+        <p className="text-sm text-muted">
           {jadwal.jam_mulai} - {jadwal.jam_selesai} • <span className="font-semibold text-primary">{mapel?.nama_mapel ?? "Mata Pelajaran"}</span>
         </p>
       </div>
@@ -92,7 +92,7 @@ function ActiveTeachingDashboard({
       <div className="w-full max-w-md space-y-2">
         <div className="flex justify-between text-sm font-medium">
           <span className="text-muted">{jadwal.jam_mulai}</span>
-          <span className={`font-bold ${pulse ? 'text-amber-600 animate-pulse' : 'text-ink'}`}>
+          <span className={`font-bold ${pulse ? 'text-amber animate-pulse' : 'text-ink'}`}>
             {statusText}
           </span>
           <span className="text-muted">{jadwal.jam_selesai}</span>
@@ -108,7 +108,7 @@ function ActiveTeachingDashboard({
       <div className="pt-4 flex gap-4 text-sm w-full max-w-md justify-center">
         <div className="px-4 py-2 bg-paper rounded border border-border flex-1 text-center">
           <p className="text-muted text-xs">Waktu Input Presensi</p>
-          <p className="font-semibold">{sesi.waktu_input ? new Date(sesi.waktu_input).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
+          <p className="font-semibold text-ink">{sesi.waktu_input ? new Date(sesi.waktu_input).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
         </div>
         <div className="px-4 py-2 bg-paper rounded border border-border flex-1 text-center">
           <p className="text-muted text-xs">Status Kehadiran Anda</p>
@@ -116,10 +116,12 @@ function ActiveTeachingDashboard({
         </div>
       </div>
 
-      <button type="button" onClick={onEdit} className="text-sm text-primary hover:underline mt-4">
-        Edit Presensi / Jurnal
-      </button>
-    </div>
+      <div className="pt-2">
+        <PrimaryButton type="button" onClick={onEdit}>
+          Edit Presensi / Jurnal Sesi
+        </PrimaryButton>
+      </div>
+    </SurfaceCard>
   );
 }
 
@@ -149,6 +151,10 @@ function PresensiSiswaContent() {
   const [success, setSuccess] = useState<string | null>(null);
   
   const [isEditing, setIsEditing] = useState(true);
+
+  const isPengajar = currentUser ? isPengajarAktif(currentUser.id_pegawai, jadwalList) : false;
+  const isWK = currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false;
+  const canAccess = isPengajar || isWK;
 
   useEffect(() => {
     if (!currentUser) return;
@@ -291,7 +297,7 @@ function PresensiSiswaContent() {
     }
   };
 
-  if (!(currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) && (currentUser?.tugas_utama !== "Guru")) {
+  if (!canAccess) {
     return (
       <AppShell title="Presensi Siswa (Sesi)">
         <ErrorBlock message="Halaman ini khusus untuk Wali Kelas dan Guru Mapel." />

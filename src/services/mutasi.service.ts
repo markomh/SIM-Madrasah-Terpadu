@@ -1,4 +1,4 @@
-import type { RiwayatMutasi } from "@/types";
+import type { BerkasPendukung, RiwayatMutasi } from "@/types";
 
 export type MutasiMasukInput = {
   nik: string;
@@ -16,6 +16,7 @@ export type MutasiMasukInput = {
   id_rombel_tujuan: string;
   id_tahun: string;
   diajukan_oleh: string;
+  berkas_list?: BerkasPendukung[];
 };
 
 export type MutasiKeluarInput = {
@@ -26,6 +27,7 @@ export type MutasiKeluarInput = {
   alasan: string;
   id_tahun: string;
   diajukan_oleh: string;
+  berkas_list?: BerkasPendukung[];
 };
 
 export interface MutasiService {

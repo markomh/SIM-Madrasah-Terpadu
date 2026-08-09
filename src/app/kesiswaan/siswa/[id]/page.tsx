@@ -43,8 +43,8 @@ export default function DetailSiswaPage() {
   const [selectedProv, setSelectedProv] = useState("");
   const [selectedKab, setSelectedKab] = useState("");
   const [selectedKec, setSelectedKec] = useState("");
-  const canAccess = currentUser && (isAdminMadrasah(currentUser.id_pegawai, penugasanList) || isOperatorKesiswaan(currentUser.id_pegawai, penugasanList));
-  const canEdit = canAccess;
+  const canEdit = currentUser && (isAdminMadrasah(currentUser.id_pegawai, penugasanList) || isOperatorKesiswaan(currentUser.id_pegawai, penugasanList));
+  const canAccess = canEdit || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
 
   const {
     register,

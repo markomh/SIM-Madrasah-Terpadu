@@ -12,7 +12,7 @@ import type { Siswa } from "@/types";
 
 export default function BkPage() {
   const { currentUser, penugasanList, rombelList } = useAuth();
-  const canAccess = (currentUser && isGuruBk(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) || (currentUser && isWaliKelas(currentUser.id_pegawai, rombelList));
+  const canAccess = (currentUser && isGuruBk(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
   const canWrite = (currentUser && isGuruBk(currentUser.id_pegawai, penugasanList));
 
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);

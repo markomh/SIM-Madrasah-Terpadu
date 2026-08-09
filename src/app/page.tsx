@@ -214,18 +214,42 @@ export default function DashboardPage() {
               </Link>
             </SurfaceCard>
           </div>
-          <SurfaceCard title="Antrian persetujuan">
-            <div className="space-y-2">
-              {pending.slice(0, 5).map((item) => (
-                <StatusStrip key={"data" in item ? (item.jenis === "mutasi" ? item.data.id_mutasi : item.data.id_anggota) : ""} tone="amber" className="rounded-[4px] p-3">
-                  <p className="text-sm font-semibold">
-                    {item.jenis === "mutasi" ? `Mutasi ${item.data.jenis_mutasi}` : "Pindah rombel lintas tingkat"}
-                  </p>
-                  <p className="text-xs text-muted">Status: Menunggu Persetujuan</p>
-                </StatusStrip>
-              ))}
-              {pending.length === 0 ? <p className="text-sm text-muted">Tidak ada pengajuan tertunda.</p> : null}
+          <SurfaceCard title="Antrian persetujuan pimpinan">
+            <div className="space-y-2.5">
+              {pending.slice(0, 5).map((item) => {
+                const key = "data" in item ? (item.jenis === "mutasi" ? item.data.id_mutasi : item.data.id_anggota) : "";
+                const idSiswa = "data" in item ? item.data.id_siswa : "";
+                return (
+                  <StatusStrip key={key} tone="amber" className="rounded-[4px] p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber">
+                        {item.jenis === "mutasi" ? `Mutasi ${item.data.jenis_mutasi}` : "Pindah Rombel Lintas Tingkat"}
+                      </span>
+                      <p className="text-sm font-semibold text-ink">
+                        {idSiswa}
+                      </p>
+                      <p className="text-xs text-muted">
+                        {item.jenis === "mutasi"
+                          ? `Alasan: ${item.data.alasan}`
+                          : `Rombel tujuan: ${item.data.id_rombel}`}
+                      </p>
+                    </div>
+                    <Link
+                      href="/persetujuan"
+                      className="rounded bg-primary px-3 py-1 text-xs font-bold text-white hover:bg-primary-hover transition shrink-0"
+                    >
+                      Buka & Proses ➔
+                    </Link>
+                  </StatusStrip>
+                );
+              })}
+              {pending.length === 0 ? <p className="text-sm text-muted py-2">Tidak ada pengajuan tertunda saat ini.</p> : null}
             </div>
+            {pending.length > 5 && (
+              <Link href="/persetujuan" className="mt-3 inline-block text-xs font-semibold text-primary hover:underline">
+                Lihat {pending.length - 5} pengajuan lainnya di Kotak Persetujuan ➔
+              </Link>
+            )}
           </SurfaceCard>
         </div>
       ) : null}

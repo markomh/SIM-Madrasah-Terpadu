@@ -49,12 +49,13 @@ const navigation: NavGroup[] = [
     group: "MADRASAH",
     items: [
       { href: "/", label: "Beranda", icon: Home, visible: () => true },
+      { href: "/persetujuan", label: "Kotak Persetujuan", icon: Inbox, visible: (ctx) => isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
     group: "KESISWAAN",
     items: [
-      { href: "/kesiswaan/siswa", label: "Data Siswa Induk", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) },
+      { href: "/kesiswaan/siswa", label: "Data Siswa Induk", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isGuruBk(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
       { href: "/kesiswaan/kenaikan-kelas", label: "Kenaikan Kelas", icon: BookOpen, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
       { href: "/kesiswaan/pindah-rombel", label: "Pindah Rombel", icon: ArrowLeftRight, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
       { href: "/kesiswaan/mutasi", label: "Mutasi", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
@@ -80,8 +81,8 @@ const navigation: NavGroup[] = [
   {
     group: "EKSTRAKURIKULER & BK",
     items: [
-      { href: "/ekstrakurikuler", label: "Ekstrakurikuler", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPembinaEkstrakurikuler(ctx.currentUser?.id_pegawai ?? "", ctx.ekstraList) },
-      { href: "/bk", label: "Bimbingan Konseling", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isGuruBk(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/ekstrakurikuler", label: "Ekstrakurikuler", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isPembinaEkstrakurikuler(ctx.currentUser?.id_pegawai ?? "", ctx.ekstraList) },
+      { href: "/bk", label: "Bimbingan Konseling", icon: Shield, visible: (ctx) => isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isGuruBk(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
@@ -94,7 +95,6 @@ const navigation: NavGroup[] = [
     group: "WAWASAN",
     items: [
       { href: "/wawasan", label: "Dashboard AI", icon: Sparkles, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) },
-      { href: "/persetujuan", label: "Kotak Persetujuan", icon: Inbox, visible: (ctx) => isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
@@ -119,10 +119,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const { list: tahunList, selected, setSelectedId, selectedSemester, setSelectedSemester } = useTahunAjaran();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
+  const [pendingCount, setPendingCount] = useState<number>(0);
 
   useEffect(() => {
     services.pegawai.getAll().then((data) => setAllPegawai(data));
-  }, []);
+    services.persetujuan.getPending().then((items) => setPendingCount(items.length)).catch(() => {});
+  }, [pathname]);
 
   const visible = navigation
     .map((g) => ({ ...g, items: g.items.filter((i) => i.visible(authCtx)) }))
@@ -137,6 +139,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              const showBadge = item.href === "/persetujuan" && pendingCount > 0;
               return (
                 <Link
                   key={item.href}
@@ -150,7 +153,14 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                     <Icon size={16} />
                     {item.label}
                   </span>
-                  <ChevronRight size={14} className="opacity-50" />
+                  <div className="flex items-center gap-1.5">
+                    {showBadge && (
+                      <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${active ? "bg-white text-primary" : "bg-amber text-white"}`}>
+                        {pendingCount}
+                      </span>
+                    )}
+                    <ChevronRight size={14} className="opacity-50" />
+                  </div>
                 </Link>
               );
             })}
@@ -202,10 +212,20 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button type="button" className="relative flex h-9 w-9 items-center justify-center rounded-[4px] border border-border">
+                  <Link
+                    href="/persetujuan"
+                    title={pendingCount > 0 ? `${pendingCount} pengajuan menunggu persetujuan` : "Tidak ada notifikasi"}
+                    className="relative flex h-9 w-9 items-center justify-center rounded-[4px] border border-border hover:bg-paper transition text-ink"
+                  >
                     <Bell size={16} />
-                    <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" />
-                  </button>
+                    {pendingCount > 0 ? (
+                      <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-sm">
+                        {pendingCount}
+                      </span>
+                    ) : (
+                      <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-border" />
+                    )}
+                  </Link>
                   <div className="hidden items-center gap-2 rounded-[4px] border border-border px-2 py-1.5 sm:flex">
                     <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-primary-soft text-xs font-bold text-primary">
                       {currentUser?.nama_lengkap_gelar?.slice(0, 2).toUpperCase() ?? "P"}

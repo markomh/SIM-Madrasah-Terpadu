@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ShieldCheck, UploadCloud, CheckCircle2, FileText } from "lucide-react";
+import { ShieldCheck, UploadCloud, CheckCircle2, FileText, Clock, Paperclip, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion, useTahunAjaran } from "@/components/app-providers";
@@ -25,7 +25,8 @@ import { DataTable } from "@/components/ui/data-table";
 import { mutasiKeluarSchema, mutasiMasukSchema } from "@/lib/schemas";
 import { services } from "@/services";
 import { MutasiApprovalDrawer } from "@/components/persuratan/MutasiApprovalDrawer";
-import type { AnggotaRombel, ProfilMadrasah, RiwayatMutasi, Rombel, Siswa } from "@/types";
+import { AuditTimelineDrawer } from "@/components/audit-timeline-drawer";
+import type { AnggotaRombel, BerkasPendukung, ProfilMadrasah, RiwayatMutasi, Rombel, Siswa } from "@/types";
 
 type MasukValues = z.infer<typeof mutasiMasukSchema>;
 type KeluarValues = z.infer<typeof mutasiKeluarSchema>;
@@ -46,14 +47,21 @@ export default function MutasiPage() {
   const [profil, setProfil] = useState<ProfilMadrasah | null>(null);
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState<RiwayatMutasi | null>(null);
 
-  // Form Mutasi UX States
-  const [selectedRombelKeluar, setSelectedRombelKeluar] = useState<string>("");
-  const [uploadFileKeluar, setUploadFileKeluar] = useState<File | null>(null);
+  // Enterprise Feature 1: Multi-File Cloud Storage State
+  const [filesMasuk, setFilesMasuk] = useState<File[]>([]);
+  const [filesKeluar, setFilesKeluar] = useState<File[]>([]);
   const [isDraggingKeluar, setIsDraggingKeluar] = useState<boolean>(false);
-
-  const [uploadFileMasuk, setUploadFileMasuk] = useState<File | null>(null);
   const [isDraggingMasuk, setIsDraggingMasuk] = useState<boolean>(false);
 
+  // Enterprise Feature 3: Visual Audit Log Timeline State
+  const [timelineTarget, setTimelineTarget] = useState<{
+    recordId: string;
+    title: string;
+    metadata?: any;
+  } | null>(null);
+
+  // Form Mutasi UX States
+  const [selectedRombelKeluar, setSelectedRombelKeluar] = useState<string>("");
   const [filterQuery, setFilterQuery] = useState("");
   const [filterJenis, setFilterJenis] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -249,71 +257,70 @@ export default function MutasiPage() {
               },
               {
                 key: "alasan",
-                header: "Alasan & No. Surat",
+                header: "Alasan & Berkas",
                 render: (m) => (
-                  <div className="flex flex-col text-xs max-w-[200px]">
+                  <div className="flex flex-col text-xs max-w-[220px]">
                     <span className="truncate text-gray-800 font-medium">{m.alasan}</span>
                     <span className="text-[10px] text-gray-500 font-mono">No: {m.no_surat_mutasi || "-"}</span>
-                  </div>
-                ),
-              },
-              { key: "status", header: "Status / Aksi", render: (m) => (
-                  <div className="flex flex-col gap-1 items-start">
-                    <StatusBadge status={m.status_persetujuan} />
-                    {m.jenis_mutasi === "Keluar" && m.status_persetujuan === "Disetujui" && (
-                      <Link 
-                        href={`/persuratan?id_surat=${m.id_surat_skp || "latest"}&action=preview`} 
-                        className="text-[10px] text-primary hover:underline flex items-center gap-1 font-semibold mt-1"
-                      >
-                        <span>Buka SKP & Cetak ➜</span>
-                      </Link>
-                    )}
-                    {isKamad && m.status_persetujuan === "Menunggu Persetujuan" && (
-                      <div className="flex gap-2 mt-1.5">
-                        {m.jenis_mutasi === "Keluar" ? (
-                          <button
-                            type="button"
-                            className="text-[10px] bg-primary hover:bg-primary-hover text-white px-2.5 py-1 rounded-[4px] font-bold flex items-center gap-1 shadow-sm transition-all hover:scale-105"
-                            onClick={() => setApprovalDrawerOpen(m)}
-                          >
-                            <span>👁</span> Tinjau & Sahkan SKP
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="text-[10px] bg-primary hover:bg-primary-hover text-white px-2 py-0.5 rounded shadow-sm transition-colors"
-                            onClick={async () => {
-                              try {
-                                await services.persetujuan.approveMutasi(m.id_mutasi, currentUser.id_pegawai);
-                                bump();
-                              } catch (e) {
-                                alert(e instanceof Error ? e.message : "Gagal menyetujui mutasi");
-                              }
-                            }}
-                          >
-                            Setujui
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          className="text-[10px] bg-danger hover:bg-danger/80 text-white px-2 py-0.5 rounded shadow-sm transition-colors"
-                          onClick={async () => {
-                            const alasan = prompt("Alasan penolakan mutasi:");
-                            if (alasan === null) return;
-                            try {
-                              await services.persetujuan.rejectMutasi(m.id_mutasi, currentUser.id_pegawai, alasan || "Ditolak oleh Kepala Madrasah");
-                              bump();
-                            } catch (e) {
-                              alert(e instanceof Error ? e.message : "Gagal menolak mutasi");
-                            }
-                          }}
-                        >
-                          Tolak
-                        </button>
+                    {m.berkas_pendukung && m.berkas_pendukung.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Paperclip size={11} className="text-primary" />
+                        <span className="text-[10px] font-mono text-primary font-semibold">
+                          {m.berkas_pendukung.length} Berkas Terlampir
+                        </span>
                       </div>
                     )}
                   </div>
-                )
+                ),
+              },
+              {
+                key: "status",
+                header: "Status / Aksi",
+                render: (m) => {
+                  const s = siswaMap.get(m.id_siswa);
+                  return (
+                    <div className="flex flex-col gap-1 items-start">
+                      <StatusBadge status={m.status_persetujuan} />
+                      {m.jenis_mutasi === "Keluar" && m.status_persetujuan === "Disetujui" && (
+                        <Link 
+                          href={`/persuratan?id_surat=${m.id_surat_skp || "latest"}&action=preview`} 
+                          className="text-[10px] text-primary hover:underline flex items-center gap-1 font-semibold mt-1"
+                        >
+                          <span>Buka SKP & Cetak ➜</span>
+                        </Link>
+                      )}
+                      {isKamad && m.status_persetujuan === "Menunggu Persetujuan" && (
+                        <Link
+                          href="/persetujuan"
+                          className="text-[10px] text-primary font-bold hover:underline flex items-center gap-1 mt-1"
+                        >
+                          <span>Proses di Kotak Persetujuan ➔</span>
+                        </Link>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTimelineTarget({
+                            recordId: m.id_mutasi,
+                            title: `Timeline Mutasi: ${s?.nama_lengkap ?? m.id_siswa}`,
+                            metadata: {
+                              nama_siswa: s?.nama_lengkap,
+                              nisn: s?.nisn,
+                              asal: m.sekolah_asal ?? undefined,
+                              tujuan: m.sekolah_tujuan ?? undefined,
+                              no_surat: m.no_surat_mutasi,
+                              status_terkini: m.status_persetujuan,
+                            },
+                          })
+                        }
+                        className="text-[10px] text-muted hover:text-primary font-medium flex items-center gap-1 mt-0.5"
+                      >
+                        <Clock size={11} />
+                        <span>Timeline</span>
+                      </button>
+                    </div>
+                  );
+                },
               },
             ]}
           />
@@ -327,12 +334,22 @@ export default function MutasiPage() {
               if (!selected) return;
               setInfo(null);
               try {
+                const berkasList: BerkasPendukung[] = filesMasuk.map((f, i) => ({
+                  id_berkas: `bk_in_${Date.now()}_${i}`,
+                  nama_file: f.name,
+                  ukuran_kb: Math.round(f.size / 1024),
+                  tipe_file: f.type || "application/pdf",
+                  diunggah_pada: new Date().toISOString(),
+                }));
+
                 await services.mutasi.ajukanMasuk({
                   ...values,
                   id_tahun: selected.id_tahun,
                   diajukan_oleh: currentUser?.id_pegawai ?? "pg_ops",
+                  berkas_list: berkasList,
                 });
                 setInfo("Mutasi masuk diajukan — menunggu persetujuan Kepala Madrasah.");
+                setFilesMasuk([]);
                 bump();
                 setTab("daftar");
               } catch (e) {
@@ -450,7 +467,6 @@ export default function MutasiPage() {
                   />
                 </Field>
 
-                {/* Modern Drag-and-Drop Area (Upload Dropzone) */}
                 <Field
                   label="Upload Surat Rekomendasi / Berkas Sekolah Asal"
                   helperText="Scan PDF/JPG (Maks 2MB) yang dibawa oleh wali"
@@ -464,15 +480,15 @@ export default function MutasiPage() {
                     onDrop={(e) => {
                       e.preventDefault();
                       setIsDraggingMasuk(false);
-                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                        setUploadFileMasuk(e.dataTransfer.files[0]);
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        setFilesMasuk((prev) => [...prev, ...Array.from(e.dataTransfer.files)]);
                       }
                     }}
                     onClick={() => document.getElementById("file-upload-masuk")?.click()}
                     className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 text-center cursor-pointer transition-all ${
                       isDraggingMasuk
                         ? "border-primary bg-primary-soft/30 scale-[1.01]"
-                        : uploadFileMasuk
+                        : filesMasuk.length > 0
                         ? "border-emerald-500 bg-emerald-50/30"
                         : "border-gray-300 hover:border-primary bg-gray-50/50 hover:bg-primary-soft/10"
                     }`}
@@ -480,38 +496,39 @@ export default function MutasiPage() {
                     <input
                       id="file-upload-masuk"
                       type="file"
+                      multiple
                       accept=".pdf,.jpg,.jpeg,.png"
                       className="hidden"
                       onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setUploadFileMasuk(e.target.files[0]);
+                        if (e.target.files && e.target.files.length > 0) {
+                          setFilesMasuk((prev) => [...prev, ...Array.from(e.target.files!)]);
                         }
                       }}
                     />
 
-                    {uploadFileMasuk ? (
-                      <div className="flex items-center gap-3 w-full justify-between px-2">
-                        <div className="flex items-center gap-2.5 truncate">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-600">
-                            <CheckCircle2 size={20} />
-                          </div>
-                          <div className="text-left truncate">
-                            <p className="text-xs font-bold text-gray-900 truncate">{uploadFileMasuk.name}</p>
-                            <p className="text-[10px] text-gray-500">
-                              {(uploadFileMasuk.size / 1024 / 1024).toFixed(2)} MB • Berkas Siap
-                            </p>
-                          </div>
+                    {filesMasuk.length > 0 ? (
+                      <div className="w-full space-y-2 px-1">
+                        <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5 text-xs text-emerald-800 font-bold">
+                          <span>{filesMasuk.length} Berkas Terpilih</span>
+                          <button
+                            type="button"
+                            className="text-red-500 hover:underline font-normal text-[11px]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilesMasuk([]);
+                            }}
+                          >
+                            Hapus Semua
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          className="text-xs text-red-500 hover:text-red-700 font-semibold underline shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setUploadFileMasuk(null);
-                          }}
-                        >
-                          Hapus
-                        </button>
+                        <div className="max-h-28 overflow-y-auto space-y-1">
+                          {filesMasuk.map((f, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-left text-xs bg-white p-1.5 rounded border border-emerald-100">
+                              <span className="truncate max-w-[200px] text-gray-800 font-medium">{f.name}</span>
+                              <span className="text-[10px] text-gray-500 font-mono">{(f.size / 1024).toFixed(0)} KB</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-1.5 py-1">
@@ -520,9 +537,9 @@ export default function MutasiPage() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-gray-800">
-                            <span className="text-primary underline">Klik untuk mengunggah</span> atau tarik & lepas berkas di sini
+                            <span className="text-primary underline">Klik untuk mengunggah</span> atau tarik berkas ke sini
                           </p>
-                          <p className="mt-0.5 text-[10px] text-gray-500">Scan Berkas Mutasi (PDF/JPG, Maks 2MB)</p>
+                          <p className="mt-0.5 text-[10px] text-gray-500">Mendukung Multi-File (PDF/JPG, Maks 2MB/berkas)</p>
                         </div>
                       </div>
                     )}
@@ -551,12 +568,22 @@ export default function MutasiPage() {
               if (!selected) return;
               setInfo(null);
               try {
+                const berkasList: BerkasPendukung[] = filesKeluar.map((f, i) => ({
+                  id_berkas: `bk_out_${Date.now()}_${i}`,
+                  nama_file: f.name,
+                  ukuran_kb: Math.round(f.size / 1024),
+                  tipe_file: f.type || "application/pdf",
+                  diunggah_pada: new Date().toISOString(),
+                }));
+
                 await services.mutasi.ajukanKeluar({
                   ...values,
                   id_tahun: selected.id_tahun,
                   diajukan_oleh: currentUser?.id_pegawai ?? "pg_ops",
+                  berkas_list: berkasList,
                 });
                 setInfo("Mutasi keluar diajukan — siswa masih aktif sampai disetujui Kepala Madrasah.");
+                setFilesKeluar([]);
                 bump();
                 setTab("daftar");
               } catch (e) {
@@ -565,14 +592,12 @@ export default function MutasiPage() {
             })}
           >
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Kolom Kiri: Identitas Siswa & Registrasi Surat (Pola Z-1) */}
               <div className="space-y-4">
                 <h3 className="text-sm font-bold text-gray-900 border-b border-border pb-1.5 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">1</span>
                   Identitas Siswa & Registrasi Surat
                 </h3>
 
-                {/* Step 1: Filter Kelas */}
                 <Field label="Pilih Kelas (Rombel)" helperText="Pilih kelas siswa terlebih dahulu">
                   <select
                     className={inputClass}
@@ -591,7 +616,6 @@ export default function MutasiPage() {
                   </select>
                 </Field>
 
-                {/* Step 2: Nama Lengkap Siswa */}
                 <Field label="Nama Lengkap Siswa" error={keluarForm.formState.errors.id_siswa?.message}>
                   <select className={inputClass} {...keluarForm.register("id_siswa")}>
                     <option value="">— pilih siswa —</option>
@@ -603,7 +627,6 @@ export default function MutasiPage() {
                   </select>
                 </Field>
 
-                {/* Step 3: No. Surat Pengajuan (Otomatis) */}
                 <Field
                   label="No. Surat Pengajuan (Otomatis)"
                   helperText="Nomor registrasi internal madrasah"
@@ -620,20 +643,17 @@ export default function MutasiPage() {
                   </div>
                 </Field>
 
-                {/* Step 4: Tanggal Pengajuan */}
                 <Field label="Tanggal Pengajuan" error={keluarForm.formState.errors.tanggal_mutasi?.message}>
                   <input type="date" className={inputClass} {...keluarForm.register("tanggal_mutasi")} />
                 </Field>
               </div>
 
-              {/* Kolom Kanan: Detail Kepindahan & Berkas Pendukung (Pola Z-2) */}
               <div className="space-y-4">
                 <h3 className="text-sm font-bold text-gray-900 border-b border-border pb-1.5 flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">2</span>
                   Detail Kepindahan & Berkas Pendukung
                 </h3>
 
-                {/* Step 5: Sekolah Tujuan */}
                 <Field label="Sekolah Tujuan" error={keluarForm.formState.errors.sekolah_tujuan?.message}>
                   <input
                     className={inputClass}
@@ -642,7 +662,6 @@ export default function MutasiPage() {
                   />
                 </Field>
 
-                {/* Step 6: Alasan Pindah */}
                 <Field label="Alasan Pindah" error={keluarForm.formState.errors.alasan?.message}>
                   <textarea
                     className={inputClass}
@@ -652,7 +671,6 @@ export default function MutasiPage() {
                   />
                 </Field>
 
-                {/* Step 7: Modern Drag-and-Drop Area (Dropzone Component) */}
                 <Field
                   label="Upload Surat Rekomendasi / Siap Menerima"
                   helperText="Scan PDF/JPG (Maks 2MB) dari sekolah tujuan"
@@ -666,15 +684,15 @@ export default function MutasiPage() {
                     onDrop={(e) => {
                       e.preventDefault();
                       setIsDraggingKeluar(false);
-                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                        setUploadFileKeluar(e.dataTransfer.files[0]);
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        setFilesKeluar((prev) => [...prev, ...Array.from(e.dataTransfer.files)]);
                       }
                     }}
                     onClick={() => document.getElementById("file-upload-keluar")?.click()}
                     className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 text-center cursor-pointer transition-all ${
                       isDraggingKeluar
                         ? "border-primary bg-primary-soft/30 scale-[1.01]"
-                        : uploadFileKeluar
+                        : filesKeluar.length > 0
                         ? "border-emerald-500 bg-emerald-50/30"
                         : "border-gray-300 hover:border-primary bg-gray-50/50 hover:bg-primary-soft/10"
                     }`}
@@ -682,38 +700,39 @@ export default function MutasiPage() {
                     <input
                       id="file-upload-keluar"
                       type="file"
+                      multiple
                       accept=".pdf,.jpg,.jpeg,.png"
                       className="hidden"
                       onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setUploadFileKeluar(e.target.files[0]);
+                        if (e.target.files && e.target.files.length > 0) {
+                          setFilesKeluar((prev) => [...prev, ...Array.from(e.target.files!)]);
                         }
                       }}
                     />
 
-                    {uploadFileKeluar ? (
-                      <div className="flex items-center gap-3 w-full justify-between px-2">
-                        <div className="flex items-center gap-2.5 truncate">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-600">
-                            <CheckCircle2 size={20} />
-                          </div>
-                          <div className="text-left truncate">
-                            <p className="text-xs font-bold text-gray-900 truncate">{uploadFileKeluar.name}</p>
-                            <p className="text-[10px] text-gray-500">
-                              {(uploadFileKeluar.size / 1024 / 1024).toFixed(2)} MB • Berkas Siap
-                            </p>
-                          </div>
+                    {filesKeluar.length > 0 ? (
+                      <div className="w-full space-y-2 px-1">
+                        <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5 text-xs text-emerald-800 font-bold">
+                          <span>{filesKeluar.length} Berkas Terpilih</span>
+                          <button
+                            type="button"
+                            className="text-red-500 hover:underline font-normal text-[11px]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFilesKeluar([]);
+                            }}
+                          >
+                            Hapus Semua
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          className="text-xs text-red-500 hover:text-red-700 font-semibold underline shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setUploadFileKeluar(null);
-                          }}
-                        >
-                          Hapus
-                        </button>
+                        <div className="max-h-28 overflow-y-auto space-y-1">
+                          {filesKeluar.map((f, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-left text-xs bg-white p-1.5 rounded border border-emerald-100">
+                              <span className="truncate max-w-[200px] text-gray-800 font-medium">{f.name}</span>
+                              <span className="text-[10px] text-gray-500 font-mono">{(f.size / 1024).toFixed(0)} KB</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-1.5 py-1">
@@ -722,9 +741,9 @@ export default function MutasiPage() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-gray-800">
-                            <span className="text-primary underline">Klik untuk mengunggah</span> atau tarik & lepas berkas di sini
+                            <span className="text-primary underline">Klik untuk mengunggah</span> atau tarik berkas ke sini
                           </p>
-                          <p className="mt-0.5 text-[10px] text-gray-500">Scan Surat Siap Menerima (PDF/JPG, Maks 2MB)</p>
+                          <p className="mt-0.5 text-[10px] text-gray-500">Mendukung Multi-File (PDF/JPG, Maks 2MB/berkas)</p>
                         </div>
                       </div>
                     )}
@@ -736,7 +755,7 @@ export default function MutasiPage() {
             <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
               <div className="flex items-center gap-2 text-xs text-muted">
                 <FileText size={14} className="text-primary" />
-                <span>Surat SKP akan diterbitkan otomatis setelah disahkan oleh Kepala Madrasah.</span>
+                <span>Setelah disetujui Kepala Madrasah, Surat Keterangan Pindah (SKP) resmi akan diterbitkan.</span>
               </div>
               <PrimaryButton type="submit" disabled={keluarForm.formState.isSubmitting}>
                 Ajukan Mutasi Keluar ➜
@@ -746,7 +765,7 @@ export default function MutasiPage() {
         </SurfaceCard>
       ) : null}
 
-      {/* Modal Drawer Persetujuan Kamad */}
+      {/* Drawer Persetujuan & e-Signature untuk Kepala Madrasah */}
       {approvalDrawerOpen && profil && currentUser && (
         <MutasiApprovalDrawer
           mutasi={approvalDrawerOpen}
@@ -755,13 +774,23 @@ export default function MutasiPage() {
           onClose={() => setApprovalDrawerOpen(null)}
           onSuccess={() => {
             setApprovalDrawerOpen(null);
-            setInfo("Mutasi disetujui dan dokumen SKP telah diterbitkan (e-Sign).");
+            setInfo("Mutasi disetujui dan SKP resmi telah diterbitkan.");
             bump();
           }}
         />
       )}
 
-
+      {/* Visual Audit Log Timeline Drawer */}
+      {timelineTarget && (
+        <AuditTimelineDrawer
+          isOpen={true}
+          onClose={() => setTimelineTarget(null)}
+          recordId={timelineTarget.recordId}
+          recordType="riwayat_mutasi"
+          title={timelineTarget.title}
+          metadata={timelineTarget.metadata}
+        />
+      )}
     </AppShell>
   );
 }

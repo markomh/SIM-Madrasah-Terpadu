@@ -110,7 +110,7 @@ export default function AbsensiPage() {
           {belumDiisi && (
             <Link 
               href={`/akademik/presensi-siswa?rombel=${idRombel}&tanggal=${tanggal}&sesi=${sesi.id_sesi}`}
-              className="text-[10px] text-primary hover:underline bg-primary-soft px-2 py-0.5 rounded border border-primary/20"
+              className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary-soft hover:bg-primary-soft/80 px-2 py-0.5 rounded-[4px] border border-primary/30 transition-colors"
             >
               Isi Presensi
             </Link>
