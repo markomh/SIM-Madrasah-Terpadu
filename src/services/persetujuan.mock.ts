@@ -292,6 +292,7 @@ export const persetujuanMock: PersetujuanService = {
     maybeThrowSimulatedError();
     let approvedPindah = 0;
     let approvedMutasi = 0;
+    const gagal: { id: string; jenis: "pindah_rombel" | "mutasi"; alasan: string }[] = [];
 
     const pindahList = input.id_anggota_list ?? [];
     const mutasiList = input.id_mutasi_list ?? [];
@@ -300,8 +301,12 @@ export const persetujuanMock: PersetujuanService = {
       try {
         await persetujuanMock.approvePindahRombel(id_anggota, disetujui_oleh);
         approvedPindah++;
-      } catch {
-        // continue
+      } catch (err) {
+        gagal.push({
+          id: id_anggota,
+          jenis: "pindah_rombel",
+          alasan: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
@@ -314,12 +319,16 @@ export const persetujuanMock: PersetujuanService = {
           await persetujuanMock.approveMutasi(id_mutasi, disetujui_oleh);
         }
         approvedMutasi++;
-      } catch {
-        // continue
+      } catch (err) {
+        gagal.push({
+          id: id_mutasi,
+          jenis: "mutasi",
+          alasan: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
-    return { approved_pindah: approvedPindah, approved_mutasi: approvedMutasi };
+    return { approved_pindah: approvedPindah, approved_mutasi: approvedMutasi, gagal };
   },
 
   async batchReject(input, disetujui_oleh, alasan) {
@@ -327,6 +336,7 @@ export const persetujuanMock: PersetujuanService = {
     maybeThrowSimulatedError();
     let rejectedPindah = 0;
     let rejectedMutasi = 0;
+    const gagal: { id: string; jenis: "pindah_rombel" | "mutasi"; alasan: string }[] = [];
 
     const pindahList = input.id_anggota_list ?? [];
     const mutasiList = input.id_mutasi_list ?? [];
@@ -335,8 +345,12 @@ export const persetujuanMock: PersetujuanService = {
       try {
         await persetujuanMock.rejectPindahRombel(id_anggota, disetujui_oleh, alasan);
         rejectedPindah++;
-      } catch {
-        // continue
+      } catch (err) {
+        gagal.push({
+          id: id_anggota,
+          jenis: "pindah_rombel",
+          alasan: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
@@ -344,11 +358,16 @@ export const persetujuanMock: PersetujuanService = {
       try {
         await persetujuanMock.rejectMutasi(id_mutasi, disetujui_oleh, alasan);
         rejectedMutasi++;
-      } catch {
-        // continue
+      } catch (err) {
+        gagal.push({
+          id: id_mutasi,
+          jenis: "mutasi",
+          alasan: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
-    return { rejected_pindah: rejectedPindah, rejected_mutasi: rejectedMutasi };
+    return { rejected_pindah: rejectedPindah, rejected_mutasi: rejectedMutasi, gagal };
   },
 };
+

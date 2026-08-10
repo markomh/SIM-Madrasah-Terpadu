@@ -4,6 +4,24 @@ export type PersetujuanItem =
   | { jenis: "pindah_rombel"; data: AnggotaRombel }
   | { jenis: "mutasi"; data: RiwayatMutasi };
 
+export type BatchGagalDetail = {
+  id: string;
+  jenis: "pindah_rombel" | "mutasi";
+  alasan: string;
+};
+
+export type BatchResult = {
+  approved_pindah: number;
+  approved_mutasi: number;
+  gagal: BatchGagalDetail[];
+};
+
+export type BatchRejectResult = {
+  rejected_pindah: number;
+  rejected_mutasi: number;
+  gagal: BatchGagalDetail[];
+};
+
 export interface PersetujuanService {
   getPending(): Promise<PersetujuanItem[]>;
   approvePindahRombel(id_anggota: string, disetujui_oleh: string): Promise<AnggotaRombel>;
@@ -29,7 +47,7 @@ export interface PersetujuanService {
   batchApprove(
     input: { id_anggota_list?: string[]; id_mutasi_list?: string[] },
     disetujui_oleh: string
-  ): Promise<{ approved_pindah: number; approved_mutasi: number }>;
+  ): Promise<BatchResult>;
 
   /**
    * Penolakan massal (Batch Reject) untuk efisiensi eksekutif.
@@ -38,5 +56,6 @@ export interface PersetujuanService {
     input: { id_anggota_list?: string[]; id_mutasi_list?: string[] },
     disetujui_oleh: string,
     alasan: string
-  ): Promise<{ rejected_pindah: number; rejected_mutasi: number }>;
+  ): Promise<BatchRejectResult>;
 }
+

@@ -3,7 +3,7 @@
 import { isKepalaMadrasah } from "@/lib/access";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, XCircle, ArrowLeftRight, Shield, User, FileText, Eye, CheckSquare, Square, Clock, Paperclip, Download } from "lucide-react";
+import { ArrowRight, CheckCircle2, XCircle, ArrowLeftRight, Shield, User, FileText, Eye, CheckSquare, Square, Clock, Paperclip, Download, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion } from "@/components/app-providers";
@@ -23,6 +23,14 @@ import { AuditTimelineDrawer } from "@/components/audit-timeline-drawer";
 import type { PersetujuanItem } from "@/services/persetujuan.service";
 import type { AnggotaRombel, ProfilMadrasah, RiwayatMutasi, Rombel, Siswa } from "@/types";
 
+interface BatchSummaryAlert {
+  total: number;
+  successCount: number;
+  failedCount: number;
+  action: "approve" | "reject";
+  failures: { id: string; name: string; reason: string }[];
+}
+
 export default function PersetujuanPage() {
   const { currentUser, penugasanList } = useAuth();
   const { version, bump } = useDataVersion();
@@ -34,6 +42,7 @@ export default function PersetujuanPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [batchAlert, setBatchAlert] = useState<BatchSummaryAlert | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "pindah_rombel" | "mutasi">("all");
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState<RiwayatMutasi | null>(null);
@@ -112,6 +121,7 @@ export default function PersetujuanPage() {
 
     setIsBatchProcessing(true);
     setInfo(null);
+    setBatchAlert(null);
     setError(null);
     try {
       const pindahList: string[] = [];
@@ -130,7 +140,31 @@ export default function PersetujuanPage() {
         currentUser.id_pegawai
       );
 
-      setInfo(`Berhasil memproses batch: ${res.approved_pindah} pindah rombel & ${res.approved_mutasi} mutasi disetujui.`);
+      const total = pindahList.length + mutasiList.length;
+      const successCount = res.approved_pindah + res.approved_mutasi;
+
+      if (res.gagal && res.gagal.length > 0) {
+        const failureDetails = res.gagal.map((g) => {
+          const item = items.find((it) =>
+            g.jenis === "pindah_rombel"
+              ? it.jenis === "pindah_rombel" && it.data.id_anggota === g.id
+              : it.jenis === "mutasi" && it.data.id_mutasi === g.id
+          );
+          const nama = item ? siswaMap[item.data.id_siswa]?.nama_lengkap ?? "Siswa" : g.id;
+          return { id: g.id, name: nama, reason: g.alasan };
+        });
+
+        setBatchAlert({
+          total,
+          successCount,
+          failedCount: res.gagal.length,
+          action: "approve",
+          failures: failureDetails,
+        });
+      } else {
+        setInfo(`Berhasil memproses batch: ${res.approved_pindah} pindah rombel & ${res.approved_mutasi} mutasi disetujui.`);
+      }
+
       setSelectedKeys(new Set());
       bump();
     } catch (e) {
@@ -147,6 +181,7 @@ export default function PersetujuanPage() {
 
     setIsBatchProcessing(true);
     setInfo(null);
+    setBatchAlert(null);
     setError(null);
     try {
       const pindahList: string[] = [];
@@ -166,7 +201,31 @@ export default function PersetujuanPage() {
         reason || "Ditolak secara massal oleh Kepala Madrasah"
       );
 
-      setInfo(`Batch penolakan berhasil: ${res.rejected_pindah} pindah rombel & ${res.rejected_mutasi} mutasi ditolak.`);
+      const total = pindahList.length + mutasiList.length;
+      const successCount = res.rejected_pindah + res.rejected_mutasi;
+
+      if (res.gagal && res.gagal.length > 0) {
+        const failureDetails = res.gagal.map((g) => {
+          const item = items.find((it) =>
+            g.jenis === "pindah_rombel"
+              ? it.jenis === "pindah_rombel" && it.data.id_anggota === g.id
+              : it.jenis === "mutasi" && it.data.id_mutasi === g.id
+          );
+          const nama = item ? siswaMap[item.data.id_siswa]?.nama_lengkap ?? "Siswa" : g.id;
+          return { id: g.id, name: nama, reason: g.alasan };
+        });
+
+        setBatchAlert({
+          total,
+          successCount,
+          failedCount: res.gagal.length,
+          action: "reject",
+          failures: failureDetails,
+        });
+      } else {
+        setInfo(`Batch penolakan berhasil: ${res.rejected_pindah} pindah rombel & ${res.rejected_mutasi} mutasi ditolak.`);
+      }
+
       setSelectedKeys(new Set());
       bump();
     } catch (e) {
@@ -300,6 +359,37 @@ export default function PersetujuanPage() {
 
       {loading ? <LoadingBlock /> : null}
       {error ? <ErrorBlock message={error} /> : null}
+      {batchAlert ? (
+        <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-200">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="mt-0.5 text-amber-600 dark:text-amber-400 shrink-0" size={18} />
+              <div>
+                <p className="font-bold">
+                  {batchAlert.successCount} dari {batchAlert.total} pengajuan berhasil {batchAlert.action === "approve" ? "disetujui" : "ditolak"}. {batchAlert.failedCount} pengajuan gagal diproses:
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-4 text-xs font-medium">
+                  {batchAlert.failures.map((f) => (
+                    <li key={f.id}>
+                      <span className="font-bold">{f.name}:</span> {f.reason}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-[11px] opacity-80">
+                  Silakan periksa detail berkas atau status riwayat pengajuan yang gagal untuk melakukan tindak lanjut.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBatchAlert(null)}
+              className="text-amber-800 dark:text-amber-200 hover:opacity-70 font-bold text-xs px-1.5 py-0.5"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      ) : null}
       {info ? (
         <p className="mb-4 flex items-center gap-2 rounded-md border border-primary/30 bg-primary-soft px-3.5 py-2.5 text-xs font-semibold text-primary">
           <CheckCircle2 size={16} />

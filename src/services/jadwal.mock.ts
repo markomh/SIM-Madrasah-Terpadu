@@ -37,6 +37,40 @@ export const jadwalMock: JadwalService = {
     mutateStore((s) => s.jadwal.push(created));
     return created;
   },
+  async update(id_jadwal, data) {
+    await simulateLatency();
+    maybeThrowSimulatedError();
+    const store = loadStore();
+    const existing = store.jadwal.find((j) => j.id_jadwal === id_jadwal);
+    if (!existing) throw new Error("Slot jadwal tidak ditemukan.");
+
+    const merged: Omit<JadwalPelajaran, "id_jadwal"> = {
+      id_rombel: data.id_rombel ?? existing.id_rombel,
+      id_pegawai: data.id_pegawai ?? existing.id_pegawai,
+      id_mapel: data.id_mapel ?? existing.id_mapel,
+      semester: data.semester ?? existing.semester,
+      hari: data.hari ?? existing.hari,
+      jam_mulai: data.jam_mulai ?? existing.jam_mulai,
+      jam_selesai: data.jam_selesai ?? existing.jam_selesai,
+    };
+
+    const conflicts = await this.detectConflicts(merged, id_jadwal);
+    if (conflicts.length > 0) {
+      throw new Error("Bentrok jadwal: perubahan menyebabkan tabrakan waktu mengajar guru.");
+    }
+
+    let updated: JadwalPelajaran | null = null;
+    mutateStore((s) => {
+      const idx = s.jadwal.findIndex((j) => j.id_jadwal === id_jadwal);
+      if (idx !== -1) {
+        s.jadwal[idx] = { ...s.jadwal[idx], ...merged };
+        updated = s.jadwal[idx];
+      }
+    });
+
+    if (!updated) throw new Error("Gagal memperbarui jadwal.");
+    return updated;
+  },
   async remove(id_jadwal) {
     await simulateLatency();
     maybeThrowSimulatedError();
