@@ -145,9 +145,11 @@ export default function BkPage() {
                     value={formData.catatan}
                     onChange={e => setFormData({ ...formData, catatan: e.target.value })}
                   />
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" type="button" onClick={() => setFormOpen(false)}>Batal</Button>
-                    <Button variant="primary" type="submit" loading={saving}>
+                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border mt-3">
+                    <Button variant="secondary" size="sm" type="button" onClick={() => setFormOpen(false)}>
+                      Batal
+                    </Button>
+                    <Button variant="primary" size="sm" type="submit" loading={saving}>
                       Simpan Catatan
                     </Button>
                   </div>

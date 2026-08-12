@@ -1,21 +1,21 @@
-import type { Surat, MetaPenandatangan } from "@/types";
+import type { Surat, MetaPenandatangan, Pegawai, PenugasanJabatan } from "@/types";
 import type { PersuratanService } from "./persuratan.service";
-import { createId, loadStore, maybeThrowSimulatedError, mutateStore, simulateLatency, todayIso } from "./store";
+import { createId, loadStore, maybeThrowSimulatedError, mutateStore, simulateLatency, todayIso, type DemoStore } from "./store";
 import { lembagaMock } from "./lembaga.mock";
 
-function getNomorSuratBaru(storeState: any, nama_madrasah: string) {
+function getNomorSuratBaru(storeState: DemoStore, nama_madrasah: string) {
   const urutan = String(storeState.surat.length + 1).padStart(3, "0");
   const tahun = new Date().getFullYear();
   const kodeInstansi = nama_madrasah.replace(/\s+/g, "");
   return `421/${urutan}/${kodeInstansi}/${tahun}`;
 }
 
-function getSnapshotPenandatangan(storeState: any, id_penandatangan: string): MetaPenandatangan {
+function getSnapshotPenandatangan(storeState: DemoStore, id_penandatangan: string): MetaPenandatangan {
   const pegawaiList = storeState.pegawai;
-  const kamad = pegawaiList.find((p: any) => p.id_pegawai === id_penandatangan);
+  const kamad = pegawaiList.find((p: Pegawai) => p.id_pegawai === id_penandatangan);
   const penugasanList = storeState.penugasanJabatan;
   const penugasan = penugasanList.find(
-    (p: any) => p.id_pegawai === id_penandatangan && p.jenis_jabatan === "Kepala Madrasah" && p.status === "Aktif"
+    (p: PenugasanJabatan) => p.id_pegawai === id_penandatangan && p.jenis_jabatan === "Kepala Madrasah" && p.status === "Aktif"
   );
 
   return {

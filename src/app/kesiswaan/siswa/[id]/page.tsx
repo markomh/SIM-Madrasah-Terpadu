@@ -10,6 +10,7 @@ import { useAuth } from "@/components/auth-context";
 import { useDataVersion } from "@/components/app-providers";
 import {
   AiLabel,
+  Button,
   ErrorBlock,
   Field,
   LoadingBlock,
@@ -250,10 +251,13 @@ export default function DetailSiswaPage() {
                 </select>
               </Field>
               {canEdit ? (
-                <div className="md:col-span-2">
-                  <PrimaryButton type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Menyimpan..." : "Simpan perubahan"}
-                  </PrimaryButton>
+                <div className="md:col-span-2 flex items-center justify-end gap-3 border-t border-border pt-4 mt-2">
+                  <Button variant="secondary" type="button" onClick={() => router.back()}>
+                    Kembali
+                  </Button>
+                  <Button variant="primary" type="submit" loading={isSubmitting}>
+                    Simpan Perubahan
+                  </Button>
                 </div>
               ) : null}
             </form>

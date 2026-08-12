@@ -57,7 +57,7 @@ export default function MutasiPage() {
   const [timelineTarget, setTimelineTarget] = useState<{
     recordId: string;
     title: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
   } | null>(null);
 
   // Form Mutasi UX States

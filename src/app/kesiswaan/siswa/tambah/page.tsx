@@ -219,12 +219,12 @@ export default function TambahSiswaPage() {
             <option value="PPDB Reguler">PPDB Reguler</option>
             <option value="Mutasi Masuk">Mutasi Masuk</option>
           </Select>
-          <div className="md:col-span-2 flex gap-2">
-            <Button variant="primary" type="submit" loading={isSubmitting}>
-              Simpan
-            </Button>
+          <div className="md:col-span-2 flex items-center justify-end gap-3 border-t border-border pt-4 mt-2">
             <Button variant="secondary" type="button" onClick={() => router.back()}>
               Batal
+            </Button>
+            <Button variant="primary" type="submit" loading={isSubmitting}>
+              Simpan Siswa
             </Button>
           </div>
         </form>

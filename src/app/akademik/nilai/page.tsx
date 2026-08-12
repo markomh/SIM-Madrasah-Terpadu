@@ -170,7 +170,7 @@ function PanelInputNilai({
   const [selectedJadwalKey, setSelectedJadwalKey] = useState<string>("");
   const [komponen, setKomponen] = useState<KomponenNilai[]>([]);
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
-  
+
   // Matrix state: id_siswa -> { id_komponen -> score }
   const [matrixScores, setMatrixScores] = useState<Record<string, Record<string, number | null>>>({});
 
@@ -469,43 +469,43 @@ function PanelInputNilai({
           </div>
 
           {selectedJadwal && (
-            <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-4">
-              <Link
-                href={`/akademik/presensi-siswa?rombel=${selectedJadwal.id_rombel}&mapel=${selectedJadwal.id_mapel}&jadwal=${selectedJadwal.id_jadwal}&tanggal=${new Date().toISOString().slice(0, 10)}`}
-                className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary-soft px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all shadow-xs"
+            <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2 pt-2 lg:pt-0">
+              <Button
+                variant="primary"
+                size="sm"
+                iconLeft={<ClipboardCheck className="h-4 w-4" />}
+                onClick={() => {
+                  window.location.href = `/akademik/presensi-siswa?rombel=${selectedJadwal.id_rombel}&mapel=${selectedJadwal.id_mapel}&jadwal=${selectedJadwal.id_jadwal}&tanggal=${new Date().toISOString().slice(0, 10)}`;
+                }}
               >
-                <ClipboardCheck size={14} />
-                <span>Buka Presensi Sesi</span>
-              </Link>
+                Buka Presensi Sesi
+              </Button>
 
               <Button
                 variant="secondary"
                 size="sm"
-                className="flex items-center gap-1.5 shadow-xs"
+                iconLeft={<Plus className="h-4 w-4" />}
                 onClick={() => setShowAddActivityModal(true)}
               >
-                <Plus size={14} />
-                <span>Tambah Aktivitas</span>
+                Tambah Aktivitas
               </Button>
 
               <Button
                 variant="secondary"
                 size="sm"
-                className="flex items-center gap-1.5 shadow-xs"
+                iconLeft={<Download className="h-4 w-4" />}
                 onClick={handleExportRdm}
               >
-                <Download size={14} />
-                <span>Ekspor RDM (CSV)</span>
+                Ekspor RDM (CSV)
               </Button>
 
               <Button
                 variant="secondary"
                 size="sm"
-                className="flex items-center gap-1.5 shadow-xs"
+                iconLeft={<Printer className="h-4 w-4" />}
                 onClick={() => setShowPrintModal(true)}
               >
-                <Printer size={14} />
-                <span>Cetak Leger</span>
+                Cetak Leger
               </Button>
             </div>
           )}
@@ -657,8 +657,8 @@ function PanelInputNilai({
                               row.statusKetuntasan === "Tuntas"
                                 ? "Hadir"
                                 : row.statusKetuntasan === "Belum Tuntas"
-                                ? "Izin"
-                                : "Pending"
+                                  ? "Izin"
+                                  : "Pending"
                             }
                           />
                         </td>
@@ -705,13 +705,13 @@ function PanelInputNilai({
                 />
               </Field>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
-                <SecondaryButton type="button" onClick={() => setShowAddActivityModal(false)}>
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border mt-4">
+                <Button variant="secondary" type="button" onClick={() => setShowAddActivityModal(false)}>
                   Batal
-                </SecondaryButton>
-                <PrimaryButton type="submit">
+                </Button>
+                <Button variant="primary" type="submit">
                   Simpan Aktivitas
-                </PrimaryButton>
+                </Button>
               </div>
             </form>
           </div>
@@ -729,17 +729,12 @@ function PanelInputNilai({
                 <h3 className="text-sm font-bold text-ink">Pratinjau Cetak Leger Nilai Harian</h3>
               </div>
               <div className="flex items-center gap-2">
-                <PrimaryButton size="sm" onClick={() => window.print()} className="flex items-center gap-1.5">
-                  <Printer size={13} />
-                  <span>Cetak Dokumen</span>
-                </PrimaryButton>
-                <button
-                  type="button"
-                  onClick={() => setShowPrintModal(false)}
-                  className="rounded px-2 py-1 text-xs font-bold text-muted hover:text-ink"
-                >
-                  ✕
-                </button>
+                <Button variant="primary" size="sm" iconLeft={<Printer className="h-3.5 w-3.5" />} onClick={() => window.print()}>
+                  Cetak Dokumen
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => setShowPrintModal(false)}>
+                  Tutup
+                </Button>
               </div>
             </div>
 
@@ -912,8 +907,8 @@ function PanelRekapWaliKelas({ currentUser }: PanelRekapProps) {
                 const studentScores = nilaiList.filter((n) => n.id_siswa === s.id_siswa);
                 const avg = studentScores.length > 0
                   ? Math.round(
-                      (studentScores.reduce((acc, n) => acc + n.nilai, 0) / studentScores.length) * 10
-                    ) / 10
+                    (studentScores.reduce((acc, n) => acc + n.nilai, 0) / studentScores.length) * 10
+                  ) / 10
                   : null;
 
                 return (
@@ -926,8 +921,8 @@ function PanelRekapWaliKelas({ currentUser }: PanelRekapProps) {
                       );
                       const mAvg = mapelScores.length > 0
                         ? Math.round(
-                            (mapelScores.reduce((acc, n) => acc + n.nilai, 0) / mapelScores.length)
-                          )
+                          (mapelScores.reduce((acc, n) => acc + n.nilai, 0) / mapelScores.length)
+                        )
                         : null;
 
                       return (

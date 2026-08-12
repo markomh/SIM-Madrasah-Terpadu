@@ -25,14 +25,16 @@
 **Tujuan:** membangun API Laravel yang menggantikan seluruh `services/*.mock.ts` di frontend dengan data sungguhan dari PostgreSQL, tanpa mengubah kontrak (bentuk request/response) yang sudah dipakai frontend.
 
 **Termasuk di Tahap 2:**
-- Seluruh 23 entitas di SRS Bab 9 (migrasi database + model Eloquent).
-- Autentikasi sungguhan (login, token) menggantikan Role Switcher mock.
+- Seluruh 24 entitas di SRS Bab 9 (migrasi database + model Eloquent), **termasuk `madrasah` sebagai akar isolasi multi-tenant** (Bab 9P — keputusan produk: multi-tenant sungguhan dibangun sekarang, bukan ditunda ke Fase 5 seperti rencana awal).
+- **Isolasi multi-tenant sungguhan** di seluruh entitas akar tenant (SRS Bab 10 poin 23-26) — bukan sekadar kolom `id_madrasah` pasif, tapi ditegakkan lewat *global scope* Eloquent (Bab 6 dokumen ini) dan *row-level security* PostgreSQL untuk `catatan_bk`.
+- Autentikasi sungguhan (login, token) menggantikan Role Switcher mock — **sesi login sekarang juga membawa konteks `id_madrasah`**, bukan cuma identitas pegawai.
 - Seluruh validasi bisnis yang di Tahap 1 baru disimulasikan di `*.mock.ts` (Bab 10 SRS) — sekarang ditegakkan di level database (constraint) **dan** aplikasi (Form Request/Policy), dua lapis, bukan satu.
 - Enkripsi data sensitif (NIK) yang di Tahap 1 sengaja belum diterapkan (lihat catatan `FRONTEND.md` Bab 4).
 
 **TIDAK termasuk (dikecualikan eksplisit, konsisten dengan diskusi sebelumnya):**
-- **Entitas Orang Tua/Wali** — SRS Bab 12 menandai ini sebagai gap terbuka yang sengaja belum dirancang. Portal Orang Tua tetap dikecualikan dari Tahap 2, menyusul roadmap Fase 4 di SRS Bab 14. Jangan membuat tabel/endpoint untuk ini tanpa keputusan desain terpisah lebih dulu.
-- **Integrasi nyata ke EMIS/Verval** — Bab 3 SRS masih berstatus "belum terverifikasi". Tahap 2 hanya membangun **jalur ekspor CSV/Excel** yang sudah pasti (jalur utama), bukan sinkronisasi otomatis via sesi akun EMIS (jalur pelengkap, riset terpisah).
+- **Entitas Orang Tua/Wali** — SRS Bab 12 menandai ini sebagai gap terbuka yang sengaja belum dirancang, dan **sengaja tetap ditunda** meski desain awalnya (entitas `wali`/`wali_siswa` relasi banyak-ke-banyak) sempat diusulkan bersamaan dengan pembahasan multi-tenant ini — dua keputusan itu independen, jangan ikut membangun modul Orang Tua hanya karena kebetulan dibahas di percakapan yang sama. Portal Orang Tua tetap dikecualikan dari Tahap 2, menyusul roadmap Fase 4 di SRS Bab 14.
+- **Onboarding *self-service* madrasah baru** — multi-tenant di Tahap 2 ini cukup sampai isolasi data antar `id_madrasah` yang sudah ada (provisioning manual/seed), **bukan** alur pendaftaran mandiri madrasah baru ke platform (itu tetap di Fase 5 sesuai SRS Bab 14).
+- **Integrasi nyata ke EMIS/Verval** — Bab 3 SRS masih berstatus "belum terverifikasi". Tahap 2 hanya membangun **jalur ekspor CSV/Excel** yang sudah pasti (jalur utama), bukan sinkronisasi otomatis via sesi akun EMIS (jalur pelengkap, riset terpisah). **Catatan tambahan pasca keputusan multi-tenant:** setiap proses ekspor wajib beroperasi dalam konteks satu `id_madrasah` — jangan sampai proses ekspor batch tidak sengaja menggabungkan data lintas tenant.
 - **AI Layer sungguhan** — endpoint yang di Tahap 1 memakai data mock statis (skor risiko, rekomendasi jadwal) tetap memakai data placeholder di Tahap 2 awal, kecuali disepakati terpisah. Sediakan *interface*-nya (kolom `skor_risiko_ai` dkk.) tapi jangan bangun model ML sungguhan sebagai bagian dari cakupan ini.
 - **Notifikasi WhatsApp/Email sungguhan** — sediakan *event* yang bisa didengarkan listener notifikasi nanti, tapi implementasi pengiriman aktual boleh menyusul.
 
@@ -67,13 +69,48 @@
 
 Seluruh nama tabel/kolom mengikuti Kamus Data SRS Bab 9 apa adanya (snake_case, sudah sesuai). Tabel berikut dikelompokkan per domain, dengan catatan migrasi khusus untuk yang punya logika non-trivial. Untuk field yang tidak disebut catatannya, ikuti tipe & enum persis seperti di SRS Bab 9 tanpa modifikasi.
 
+**Migrasi ini adalah tabel pertama yang wajib dibuat, sebelum tabel apa pun lainnya** — seluruh entitas akar tenant (lihat tabel kategori SRS Bab 9P) punya FK ke sini:
+```php
+Schema::create('madrasah', function (Blueprint $table) {
+    $table->uuid('id_madrasah')->primary();
+    $table->string('nama_madrasah');
+    $table->string('npsn')->unique();
+    $table->string('alamat')->nullable();
+    $table->foreignUuid('id_desa')->nullable()->constrained('master_desa');
+    $table->boolean('status_aktif')->default(true);
+    $table->timestamps();
+});
+```
+
 ### 4.1 Master & Referensi (Bab 9A.1, 9C)
-`master_provinsi`, `master_kabupaten`, `master_kecamatan`, `master_desa`, `tingkat_pendidikan`, `mata_pelajaran`, `tahun_ajaran` — tabel referensi standar, `id` UUID PK, tanpa logika khusus. **Seed wajib**: keempat tabel wilayah harus diisi dari sumber resmi Kemendagri (lihat SRS Bab 9A.1) — jangan mengarang data seed acak untuk tabel ini di luar keperluan testing lokal.
+**Referensi nasional bersama, TIDAK diisolasi tenant** — `master_provinsi`, `master_kabupaten`, `master_kecamatan`, `master_desa`, `tingkat_pendidikan`. Tabel referensi standar, `id` UUID PK, tanpa `id_madrasah`, tanpa logika khusus. **Seed wajib**: keempat tabel wilayah harus diisi dari sumber resmi Kemendagri (lihat SRS Bab 9A.1) — jangan mengarang data seed acak untuk tabel ini di luar keperluan testing lokal.
+
+**Entitas akar tenant** (WAJIB `id_madrasah`, lihat pola *global scope* Bab 6) — `mata_pelajaran`, `tahun_ajaran`:
+```php
+Schema::create('tahun_ajaran', function (Blueprint $table) {
+    $table->uuid('id_tahun')->primary();
+    $table->foreignUuid('id_madrasah')->constrained('madrasah');
+    $table->string('nama_tahun'); // TIDAK ADA kolom semester, lihat catatan kritis 4.3
+    $table->boolean('status_aktif')->default(false);
+    $table->timestamps();
+});
+
+Schema::create('mata_pelajaran', function (Blueprint $table) {
+    $table->uuid('id_mapel')->primary();
+    $table->foreignUuid('id_madrasah')->constrained('madrasah');
+    $table->string('kode_mapel');
+    $table->string('nama_mapel');
+    $table->string('kelompok_mapel')->nullable();
+    $table->timestamps();
+    $table->unique(['id_madrasah', 'kode_mapel']); // unik PER madrasah, bukan global
+});
+```
 
 ### 4.2 Kepegawaian & Jabatan (Bab 9B, 9B.1)
 ```php
 Schema::create('pegawai', function (Blueprint $table) {
     $table->uuid('id_pegawai')->primary();
+    $table->foreignUuid('id_madrasah')->constrained('madrasah'); // WAJIB — 1 pegawai = 1 madrasah
     $table->string('nik', 16)->unique(); // enkripsi di level aplikasi (casts), lihat Bab 7
     $table->string('nip')->nullable();
     $table->string('npk')->nullable();
@@ -95,6 +132,7 @@ Schema::create('penugasan_jabatan', function (Blueprint $table) {
     $table->date('tanggal_selesai')->nullable();
     $table->enum('status', ['Aktif', 'Berakhir'])->default('Aktif');
     $table->timestamps();
+    // Tidak butuh id_madrasah sendiri — tenant diwarisi dari id_pegawai (entitas akar).
     // TIDAK ADA unique constraint yang membatasi satu pegawai satu jenis_jabatan aktif — SRS Bab 10
     // poin 20 mengizinkan penugasan sejenis tumpang tindih tahun (mis. transisi Kamad lama/baru).
     // Yang perlu index: (id_pegawai, jenis_jabatan, status) untuk query hasJabatan() yang sering dipanggil.
@@ -104,12 +142,12 @@ Schema::create('penugasan_jabatan', function (Blueprint $table) {
 > **Sengaja tidak ada tabel terpisah untuk "Wali Kelas"/"Pembina Ekstrakurikuler"** — keduanya tetap FK langsung di `rombel.id_wali_kelas` dan `ekstrakurikuler.id_pembina` (lihat 4.3, 4.6), sesuai keputusan SRS Bab 9B.1 yang menghindari dua sumber kebenaran untuk hal yang sama.
 
 ### 4.3 Kesiswaan & Akademik Inti (Bab 9A, 9C, 9D, 9E)
-- `siswa` — termasuk `id_desa` FK, `skor_risiko_ai` (`float`, nullable, **hanya bisa ditulis proses sistem**, lihat Bab 8 poin validasi khusus).
-- `rombel` — `id_wali_kelas` FK ke `pegawai`, `id_tingkat` FK, `id_tahun` FK (tahun **penuh**, bukan per-semester — lihat catatan migrasi kritis di bawah).
-- `jadwal_pelajaran` — **wajib** ada kolom `semester` (`enum: Ganjil, Genap`). Unique constraint: `(id_pegawai, hari, jam_mulai, semester)` sesuai SRS Bab 10 poin 3.
+- `siswa` — **wajib** `id_madrasah` FK ke `madrasah`, termasuk `id_desa` FK, `skor_risiko_ai` (`float`, nullable, **hanya bisa ditulis proses sistem**, lihat Bab 8 poin validasi khusus).
+- `rombel` — **wajib** `id_madrasah` FK, `id_wali_kelas` FK ke `pegawai`, `id_tingkat` FK, `id_tahun` FK (tahun **penuh**, bukan per-semester — lihat catatan migrasi kritis di bawah).
+- `jadwal_pelajaran` — **wajib** ada kolom `semester` (`enum: Ganjil, Genap`). Unique constraint: `(id_pegawai, hari, jam_mulai, semester)` sesuai SRS Bab 10 poin 3. **Tidak butuh `id_madrasah` sendiri** (tenant diwarisi dari `id_rombel`), **tapi** Form Request wajib validasi `id_rombel` dan `id_pegawai` berasal dari `id_madrasah` yang sama (SRS Bab 10 poin 24) — cegah guru madrasah A dijadwalkan mengajar rombel madrasah B.
   > **Catatan migrasi paling kritis di seluruh dokumen ini:** `tahun_ajaran` **tidak boleh** punya kolom `semester`. Ini koreksi dari kesalahan yang sempat terjadi di frontend Tahap 1 (lihat `FRONTEND.md` Bab 4, catatan pada `TahunAjaran`) — kalau `semester` ditaruh di `tahun_ajaran`, `rombel` akan "berpindah" secara palsu tiap pergantian semester. Pastikan migration `tahun_ajaran` **tidak** memiliki kolom ini sejak awal.
 - `anggota_rombel` — kolom persetujuan lengkap (`status_persetujuan`, `diajukan_oleh`, `disetujui_oleh`, `tanggal_persetujuan`) sesuai SRS Bab 9E. Constraint aplikasi (bukan DB constraint, karena butuh query kondisional): maksimal satu baris `tanggal_selesai IS NULL` per `id_siswa` — tegakkan lewat Eloquent Observer atau Service class, uji dengan test khusus (Bab 8).
-- `pemetaan_kenaikan`, `riwayat_mutasi` — sesuai SRS Bab 9F, 9G apa adanya, termasuk kolom persetujuan di `riwayat_mutasi`.
+- `pemetaan_kenaikan`, `riwayat_mutasi` — sesuai SRS Bab 9F, 9G apa adanya, termasuk kolom persetujuan di `riwayat_mutasi`. Tidak butuh `id_madrasah` sendiri (diwarisi dari `siswa`/`rombel` terkait).
 
 ### 4.4 Kehadiran Guru & Siswa (Bab 9D, 9K, 9L)
 ```php
@@ -158,70 +196,23 @@ Schema::create('izin_guru', function (Blueprint $table) {
 `komponen_nilai`, `nilai_siswa` — sesuai SRS apa adanya. **Validasi `id_pegawai_penilai`** (SRS Bab 10 poin 17, diperbaiki Bab 8 dokumen ini) wajib di level `NilaiService`, bukan hanya Form Request — karena butuh query ke `jadwal_pelajaran`, bukan validasi field tunggal.
 
 ### 4.6 Ekstrakurikuler & BK (Bab 9N)
-`ekstrakurikuler`, `keanggotaan_ekstra`, `absensi_ekstra` — standar. `catatan_bk` — **wajib row-level security PostgreSQL**, bukan hanya filter di query builder:
+`ekstrakurikuler` (**wajib** `id_madrasah` FK), `keanggotaan_ekstra`, `absensi_ekstra` — standar. `catatan_bk` — **wajib row-level security PostgreSQL untuk DUA kondisi sekaligus** (kerahasiaan BK **dan** isolasi tenant), bukan hanya filter di query builder:
 ```sql
 ALTER TABLE catatan_bk ENABLE ROW LEVEL SECURITY;
 CREATE POLICY catatan_bk_rahasia ON catatan_bk
   USING (
-    tingkat_kerahasiaan = 'Umum'
-    OR id_pegawai_bk = current_setting('app.current_pegawai_id')::uuid
-    OR current_setting('app.current_pegawai_is_kamad')::boolean = true
+    id_madrasah = current_setting('app.current_madrasah_id')::uuid  -- WAJIB dicek lebih dulu, tenant tidak boleh bocor
+    AND (
+      tingkat_kerahasiaan = 'Umum'
+      OR id_pegawai_bk = current_setting('app.current_pegawai_id')::uuid
+      OR current_setting('app.current_pegawai_is_kamad')::boolean = true
+    )
   );
 ```
-Set `app.current_pegawai_id`/`app.current_pegawai_is_kamad` lewat middleware di awal setiap request (`SET LOCAL` dalam transaction). Ini menegakkan kerahasiaan **di level database**, bukan cuma di kode Laravel — konsisten dengan temuan Tahap 1 bahwa filter di layer aplikasi saja tidak cukup (lihat `FRONTEND.md` instruksi BK: "bukan cuma difilter di komponen").
+Set `app.current_madrasah_id`/`app.current_pegawai_id`/`app.current_pegawai_is_kamad` lewat middleware di awal setiap request (`SET LOCAL` dalam transaction). Ini menegakkan kerahasiaan **dan** isolasi tenant **di level database**, bukan cuma di kode Laravel — konsisten dengan temuan Tahap 1 bahwa filter di layer aplikasi saja tidak cukup (lihat `FRONTEND.md` instruksi BK: "bukan cuma difilter di komponen"). Inilah alasan `catatan_bk` diberi `id_madrasah` langsung (Bab 9P) alih-alih hanya diwarisi dari `siswa` — satu policy SQL bisa memeriksa kedua kondisi tanpa join.
 
-### 4.7 Persuratan, Audit, Sinkronisasi (Bab 9C-modul, 9I, 9J)
-`surat` (Bab 4C, belum diformalkan sebagai entitas terpisah di SRS Bab 9 — **didesain oleh agen frontend Tahap 1 & diformalkan untuk backend**), `profil_madrasah`, `template_surat`, `audit_log` (kolom `data_sebelum`/`data_sesudah` bertipe `jsonb`), `sync_log`.
-
-```php
-Schema::create('profil_madrasah', function (Blueprint $table) {
-    $table->uuid('id_profil')->primary(); // Singleton Pattern: Guard di Eloquent Observer agar max 1 row
-    $table->string('nsm', 12)->unique();
-    $table->string('npsn', 8)->unique();
-    $table->string('nama_madrasah');
-    $table->enum('jenjang', ['MI', 'MTs', 'MA', 'MAK']);
-    $table->enum('status_akreditasi', ['A', 'B', 'C', 'Belum Akreditasi']);
-    $table->text('alamat');
-    $table->string('telepon')->nullable();
-    $table->string('email')->nullable();
-    $table->string('website')->nullable();
-    $table->foreignUuid('id_kepala_madrasah')->nullable()->constrained('pegawai', 'id_pegawai'); // FK ke Kamad aktif (mencegah dual source of truth)
-    $table->string('nama_kepala_madrasah')->nullable(); // Fallback string jika PLT/Pjs luar
-    $table->string('nip_kepala_madrasah')->nullable();
-    $table->string('logo_url')->nullable();
-    $table->timestamps();
-});
-
-Schema::create('template_surat', function (Blueprint $table) {
-    $table->uuid('id_template')->primary();
-    $table->string('kode_template')->unique(); // e.g. "SK-AKTIF", "ST-TUGAS"
-    $table->string('nama_template');
-    $table->string('kategori'); // "Keterangan", "Tugas", "Keputusan", "Rekomendasi"
-    $table->text('header_html')->nullable();
-    $table->text('body_template');
-    $table->jsonb('variabel_placeholder')->nullable(); // array string placeholder
-    $table->boolean('aktif')->default(true);
-    $table->timestamps();
-});
-
-Schema::create('surat', function (Blueprint $table) {
-    $table->uuid('id_surat')->primary();
-    $table->string('nomor_surat')->unique();
-    $table->foreignUuid('id_template')->nullable()->constrained('template_surat', 'id_template');
-    $table->string('jenis_surat'); // Categorization / Fallback ad-hoc jika id_template null
-    $table->string('perihal');
-    $table->date('tanggal_surat');
-    $table->string('tujuan_surat');
-    $table->foreignUuid('id_siswa_terkait')->nullable()->constrained('siswa', 'id_siswa');
-    $table->foreignUuid('id_pegawai_terkait')->nullable()->constrained('pegawai', 'id_pegawai');
-    $table->foreignUuid('id_penandatangan')->nullable()->constrained('pegawai', 'id_pegawai'); // FK eksplisit untuk efisiensi query approval
-    $table->text('isi_surat');
-    $table->enum('status', ['Draf', 'Menunggu TTD', 'Diterbitkan', 'Ditolak', 'Diarsipkan'])->default('Draf');
-    $table->jsonb('meta_penandatangan')->nullable(); // SNAPSHOT LEGAL saat terbit: { nama, nip, jabatan, tanggal_ttd, hash_esign }
-    $table->foreignUuid('dibuat_oleh')->constrained('pegawai', 'id_pegawai');
-    $table->timestamps();
-});
-```
+### 4.7 Persuratan, Audit, Sinkronisasi (Bab 9C-modul, 9I, 9J, 9O)
+`surat`, `profil_madrasah`, `template_surat` — **sekarang sudah diformalkan di SRS Bab 9O** (sebelumnya diserahkan ke agen frontend untuk dirancang sendiri; desainnya terverifikasi baik, termasuk pola *snapshot* `meta_penandatangan` untuk kekekalan arsip legal — ikuti skema itu apa adanya, jangan dirancang ulang dari nol). **Ketiganya wajib `id_madrasah` FK** — `profil_madrasah` bukan lagi singleton global, sekarang satu baris per madrasah; nomor surat (`421/{urutan}/...`) dihitung berurutan **per `id_madrasah`**, bukan lintas tenant. `audit_log` (kolom `data_sebelum`/`data_sesudah` bertipe `jsonb`, tidak butuh `id_madrasah` sendiri — cukup dari `id_user` yang melakukan aksi), `sync_log` (tidak butuh `id_madrasah` sendiri kalau `modul` yang disinkronkan sudah menyiratkan tenant, tapi tambahkan kalau proses ekspor bisa dijalankan lintas madrasah oleh Admin platform — putuskan saat implementasi, catat di Log Deviasi).
 
 **`audit_log` wajib diisi otomatis** lewat Eloquent Observer global (bukan ditulis manual di tiap controller) untuk operasi Create/Update/Delete pada seluruh model yang disebut di SRS Bab 6 (Auditability) — terutama `siswa`, `pegawai`, `absensi_siswa`, `nilai_siswa`, `catatan_bk`.
 
@@ -249,6 +240,34 @@ public function jadwalMengajar() {
 ```
 Method-method ini adalah padanan Laravel dari `lib/access.ts` di frontend (`isWaliKelas`, `isPembinaEkstrakurikuler`, dst.) — **logikanya harus identik**, supaya tidak ada dua definisi kebenaran yang berbeda soal "siapa wali kelas siapa" antara frontend dan backend.
 
+### 5.1 Pola `BelongsToTenant` — Wajib untuk Seluruh Entitas Akar Tenant
+
+Sesuai SRS Bab 10 poin 23 ("isolasi tidak boleh mengandalkan disiplin developer menambahkan `WHERE` manual"), buat satu trait yang diterapkan ke **setiap** model entitas akar tenant (`Siswa`, `Pegawai`, `Rombel`, `TahunAjaran`, `MataPelajaran`, `Ekstrakurikuler`, `CatatanBk`, `ProfilMadrasah`, `TemplateSurat`, `Surat`):
+
+```php
+// app/Concerns/BelongsToTenant.php
+trait BelongsToTenant {
+    protected static function bootBelongsToTenant() {
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            if ($madrasahId = app('currentTenant')?->id_madrasah) {
+                $builder->where($builder->getModel()->getTable() . '.id_madrasah', $madrasahId);
+            }
+        });
+
+        static::creating(function ($model) {
+            if (empty($model->id_madrasah) && app('currentTenant')) {
+                $model->id_madrasah = app('currentTenant')->id_madrasah;
+            }
+        });
+    }
+}
+```
+
+- `app('currentTenant')` diisi oleh middleware (Bab 6) begitu pegawai terautentikasi, dari `pegawai.id_madrasah` miliknya.
+- **Global scope berarti developer TIDAK BISA lupa** menambahkan filter tenant — query `Siswa::all()` otomatis terfilter, tanpa perlu diingat manual di tiap controller. Ini yang membuat isolasi "tidak bisa dilewati" seperti diwajibkan SRS.
+- Untuk entitas turunan (`AnggotaRombel`, `JadwalPelajaran`, dst. — lihat tabel kategori SRS Bab 9P) **tidak perlu** trait ini — isolasinya otomatis ikut lewat `whereHas`/relasi ke entitas akar yang sudah ter-scope. **Tapi** tetap tambahkan validasi silang FK lintas entitas akar (SRS Bab 10 poin 24) secara eksplisit di Form Request, karena global scope tidak menangkap kasus "FK A dan FK B menunjuk tenant berbeda" pada satu baris yang sama.
+- **Perhatian khusus untuk job/command tanpa konteks HTTP** (`ExportEmisVervalJob`, `HitungRekapKedisiplinanJob`, Bab 9) — job-job ini berjalan di luar siklus request biasa, jadi `app('currentTenant')` tidak otomatis terisi dari middleware. Set tenant context secara eksplisit di awal tiap job (`app()->instance('currentTenant', $madrasah)`) sebelum melakukan query apa pun, dan uji ini secara khusus (Bab 11) — job lintas-tenant yang lupa di-scope adalah kelas bug paling mudah lolos dari review manual karena tidak muncul di alur request normal.
+
 ---
 
 ## 6. Autentikasi & Otorisasi
@@ -273,7 +292,29 @@ class PegawaiAccessService {
 ```
 Setiap Policy (`NilaiPolicy`, `CatatanBkPolicy`, `PersetujuanPolicy`, dst.) memanggil service ini — **bukan** mengecek `auth()->user()->role` yang tidak ada lagi dalam model ini.
 
-`GET /api/v1/me` mengembalikan bentuk yang **identik dengan objek `Pegawai` + hasil seluruh fungsi akses** yang dibutuhkan frontend untuk merender dashboard komposit (Bab 6.1 `FRONTEND.md`) — supaya frontend tidak perlu memanggil banyak endpoint terpisah hanya untuk tahu status jabatan dirinya sendiri.
+### 6.1 Middleware Konteks Tenant
+
+Dipasang **sebelum** middleware otorisasi lainnya, di seluruh rute terautentikasi:
+
+```php
+class SetTenantContext {
+    public function handle($request, Closure $next) {
+        $pegawai = auth()->user(); // Pegawai yang login
+        if ($pegawai) {
+            app()->instance('currentTenant', (object) ['id_madrasah' => $pegawai->id_madrasah]);
+            // Untuk RLS PostgreSQL (Bab 4.6) — set variabel sesi di level koneksi DB:
+            DB::statement("SET LOCAL app.current_madrasah_id = ?", [$pegawai->id_madrasah]);
+            DB::statement("SET LOCAL app.current_pegawai_id = ?", [$pegawai->id_pegawai]);
+            DB::statement("SET LOCAL app.current_pegawai_is_kamad = ?", [
+                app(PegawaiAccessService::class)->isKepalaMadrasah($pegawai) ? 'true' : 'false'
+            ]);
+        }
+        return $next($request);
+    }
+}
+```
+
+`GET /api/v1/me` mengembalikan bentuk yang **identik dengan objek `Pegawai` + hasil seluruh fungsi akses** yang dibutuhkan frontend untuk merender dashboard komposit (Bab 6.1 `FRONTEND.md`) — supaya frontend tidak perlu memanggil banyak endpoint terpisah hanya untuk tahu status jabatan dirinya sendiri. **Sertakan juga `id_madrasah` dan `nama_madrasah`** di response ini — frontend akan memakainya untuk menampilkan konteks tenant aktif di header (mis. nama madrasah di pojok kiri atas), berguna terutama kalau suatu saat ada akun yang bisa mengelola lebih dari satu madrasah (di luar cakupan Tahap 2, tapi bentuk response yang sudah menyertakan `id_madrasah` sejak awal memudahkan perluasan nanti).
 
 ---
 
@@ -286,17 +327,16 @@ Dipetakan langsung dari service Tahap 1 (`FRONTEND.md` Bab 4-5) — setiap metho
 | Auth | — | `POST /login`, `POST /logout`, `GET /me` |
 | Siswa | `SiswaService` | `GET/POST /siswa`, `GET/PATCH /siswa/{id}` |
 | Keanggotaan | `KeanggotaanService`, kenaikan/pindah rombel | `POST /kenaikan-kelas/proses`, `POST /pindah-rombel`, `POST /pindah-rombel/{id}/approve`, `POST /pindah-rombel/{id}/reject` |
-| Mutasi | `MutasiService` | `POST /mutasi`, `POST /mutasi/{id}/approve`, `POST /mutasi/{id}/reject`, `POST /mutasi/upload-berkas` |
-| Persetujuan | `PersetujuanService` | `GET /persetujuan/pending`, `POST /persetujuan/batch-approve` |
+| Mutasi | `MutasiService` | `POST /mutasi`, `POST /mutasi/{id}/approve`, `POST /mutasi/{id}/reject` |
 | Jadwal | `JadwalService` | `GET/POST /jadwal` (validasi bentrok server-side wajib, jangan andalkan validasi client) |
 | Sesi & Presensi | `SesiTatapMukaService`, `AbsensiService` (read-only) | `GET /sesi?id_rombel=&tanggal=`, `POST /sesi/{id}/presensi`, `GET /presensi/rekap?id_rombel=&tanggal=` |
 | Izin Guru | `IzinGuruService` | `GET/POST /izin-guru` (Policy: hanya `isKepalaMadrasah`/`isAdminMadrasah`) |
-| Kedisiplinan | rekap kustom | `GET /kedisiplinan/rekap?bulan=YYYY-MM` (port logika `getRekapKedisiplinan` dari Tahap 1 persis, termasuk perbaikan rumus JTM & filter bulan yang sudah dikoreksi) |
+| Kedisiplinan | rekap kustom | `GET /kedisiplinan/rekap?bulan=YYYY-MM` (port logika `getRekapKedisiplinan` dari Tahap 1 persis, termasuk perbaikan rumus JTM & filter bulan yang sudah dikoreksi — **wajib** mengecualikan pegawai dengan `penugasan_jabatan` aktif "Kepala Madrasah" dari daftar yang dievaluasi ambang, sesuai SRS Bab 10 poin 15 revisi) |
+| JTM Terjadwal *(baru — beda dari Realisasi Kehadiran JTM di atas, lihat SRS Bab 10 poin 22)* | — | `GET /jadwal/jtm-terjadwal?semester=` — total jam mengajar per minggu per guru dari `jadwal_pelajaran`, dibandingkan standar 24-37.5 JTM/minggu. **Jangan digabung** dengan endpoint kedisiplinan di atas — dua metrik berbeda sumber dan tujuan |
 | Nilai | `NilaiService` | `GET /nilai/komponen?id_mapel=`, `GET /nilai?id_rombel=&semester=`, `POST /nilai` |
 | Ekstrakurikuler | `EkstrakurikulerService` | `GET/POST /ekstrakurikuler`, `GET/POST /ekstrakurikuler/{id}/anggota` |
 | BK | `BkService` | `GET /bk/siswa/{id}` (row-level security menangani filter kerahasiaan otomatis), `POST /bk` |
 | Persuratan | — (didesain agen, lihat 4.7) | `GET/POST /surat`, `POST /surat/{id}/tandatangani` |
-| Lembaga | `LembagaService` (baru) | `GET/PATCH /profil-madrasah`, `GET /template-surat` (Policy PATCH: hanya `isAdminMadrasah` / `isKepalaMadrasah`) |
 | Wawasan/AI | — | `GET /wawasan/siswa-berisiko`, `GET /wawasan/rekomendasi-jadwal` (data placeholder, lihat Bab 1) |
 | Wilayah | `WilayahService` | `GET /wilayah/provinsi`, `.../kabupaten?id_provinsi=`, dst. |
 | Penugasan Jabatan | — (baru, tidak ada di Tahap 1 karena mock) | `GET/POST /penugasan-jabatan`, `POST /penugasan-jabatan/{id}/akhiri` |
@@ -312,15 +352,11 @@ Daftar ini adalah kumpulan aturan yang **berkali-kali diperbaiki lewat audit** d
 3. **Alur persetujuan transaksional** — baris lama `anggota_rombel` **tidak** ditutup sampai baris baru benar-benar disetujui (SRS Bab 10 poin 9); pola yang sama berlaku untuk `riwayat_mutasi` (poin 10-11).
 4. **Deteksi kehadiran guru** — `is_guru_pengganti` dan `status_kehadiran_guru` **selalu dihitung server**, tidak pernah menerima input manual dari client meski request memaksa mengirim field itu (Form Request wajib strip/abaikan field ini kalau ada di payload).
 5. **Rekonsiliasi izin retroaktif** — jendela maksimal 1x24 jam (SRS Bab 10 poin 14), dan tetap merekonsiliasi meski `status_rekonsiliasi = "Terlambat"`.
-6. **Ambang kedisiplinan & realisasi JTM** — rumus rasio `(Tepat Waktu + Terlambat) / total sesi bulan tsb`, difilter ketat per bulan — **bukan** `total * 2` seperti kesalahan yang sempat terjadi di implementasi Tahap 1 sebelum dikoreksi.
+6. **Ambang kedisiplinan & realisasi JTM** — rumus rasio `(Tepat Waktu + Terlambat) / total sesi bulan tsb`, difilter ketat per bulan — **bukan** `total * 2` seperti kesalahan yang sempat terjadi di implementasi Tahap 1 sebelum dikoreksi. **Pengecualian baru (SRS Bab 10 poin 15, hasil selaras Permendikbud No. 6/2018 Pasal 15 — verifikasi ulang nomor pasal ke teks resmi sebelum dianggap final):** pegawai dengan `penugasan_jabatan.jenis_jabatan = "Kepala Madrasah"` aktif **dikecualikan** dari kalkulasi ambang flag & realisasi JTM standar pada rentang penugasannya — jangan sampai query rekap kedisiplinan menyertakan pegawai ini dalam daftar yang dievaluasi terhadap ambang, kecuali secara eksplisit diminta laporan "seluruh pegawai termasuk Kamad" untuk keperluan lain. Guru BK aktif hanya dihitung realisasi JTM-nya jika juga terdaftar di `jadwal_pelajaran` (bisa nol tanpa dianggap pelanggaran).
 7. **Validasi input nilai** — `id_pegawai_penilai` harus match `jadwal_pelajaran` untuk `id_rombel` + `id_mapel` + **`semester`** (bukan `tahun_ajaran.semester`, field itu sudah tidak ada — lihat catatan migrasi 4.3).
 8. **Kerahasiaan `catatan_bk`** — ditegakkan lewat PostgreSQL Row-Level Security (4.6), bukan hanya query filter di Eloquent.
 9. **Model jabatan aditif** — satu `pegawai` bisa punya banyak `penugasan_jabatan` aktif sekaligus; tidak ada logika di mana pun (Policy, Resource, Observer) yang mengasumsikan satu pegawai = satu jabatan.
 10. **Semester milik `jadwal_pelajaran`, bukan `tahun_ajaran`** — pastikan tidak ada satu pun query yang membaca `tahun_ajaran.semester` (kolom itu tidak ada di skema Tahap 2).
-11. **Sentralisasi Penomoran SKP Mutasi** — nomor SKP wajib digenerate dinamis melalui sequence generator `421/{urutan}/{kodeInstansi}/{tahun}` dengan snapshot `meta_penandatangan` permanen.
-12. **Interval Predikat KKM Dinamis (Anti-Bloat Rule)** — predikat huruf (A, B, C, D) **wajib dihitung dinamis** di `NilaiService::calculatePredikat($nilai, $kkm)` menggunakan formula baku Kemenag `Interval = (100 - KKM) / 3`. **Dilarang** membuat tabel fisik legacy (`e_kkmgrade`, `e_kkmtingkat`) yang kaku, agar skema siap Kurikulum Merdeka (KKTP) dan K13 tanpa modifikasi DDL.
-13. **Penguncian Nilai (*Grade Lock*) Berbasis Policy & State** — mekanisme pembekuan nilai akademik setelah disahkan Kamad dikendalikan via `NilaiPolicy` dan endpoint `POST /api/v1/nilai/lock-rombel` (bukan tabel fisik `e_kelaslock`). Jika status rombel semester terkunci, mutasi nilai ditolak dan pencatatan audit log dilakukan secara otomatis.
-14. **Portofolio Prestasi Terintegrasi Dokumen Legal** — rekam jejak prestasi, penghargaan, dan kejuaraan siswa diformalkan melalui modul `surat` (Surat Keterangan / Piagam Penghargaan) dengan nomor registrasi dinamis dan snapshot `meta_penandatangan` permanen, bukan sekadar catatan teks tanpa kekuatan hukum seperti pada tabel legacy `e_prestasi`.
 
 ---
 
@@ -329,46 +365,34 @@ Daftar ini adalah kumpulan aturan yang **berkali-kali diperbaiki lewat audit** d
 - **`ExportEmisVervalJob`** (queued) — menghasilkan file Excel/CSV sesuai template terbaru (SRS Bab 3 jalur utama), dicatat di `sync_log`.
 - **`HitungRekapKedisiplinanJob`** (scheduled, harian) — pre-kalkulasi rekap kedisiplinan/JTM ke tabel cache/materialized view kalau volume data besar, supaya endpoint Bab 7 tidak menghitung ulang dari nol tiap request.
 - **`NotifikasiKetidakhadiranJob`** (queued, dipicu saat `absensi_siswa.status = 'Alpa'` disimpan) — sediakan *event* `SiswaTidakHadir`, listener pengiriman nyata (WhatsApp/email) menyusul di luar cakupan Tahap 2 awal (Bab 1).
-- **`SinkronisasiVervalEmisJob`** (queued, dipicu oleh event `MutasiKeluarApprovedEvent` dan `MutasiMasukApprovedEvent`) — mencatat perubahan keluar/masuk siswa ke antrean rekonsiliasi Verval PD / EMIS 4.0 secara asynchronous.
-
-### 9.1 Catatan Teknis Integrasi Backend (Penyempurnaan Tahap 2)
-
-Berdasarkan audit arsitektur menyeluruh terhadap kesiapan produksi (*Enterprise Readiness*), 3 spesifikasi berikut wajib diterapkan pada backend Laravel:
-
-1. **Storage Persistence & Media Adapter (`POST /api/v1/mutasi/upload-berkas`)**:
-   - Backend menyediakan handler multipart `upload-berkas` yang menyimpan scan PDF/JPG surat rekomendasi sekolah asal/tujuan ke Object Storage (MinIO / AWS S3).
-   - Penamaan file menggunakan format hashing aman: `storage/mutasi/{tahun}/{uuid}.{ext}` dan path URL relatifnya disimpan pada kolom `riwayat_mutasi.berkas_pendukung`.
-2. **Batch / Bulk Approval Transaction (`POST /api/v1/persetujuan/batch-approve`)**:
-   - Menerima payload array ID: `{ "id_pindah_list": [...], "id_mutasi_list": [...] }`.
-   - Menggunakan `DB::transaction()` terisolasi penuh (`SERIALIZABLE` atau `READ COMMITTED` dengan pessimistic locking) agar puluhan perpindahan rombel di awal semester dapat diproses secara atomik (seluruhnya berhasil atau rollback total jika ada 1 kegagalan).
-3. **Event Lifecycle & Webhook Outbox EMIS 4.0**:
-   - Setiap kali `approveMutasi` atau `approveAndSignMutasiSkp` sukses, model mutasi menembakkan event `MutasiKeluarApprovedEvent` atau `MutasiMasukApprovedEvent`.
-   - Listener memasukkan record ke tabel outbox `sync_log` untuk memicu webhook/job sinkronisasi berkala ke server EMIS Kemenag 4.0 tanpa memblokir response time UI pimpinan.
 
 ---
 
 ## 10. Urutan Implementasi (wajib diikuti berurutan)
 
-1. **Fondasi:** setup Laravel + PostgreSQL + Sanctum, migrasi seluruh tabel referensi/master (4.1), `pegawai` + `penugasan_jabatan` (4.2), autentikasi dasar + `GET /me`.
-2. **Kesiswaan Inti:** `siswa`, `rombel`, `tingkat_pendidikan`, `anggota_rombel` (tanpa alur approval dulu — CRUD dasar), `jadwal_pelajaran` dengan validasi bentrok+semester.
-3. **Alur Persetujuan:** kenaikan kelas massal, pindah rombel (sesama & lintas tingkat + approval), mutasi masuk/keluar + approval — port transaksi atomik dari `persetujuan.mock.ts` Tahap 1 persis.
-4. **Kehadiran Guru & Siswa:** `sesi_tatap_muka`, `absensi_siswa` (kunci `id_sesi`), `izin_guru` + rekonsiliasi retroaktif.
-5. **Kedisiplinan & JTM:** endpoint rekap dengan rumus yang sudah dikoreksi (Bab 8 poin 6).
-6. **Nilai, Ekstrakurikuler, BK:** termasuk Row-Level Security untuk `catatan_bk` sebelum endpoint BK dianggap selesai — jangan tunda RLS ke "nanti".
-7. **Persuratan & Audit:** desain skema `surat` (agen, catat di Log Deviasi), Observer `audit_log` global.
-8. **Sinkronisasi & Jobs:** ekspor EMIS/Verval, job terjadwal kedisiplinan.
-9. **Integrasi ke Frontend:** ganti seluruh `*.mock.ts` di repo Tahap 1 menjadi `*.api.ts` yang memanggil endpoint sungguhan — **tidak boleh** ada perubahan pada komponen React manapun; kalau terpaksa ada, itu tandanya kontrak Tahap 1/2 tidak benar-benar cocok dan harus dicatat di Log Deviasi.
+1. **Fondasi Tenant (baru — wajib paling pertama, sebelum tabel lain apa pun):** migrasi `madrasah`, trait `BelongsToTenant` (Bab 5.1), middleware `SetTenantContext` (Bab 6.1). Seed **minimal 2 madrasah berbeda** sejak awal (bukan 1) — supaya isolasi tenant bisa diuji sejak modul pertama dibangun, bukan ditambal belakangan setelah ketahuan bocor.
+2. **Fondasi:** setup Laravel + PostgreSQL + Sanctum, migrasi seluruh tabel referensi/master (4.1), `pegawai` + `penugasan_jabatan` (4.2), autentikasi dasar + `GET /me` (menyertakan `id_madrasah`).
+3. **Kesiswaan Inti:** `siswa`, `rombel`, `tingkat_pendidikan`, `anggota_rombel` (tanpa alur approval dulu — CRUD dasar), `jadwal_pelajaran` dengan validasi bentrok+semester+silang-tenant (Bab 10 poin 24 SRS).
+4. **Alur Persetujuan:** kenaikan kelas massal, pindah rombel (sesama & lintas tingkat + approval), mutasi masuk/keluar + approval — port transaksi atomik dari `persetujuan.mock.ts` Tahap 1 persis.
+5. **Kehadiran Guru & Siswa:** `sesi_tatap_muka`, `absensi_siswa` (kunci `id_sesi`), `izin_guru` + rekonsiliasi retroaktif.
+6. **Kedisiplinan & JTM:** endpoint rekap dengan rumus yang sudah dikoreksi (Bab 8 poin 6), **plus** endpoint "JTM Terjadwal" terpisah (Bab 7, tabel endpoint) — jangan digabung dengan rekap kedisiplinan.
+7. **Nilai, Ekstrakurikuler, BK:** termasuk Row-Level Security dua-kondisi (tenant + kerahasiaan) untuk `catatan_bk` sebelum endpoint BK dianggap selesai — jangan tunda RLS ke "nanti".
+8. **Persuratan & Audit:** `surat`/`profil_madrasah`/`template_surat` sesuai skema resmi SRS Bab 9O (per-tenant, bukan lagi singleton), Observer `audit_log` global.
+9. **Sinkronisasi & Jobs:** ekspor EMIS/Verval (per-tenant, lihat Bab 1 catatan), job terjadwal kedisiplinan (dengan tenant context eksplisit, Bab 5.1).
+10. **Integrasi ke Frontend:** ganti seluruh `*.mock.ts` di repo Tahap 1 menjadi `*.api.ts` yang memanggil endpoint sungguhan — **tidak boleh** ada perubahan pada komponen React manapun; kalau terpaksa ada, itu tandanya kontrak Tahap 1/2 tidak benar-benar cocok dan harus dicatat di Log Deviasi. Frontend Tahap 1 dibangun untuk skenario satu madrasah — saat login sungguhan aktif, `id_madrasah` otomatis mengikuti pegawai yang login, tidak perlu UI baru untuk memilih tenant.
 
 ---
 
 ## 11. Definition of Done — per Modul
 
-- [ ] Migrasi berjalan bersih (`php artisan migrate:fresh --seed`) tanpa error, seed mencakup skenario pembuktian yang sama seperti Tahap 1 (pegawai rangkap jabatan, sesi dengan 4 status kehadiran, dst. — lihat `FRONTEND.md` untuk daftar lengkap skenario yang harus tetap bisa didemokan).
+- [ ] Migrasi berjalan bersih (`php artisan migrate:fresh --seed`) tanpa error, seed mencakup skenario pembuktian yang sama seperti Tahap 1 (pegawai rangkap jabatan, sesi dengan 4 status kehadiran, dst. — lihat `FRONTEND.md` untuk daftar lengkap skenario yang harus tetap bisa didemokan) **DAN minimal 2 madrasah berbeda dengan data yang tumpang tindih secara sengaja** (mis. dua siswa dengan `nisn` mirip di dua madrasah berbeda) untuk menguji isolasi.
 - [ ] Setiap endpoint punya automated test (Pest) untuk *at least* satu kasus valid dan satu kasus yang seharusnya ditolak (validasi bisnis Bab 8).
+- [ ] **Uji isolasi tenant wajib untuk setiap endpoint `GET`/`POST`/`PATCH`**: login sebagai pegawai Madrasah A, coba akses/ubah data `id_record` milik Madrasah B (lewat ID langsung di URL, bukan lewat listing) — harus mengembalikan 404 (bukan 403, supaya tidak membocorkan keberadaan data tenant lain), tidak pernah 200.
 - [ ] Response JSON tiap endpoint dicocokkan manual terhadap tipe TypeScript terkait di `FRONTEND.md` Bab 4 — field hilang/berlebih dianggap bug, bukan detail kecil.
-- [ ] RLS PostgreSQL untuk `catatan_bk` diuji dengan test yang benar-benar connect sebagai role berbeda (bukan cuma dicek lewat query builder Eloquent yang bisa saja melewati RLS kalau connection pooling salah setup).
+- [ ] RLS PostgreSQL untuk `catatan_bk` diuji dengan test yang benar-benar connect sebagai role berbeda **dan** tenant berbeda (bukan cuma dicek lewat query builder Eloquent yang bisa saja melewati RLS kalau connection pooling salah setup).
+- [ ] Job/command terjadwal (`ExportEmisVervalJob`, `HitungRekapKedisiplinanJob`) diuji secara khusus untuk memastikan tenant context terisi benar meski berjalan di luar siklus HTTP (Bab 5.1).
 - [ ] Tidak ada satu pun query yang membaca `tahun_ajaran.semester`.
-- [ ] Log Deviasi (Bab 12) terisi untuk seluruh keputusan yang tidak diatur eksplisit dokumen ini (terutama skema `surat` di 4.7 yang memang sengaja diserahkan ke agen).
+- [ ] Log Deviasi (Bab 12) terisi untuk seluruh keputusan yang tidak diatur eksplisit dokumen ini (terutama skema `surat` di 4.7 yang memang sengaja diserahkan ke agen, dan keputusan `sync_log` per-tenant vs lintas-tenant).
 
 ---
 
@@ -376,12 +400,10 @@ Berdasarkan audit arsitektur menyeluruh terhadap kesiapan produksi (*Enterprise 
 
 | Tanggal | Modul | Deviasi/Asumsi | Alasan |
 |---|---|---|---|
-| 2026-08-05 | Persuratan | Desain skema `Surat` dengan Snapshot `meta_penandatangan` (kolom JSON/Text terpisah) alih-alih merelasikan `id_pegawai` saat dokumen dicetak. Serta pendaftaran endpoint API dan tipe data `ProfilMadrasah` & `TemplateSurat` untuk sumber data form persuratan otomatis. | Mematuhi "Aturan Kekekalan Arsip" di mana dokumen legal tidak boleh berubah (termasuk nama/NIP Kepsek) meskipun penjabatnya berganti di masa depan. |
-| 2026-08-06 | DDL / Database | Penambahan tabel `profil_madrasah` dan `template_surat` di Bab 4.7 yang diturunkan dari kebutuhan `LembagaService` FE. | SRS Induk belum mendefinisikan tabel pendukung Kop Surat dan Template; kedua tabel ini wajib ada di PostgreSQL agar modul Persuratan Tahap 2 berfungsi penuh. |
-| 2026-08-09 | Asesmen & Nilai | Direncanakan (Tahap 2): Standarisasi logika predikat KKM dihitung dinamis di `NilaiService` (formula `Interval = (100 - KKM) / 3`), penguncian nilai via `NilaiPolicy` + state, dan sertifikat prestasi dialirkan ke modul `surat` tanpa penambahan tabel fisik kaku (FE Tahap 1 berfokus pada penilaian komponen murni berbasis jadwal & semester). | Mencegah *Database Bloat*, menjamin keabsahan hukum piagam prestasi, dan membuat arsitektur fleksibel terhadap Kurikulum 2013 maupun Kurikulum Merdeka (KKTP). |
-| 2026-08-09 | UX Enterprise / Akademik Suite | Penerapan arsitektur Context Inheritance (mewariskan rombel, mapel, semester, dan guru secara otomatis tanpa pemilihan ulang dari Jadwal ke Presensi Sesi dan Nilai), Interactive Activity-Based Gradebook Matrix (Moodle/ManageBac style), serta Export Engine standar RDM Kemenag & Leger Cetak. | Menghilangkan friksi pemilihan ulang form bagi guru, memperlakukan nilai sebagai data operasional harian (raw scores), dan menyediakan interoperabilitas ekspor ke RDM/EMIS/Dapodik tanpa pembengkakan skema fisik. |
-| 2026-08-09 | Akademik / Penjadwalan Enterprise | Implementasi Full CRUD Jadwal (`update` method), Master Bell Schedule Multi-Jenjang (MI 35m, MTs 40m, MA 45m, Ramadhan 30m), Audit Pemenuhan 24 JTM Sertifikasi Simpatika, Direct Card Click Drawer, dan Filter Cepat Jadwal Saya. | Memenuhi standar regulasi Kemenag untuk Tunjangan Profesi Guru (24–37.5 JTM), standarisasi format 24 jam Indonesia, dan memfasilitasi kebutuhan multi-jenjang madrasah secara dinamis tanpa merusak skema fisik. |
-| 2026-08-10 | Arsitektur / Form as Pure Consumer | Prinsip SSoT Penjadwalan: Form Tambah/Edit Jadwal tidak memiliki aturan/logika waktu independen, melainkan murni sebagai Consumer dari Master Jam (`bell-schedule.ts`). Validasi durasi jenjang rombel (MI/MTs/MA), filter khusus hari Jumat, dan pemisahan Sesi Pagi vs Siang diselesaikan terpusat oleh Master Jam. | Menghilangkan duplikasi logika waktu, mencegah divergensi data, dan memastikan seluruh form dan matriks selalu tunduk 100% pada Master Bell Schedule Engine. |
+| 2026-08-10 | Multi-Tenant & Arsitektur | Multi-tenant dibangun di Tahap 2 (`id_madrasah` pada 24 entitas). Sesi auth (Sanctum) otomatis membawa `id_madrasah` tanpa penukaran tenant manual di FE Tahap 1. | Menjamin isolasi data antar-tenant secara penuh di level DB/Eloquent (Bab 6) tanpa mengubah komponen UI FE Tahap 1. |
+| 2026-08-12 | Tata Kelola / Ambang Kedisiplinan JTM | Pengecualian Kepala Madrasah (`jenis_jabatan = 'Kepala Madrasah'`) dan Guru BK non-pengajar dari query/job rekap kedisiplinan JTM (`HitungRekapKedisiplinanJob` & Bab 8.6). | Menyelaraskan dengan SRS Bab 10 Poin 15 & Permendikbud 6/2018 Pasal 15 agar beban manajerial Kamad tidak ditagih sebagai presensi KBM. |
+| 2026-08-12 | API Endpoints & Disambiguasi JTM | Pemisahan endpoint API antara `/api/v1/kepegawaian/kedisiplinan/rekap` ("Realisasi Kehadiran JTM") dan `/api/v1/akademik/jadwal/audit-jtm` ("JTM Terjadwal (Sertifikasi)"). | Menyesuaikan dengan SRS v2 Bab 10 Poin 22 untuk membedakan rasio kehadiran KBM vs beban mengajar TPG. |
+| 2026-08-12 | Arsitektur & Otorisasi / Contract Lock | Final Audit Traceability (task_09 & task_10) menyatakan 100% konsistensi antara SRS v2, CONTRACT_MATRIX, FRONTEND.md, backend.md, dan codebase `src/`. Status Kontrak resmi di-LOCK (`CONTRACT LOCKED — READY FOR TAHAP 2`). | Memastikan zero contract drift, zero build error, dan 100% kesiapan arsitektural sebelum Backend Laravel Tahap 2 dimulai. |
 
 ---
 

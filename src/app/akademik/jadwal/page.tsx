@@ -475,7 +475,7 @@ export default function JadwalPage() {
         {/* Dynamic Card: Teacher Personal JTM or Rombel Count */}
         {isPengajar && !canAuditJtm && myJtmSummary ? (
           <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Beban KBM Anda</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Beban KBM (JTM Terjadwal)</p>
             <div className="mt-1 flex items-baseline gap-2">
               <span className="text-xl font-bold text-primary">{myJtmSummary.totalJtm} JTM</span>
               <span
@@ -750,7 +750,7 @@ export default function JadwalPage() {
                 }`}
               >
                 <CheckCircle size={14} />
-                <span>Audit 24 JTM Guru</span>
+                <span>Audit JTM Terjadwal (Sertifikasi)</span>
               </button>
             )}
           </div>
@@ -1071,7 +1071,7 @@ export default function JadwalPage() {
                       <th className="p-3 font-bold uppercase tracking-wider w-10 text-center">No</th>
                       <th className="p-3 font-bold uppercase tracking-wider min-w-[200px]">Nama Guru & Gelar</th>
                       <th className="p-3 font-bold uppercase tracking-wider w-28 text-center">Total Slot KBM</th>
-                      <th className="p-3 font-bold uppercase tracking-wider w-32 text-center">Total Beban (JTM)</th>
+                      <th className="p-3 font-bold uppercase tracking-wider w-44 text-center">JTM Terjadwal (Sertifikasi)</th>
                       <th className="p-3 font-bold uppercase tracking-wider w-40 text-center">Status Pemenuhan TPG</th>
                       <th className="p-3 font-bold uppercase tracking-wider min-w-[250px]">Rincian Rombel & Mapel</th>
                     </tr>

@@ -21,6 +21,9 @@ import type {
   PenugasanJabatan,
   ProfilMadrasah,
   TemplateSurat,
+  CatatanBk,
+  KomponenNilai,
+  NilaiSiswa,
 } from "@/types";
 
 export const STORAGE_KEY = "sim-madrasah-demo-store-v5";
@@ -55,6 +58,9 @@ export type DemoStore = {
   penugasanJabatan: PenugasanJabatan[];
   profilMadrasah: ProfilMadrasah;
   templateSurat: TemplateSurat[];
+  catatanBk: CatatanBk[];
+  komponenNilai: KomponenNilai[];
+  nilaiSiswa: NilaiSiswa[];
 };
 
 export function createId(prefix: string): string {
@@ -378,8 +384,12 @@ function buildSeed(): DemoStore {
 
   const ekstrakurikuler: Ekstrakurikuler[] = [
     { id_ekstra: "ek_1", nama_ekstra: "Pramuka", id_pembina: "pg_demo_terpadu", id_tahun: "ta_2627" },
+    { id_ekstra: "ek_2", nama_ekstra: "Paskibra", id_pembina: "pg_wali_a", id_tahun: "ta_2627" },
   ];
-  const keanggotaanEkstra: KeanggotaanEkstra[] = [];
+  const keanggotaanEkstra: KeanggotaanEkstra[] = [
+    { id_keanggotaan: "ak_1", id_ekstra: "ek_1", id_siswa: "sw_01", tanggal_mulai: "2026-07-20", tanggal_selesai: null, status: "Aktif" },
+    { id_keanggotaan: "ak_2", id_ekstra: "ek_1", id_siswa: "sw_02", tanggal_mulai: "2026-07-20", tanggal_selesai: null, status: "Aktif" },
+  ];
   const absensiEkstra: AbsensiEkstra[] = [];
   const penugasanJabatan: PenugasanJabatan[] = [
     { id_penugasan: "pj_1", id_pegawai: "pg_kepala", jenis_jabatan: "Kepala Madrasah", id_tahun: "ta_2627", tanggal_mulai: "2024-07-01", tanggal_selesai: null, status: "Aktif" },
@@ -467,6 +477,62 @@ function buildSeed(): DemoStore {
     },
   ];
 
+  const catatanBk: CatatanBk[] = [
+    {
+      id_catatan: "cbk_1",
+      id_siswa: "sw_01",
+      id_pegawai_bk: "pg_bk",
+      tanggal: "2026-07-22",
+      kategori: "Perilaku",
+      catatan: "Siswa sering datang terlambat",
+      tingkat_kerahasiaan: "Umum",
+    },
+    {
+      id_catatan: "cbk_2",
+      id_siswa: "sw_01",
+      id_pegawai_bk: "pg_bk",
+      tanggal: "2026-07-23",
+      kategori: "Pribadi",
+      catatan: "Siswa mengalami masalah keluarga berat, perlu pendampingan intensif",
+      tingkat_kerahasiaan: "Rahasia",
+    },
+  ];
+
+  const komponenNilai: KomponenNilai[] = [
+    { id_komponen: "k_1", id_mapel: "mp_pai", nama_komponen: "Tugas Harian", bobot: 30 },
+    { id_komponen: "k_2", id_mapel: "mp_pai", nama_komponen: "UTS (Tengah Semester)", bobot: 30 },
+    { id_komponen: "k_3", id_mapel: "mp_pai", nama_komponen: "UAS (Akhir Semester)", bobot: 40 },
+    { id_komponen: "k_4", id_mapel: "mp_mtk", nama_komponen: "Tugas 1: Aljabar", bobot: 20 },
+    { id_komponen: "k_5", id_mapel: "mp_mtk", nama_komponen: "Ulangan Harian 1", bobot: 20 },
+    { id_komponen: "k_6", id_mapel: "mp_mtk", nama_komponen: "UTS (Tengah Semester)", bobot: 30 },
+    { id_komponen: "k_6b", id_mapel: "mp_mtk", nama_komponen: "UAS (Akhir Semester)", bobot: 30 },
+    { id_komponen: "k_7", id_mapel: "mp_bind", nama_komponen: "Tugas Portofolio", bobot: 40 },
+    { id_komponen: "k_8", id_mapel: "mp_bind", nama_komponen: "Ulangan Harian", bobot: 60 },
+    { id_komponen: "k_9", id_mapel: "mp_bing", nama_komponen: "UTS", bobot: 40 },
+    { id_komponen: "k_9b", id_mapel: "mp_bing", nama_komponen: "UAS", bobot: 60 },
+    { id_komponen: "k_10", id_mapel: "mp_ipa", nama_komponen: "Praktik Laboratorium", bobot: 40 },
+    { id_komponen: "k_10b", id_mapel: "mp_ipa", nama_komponen: "UAS", bobot: 60 },
+    { id_komponen: "k_11", id_mapel: "mp_qur", nama_komponen: "Setoran Hafalan", bobot: 50 },
+    { id_komponen: "k_11b", id_mapel: "mp_qur", nama_komponen: "UAS", bobot: 50 },
+    { id_komponen: "k_12", id_mapel: "mp_pjok", nama_komponen: "Praktik Atletik", bobot: 60 },
+    { id_komponen: "k_13", id_mapel: "mp_pjok", nama_komponen: "Teori Kebugaran", bobot: 40 },
+  ];
+
+  const nowIsoString = new Date().toISOString();
+  const nilaiSiswa: NilaiSiswa[] = [
+    { id_nilai: "nl_1", id_siswa: "sw_01", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 88, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_2", id_siswa: "sw_01", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 85, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_3", id_siswa: "sw_01", id_komponen: "k_6", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 90, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_4", id_siswa: "sw_02", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 78, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_5", id_siswa: "sw_02", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 72, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_6", id_siswa: "sw_02", id_komponen: "k_6", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 80, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_7", id_siswa: "sw_03", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 95, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_8", id_siswa: "sw_03", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 92, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_9", id_siswa: "sw_04", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 68, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_10", id_siswa: "sw_04", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 70, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+    { id_nilai: "nl_11", id_siswa: "sw_05", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 84, id_pegawai_penilai: "pg_demo_terpadu", tanggal_input: nowIsoString },
+  ];
+
   return {
     tahunAjaran,
     tingkat,
@@ -492,6 +558,9 @@ function buildSeed(): DemoStore {
     penugasanJabatan,
     profilMadrasah,
     templateSurat,
+    catatanBk,
+    komponenNilai,
+    nilaiSiswa,
   };
 }
 
@@ -533,6 +602,36 @@ export function loadStore(): DemoStore {
           ...seed.templateSurat.filter((s) => !parsedTemplateIds.has(s.id_template)),
         ];
 
+        const parsedEkstraIds = new Set((parsed.ekstrakurikuler || []).map((e: Ekstrakurikuler) => e.id_ekstra));
+        const mergedEkstra = [
+          ...(parsed.ekstrakurikuler || []),
+          ...seed.ekstrakurikuler.filter((s) => !parsedEkstraIds.has(s.id_ekstra)),
+        ];
+
+        const parsedKeanggotaanIds = new Set((parsed.keanggotaanEkstra || []).map((k: KeanggotaanEkstra) => k.id_keanggotaan));
+        const mergedKeanggotaan = [
+          ...(parsed.keanggotaanEkstra || []),
+          ...seed.keanggotaanEkstra.filter((s) => !parsedKeanggotaanIds.has(s.id_keanggotaan)),
+        ];
+
+        const parsedCatatanBkIds = new Set((parsed.catatanBk || []).map((c: CatatanBk) => c.id_catatan));
+        const mergedCatatanBk = [
+          ...(parsed.catatanBk || []),
+          ...seed.catatanBk.filter((s) => !parsedCatatanBkIds.has(s.id_catatan)),
+        ];
+
+        const parsedKomponenIds = new Set((parsed.komponenNilai || []).map((k: KomponenNilai) => k.id_komponen));
+        const mergedKomponen = [
+          ...(parsed.komponenNilai || []),
+          ...seed.komponenNilai.filter((s) => !parsedKomponenIds.has(s.id_komponen)),
+        ];
+
+        const parsedNilaiIds = new Set((parsed.nilaiSiswa || []).map((n: NilaiSiswa) => n.id_nilai));
+        const mergedNilai = [
+          ...(parsed.nilaiSiswa || []),
+          ...seed.nilaiSiswa.filter((s) => !parsedNilaiIds.has(s.id_nilai)),
+        ];
+
         const store: DemoStore = {
           ...seed,
           ...parsed,
@@ -540,6 +639,11 @@ export function loadStore(): DemoStore {
           jadwal: mergedJadwal,
           mapel: mergedMapel,
           templateSurat: mergedTemplate,
+          ekstrakurikuler: mergedEkstra,
+          keanggotaanEkstra: mergedKeanggotaan,
+          catatanBk: mergedCatatanBk,
+          komponenNilai: mergedKomponen,
+          nilaiSiswa: mergedNilai,
         };
         memoryStore = store;
         return store;

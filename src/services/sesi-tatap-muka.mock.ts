@@ -1,6 +1,7 @@
 import type { SesiTatapMuka, AbsensiSiswa, StatusKehadiranGuru } from "@/types";
 import type { SesiTatapMukaService, RekapKehadiranDetail } from "./sesi-tatap-muka.service";
 import { mutateStore, loadStore, createId, maybeThrowSimulatedError, simulateLatency, nowIso } from "./store";
+import { isKepalaMadrasah, isGuruBk } from "@/lib/access";
 
 const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -190,7 +191,22 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
     await simulateLatency();
     const store = loadStore();
     
-    const gurus = store.pegawai.filter(p => p.tugas_utama === "Guru");
+    const gurus = store.pegawai.filter(p => {
+      if (p.tugas_utama !== "Guru") return false;
+      
+      // 1. Pengecualian Kepala Madrasah (SRS Bab 10 poin 15 / Permendikbud 6/2018 Pasal 15)
+      if (isKepalaMadrasah(p.id_pegawai, store.penugasanJabatan)) {
+        return false;
+      }
+      
+      // 2. Guru BK: hanya dievaluasi jika memiliki jadwal mengajar mapel
+      if (isGuruBk(p.id_pegawai, store.penugasanJabatan)) {
+        const hasJadwal = store.jadwal.some(j => j.id_pegawai === p.id_pegawai);
+        if (!hasJadwal) return false;
+      }
+
+      return true;
+    });
     
     return gurus.map(guru => {
       const jadwalGuru = store.jadwal.filter(j => j.id_pegawai === guru.id_pegawai);

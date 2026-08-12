@@ -164,7 +164,7 @@ export default function KedisiplinanPage() {
             },
             {
               key: "jtm",
-              header: "Realisasi JTM",
+              header: "Realisasi Kehadiran JTM",
               render: (row) => <span className="tabular">{row.realisasiJtmPersen}%</span>,
               className: "text-center"
             },
@@ -188,6 +188,9 @@ export default function KedisiplinanPage() {
             }
           ]}
         />
+        <p className="mt-3 text-xs text-muted">
+          * Catatan: Kepala Madrasah dan Guru BK non-pengajar dikecualikan dari evaluasi rekap kedisiplinan &amp; realisasi kehadiran JTM standar sesuai Permendikbud 6/2018 Pasal 15.
+        </p>
       </SurfaceCard>
     </AppShell>
   );

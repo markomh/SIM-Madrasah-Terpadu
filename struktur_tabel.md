@@ -1,527 +1,129 @@
-Viewed backend.md:366-376
-Viewed backend.md:1-200
-Viewed backend.md:201-383
-
-Berikut adalah **Daftar Lengkap Seluruh Tabel Database dan Pemetaan File (Migration & Model)** yang telah didefinisikan dan tersedia secara resmi pada dokumen [`doc/backend.md`](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md) (turunan dari `SIM_Madrasah_Terpadu_SRS_v2.md` Bab 9 dan `FRONTEND.md`).
-
----
-
-### 🗄️ Ringkasan Domain Database (Total 29 Tabel)
-
-```mermaid
-graph TD
-    subgraph D1 ["1. Master & Wilayah (7 Tabel)"]
-        master_provinsi
-        master_kabupaten
-        master_kecamatan
-        master_desa
-        tingkat_pendidikan
-        mata_pelajaran
-        tahun_ajaran
-    end
-
-    subgraph D2 ["2. Kepegawaian & Jabatan (2 Tabel)"]
-        pegawai
-        penugasan_jabatan
-    end
-
-    subgraph D3 ["3. Kesiswaan & Akademik Inti (6 Tabel)"]
-        siswa
-        rombel
-        jadwal_pelajaran
-        anggota_rombel
-        pemetaan_kenaikan
-        riwayat_mutasi
-    end
-
-    subgraph D4 ["4. Kehadiran Guru & Siswa (3 Tabel)"]
-        sesi_tatap_muka
-        absensi_siswa
-        izin_guru
-    end
-
-    subgraph D5 ["5. Asesmen Nilai (2 Tabel)"]
-        komponen_nilai
-        nilai_siswa
-    end
-
-    subgraph D6 ["6. Ekstrakurikuler & BK (4 Tabel)"]
-        ekstrakurikuler
-        keanggotaan_ekstra
-        absensi_ekstra
-        catatan_bk
-    end
-
-    subgraph D7 ["7. Lembaga, Persuratan & Audit (5 Tabel)"]
-        profil_madrasah
-        template_surat
-        surat
-        audit_log
-        sync_log
-    end
-```
-
----
-
-### 📋 Daftar Rinci Tabel per Domain, File Migration, dan Model
-
-#### 1. Domain Master Data & Wilayah (Bab 4.1 `doc/backend.md`)
-| No | Nama Tabel | File Migration Laravel (Target) | File Model Eloquent (Target) | Keterangan & Primary Key |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | `master_provinsi` | `database/migrations/01_create_master_provinsi_table.php` | `app/Models/MasterProvinsi.php` | `id_provinsi` (UUID PK), Data resmi Kemendagri |
-| 2 | `master_kabupaten` | `database/migrations/02_create_master_kabupaten_table.php` | `app/Models/MasterKabupaten.php` | `id_kabupaten` (UUID PK), FK `id_provinsi` |
-| 3 | `master_kecamatan` | `database/migrations/03_create_master_kecamatan_table.php` | `app/Models/MasterKecamatan.php` | `id_kecamatan` (UUID PK), FK `id_kabupaten` |
-| 4 | `master_desa` | `database/migrations/04_create_master_desa_table.php` | `app/Models/MasterDesa.php` | `id_desa` (UUID PK), FK `id_kecamatan` |
-| 5 | `tingkat_pendidikan`| `database/migrations/05_create_tingkat_pendidikan_table.php` | `app/Models/TingkatPendidikan.php` | `id_tingkat` (UUID PK), `urutan` (1–12) |
-| 6 | `mata_pelajaran` | `database/migrations/06_create_mata_pelajaran_table.php` | `app/Models/MataPelajaran.php` | `id_mapel` (UUID PK), `kode_mapel`, `kelompok` |
-| 7 | `tahun_ajaran` | `database/migrations/07_create_tahun_ajaran_table.php` | `app/Models/TahunAjaran.php` | `id_tahun` (UUID PK), **tanpa kolom semester** |
-
----
-
-#### 2. Domain Kepegawaian & Multi-Jabatan (Bab 4.2 `doc/backend.md`)
-| No | Nama Tabel | File Migration Laravel (Target) | File Model Eloquent (Target) | Aturan Kunci & Constraint |
-| :--- | :--- | :--- | :--- | :--- |
-| 8 | `pegawai` | `database/migrations/08_create_pegawai_table.php` | `app/Models/Pegawai.php` | `id_pegawai` (UUID PK), `nik` (Unique, Terenkripsi), `tugas_utama: Guru/Tendik` |
-| 9 | `penugasan_jabatan`| `database/migrations/09_create_penugasan_jabatan_table.php`| `app/Models/PenugasanJabatan.php` | `id_penugasan` (UUID PK), Model jabatan aditif (bisa rangkap), Index: `[id_pegawai, jenis_jabatan, status]` |
-
----
-
-#### 3. Domain Kesiswaan & Rombel (Bab 4.3 `doc/backend.md`)
-| No | Nama Tabel | File Migration Laravel (Target) | File Model Eloquent (Target) | Aturan Kunci & Constraint |
-| :--- | :--- | :--- | :--- | :--- |
-| 10 | `siswa` | `database/migrations/10_create_siswa_table.php` | `app/Models/Siswa.php` | `id_siswa` (UUID PK), `nisn`, `nik` (Terenkripsi), `skor_risiko_ai` |
-| 11 | `rombel` | `database/migrations/11_create_rombel_table.php` | `app/Models/Rombel.php` | `id_rombel` (UUID PK), FK `id_wali_kelas`, FK `id_tingkat`, FK `id_tahun` |
-| 12 | `jadwal_pelajaran` | `database/migrations/12_create_jadwal_pelajaran_table.php` | `app/Models/JadwalPelajaran.php` | `id_jadwal` (UUID PK), Kolom `semester: Ganjil/Genap`, Unique: `[id_pegawai, hari, jam_mulai, semester]` |
-| 13 | `anggota_rombel` | `database/migrations/13_create_anggota_rombel_table.php` | `app/Models/AnggotaRombel.php` | `id_anggota` (UUID PK), `tanggal_mulai`, `tanggal_selesai`, `status_persetujuan`, `diajukan_oleh`, `disetujui_oleh` |
-| 14 | `pemetaan_kenaikan`| `database/migrations/14_create_pemetaan_kenaikan_table.php`| `app/Models/PemetaanKenaikan.php` | `id_pemetaan` (UUID PK), Wizard Kenaikan Kelas Massal |
-| 15 | `riwayat_mutasi` | `database/migrations/15_create_riwayat_mutasi_table.php` | `app/Models/RiwayatMutasi.php` | `id_mutasi` (UUID PK), `jenis_mutasi: Masuk/Keluar`, `id_surat_skp`, `berkas_pendukung` |
-
----
-
-#### 4. Domain Presensi & Kehadiran Terpadu (Bab 4.4 `doc/backend.md`)
-| No | Nama Tabel | File Migration Laravel (Target) | File Model Eloquent (Target) | Aturan Kunci & Constraint |
-| :--- | :--- | :--- | :--- | :--- |
-| 16 | `sesi_tatap_muka` | `database/migrations/16_create_sesi_tatap_muka_table.php` | `app/Models/SesiTatapMuka.php` | `id_sesi` (UUID PK), `is_guru_pengganti`, `status_kehadiran_guru`, Unique: `[id_jadwal, tanggal]` |
-| 17 | `absensi_siswa` | `database/migrations/17_create_absensi_siswa_table.php` | `app/Models/AbsensiSiswa.php` | `id_absensi` (UUID PK), **Kunci ganda Unique: `[id_siswa, id_sesi]`** |
-| 18 | `izin_guru` | `database/migrations/18_create_izin_guru_table.php` | `app/Models/IzinGuru.php` | `id_izin` (UUID PK), `status_rekonsiliasi: Tepat Waktu/Terlambat` (>1x24 jam) |
-
----
-
-#### 5. Domain Asesmen Nilai Akademik (Bab 4.5 `doc/backend.md`)
-| No | Nama Tabel | File Migration Laravel (Target) | File Model Eloquent (Target) | Aturan Kunci & Constraint |
-| :--- | :--- | :--- | :--- | :--- |
-| 19 | `komponen_nilai` | `database/migrations/19_create_komponen_nilai_table.php` | `app/Models/KomponenNilai.php` | `id_komponen` (UUID PK), `bobot`, `kategori: Formatif/Sumatif/PAS` |
-| 20 | `nilai_siswa` | `database/migrations/20_create_nilai_siswa_table.php` | `app/Models/NilaiSiswa.php` | `id_nilai` (UUID PK), Validasi ketat `id_pegawai_penilai` via `jadwal_pelajaran` |
-
----
-
-#### 6. Domain Ekstrakurikuler & Bimbingan Konseling (Bab 4.6 `doc/backend.md`)
-| No | Nama Tabel | File Migration Laravel (Target) | File Model Eloquent (Target) | Aturan Kunci & Constraint |
-| :--- | :--- | :--- | :--- | :--- |
-| 21 | `ekstrakurikuler` | `database/migrations/21_create_ekstrakurikuler_table.php` | `app/Models/Ekstrakurikuler.php` | `id_ekstra` (UUID PK), FK `id_pembina` ke `pegawai` |
-| 22 | `keanggotaan_ekstra`| `database/migrations/22_create_keanggotaan_ekstra_table.php`| `app/Models/KeanggotaanEkstra.php` | `id_anggota_ekstra` (UUID PK), FK `id_ekstra`, FK `id_siswa` |
-| 23 | `absensi_ekstra` | `database/migrations/23_create_absensi_ekstra_table.php` | `app/Models/AbsensiEkstra.php` | `id_absensi_ekstra` (UUID PK), Presensi per sesi latihan |
-| 24 | `catatan_bk` | `database/migrations/24_create_catatan_bk_table.php` | `app/Models/CatatanBk.php` | `id_bk` (UUID PK), **Wajib PostgreSQL Row-Level Security (RLS)** untuk kerahasiaan kasus |
-
----
-
-#### 7. Domain Lembaga, Persuratan, Audit & Sinkronisasi (Bab 4.7 & Bab 9.1 `doc/backend.md`)
-| No | Nama Tabel | File Migration Laravel (Target) | File Model Eloquent (Target) | Aturan Kunci & Constraint |
-| :--- | :--- | :--- | :--- | :--- |
-| 25 | `profil_madrasah` | `database/migrations/25_create_profil_madrasah_table.php` | `app/Models/ProfilMadrasah.php` | `id_profil` (UUID PK), Singleton Pattern (Max 1 baris), Kop & data institusi |
-| 26 | `template_surat` | `database/migrations/26_create_template_surat_table.php` | `app/Models/TemplateSurat.php` | `id_template` (UUID PK), `kode_template` (Unique), `variabel_placeholder` (jsonb) |
-| 27 | `surat` | `database/migrations/27_create_surat_table.php` | `app/Models/Surat.php` | `id_surat` (UUID PK), `nomor_surat` (Unique), `meta_penandatangan` (jsonb snapshot e-Sign) |
-| 28 | `audit_log` | `database/migrations/28_create_audit_log_table.php` | `app/Models/AuditLog.php` | `id_log` (UUID PK), Immutable ledger, `data_sebelum` & `data_sesudah` (jsonb) |
-| 29 | `sync_log` | `database/migrations/29_create_sync_log_table.php` | `app/Models/SyncLog.php` | `id_sync` (UUID PK), Antrean sinkronisasi & outbox ekspor Verval PD / EMIS 4.0 |
-
----
-
-### 🛡️ Catatan Kritis Arsitektur Database (Rules of Truth)
-1. **Semester Milik `jadwal_pelajaran`**: Kolom `semester` mutlak berada di `jadwal_pelajaran`, **bukan di `tahun_ajaran`**.
-2. **Kunci Absensi Siswa**: `absensi_siswa` terikat pada `(id_siswa, id_sesi)`, menjamin multi-sesi dalam satu hari dapat tercatat secara independen.
-3. **Kekekalan Arsip Hukum**: Dokumen pada tabel `surat` mengunci data pejabat penandatangan dalam kolom snapshot `meta_penandatangan` (jsonb), sehingga penggantian Kepala Madrasah tidak merusak identitas surat lama yang telah terbit.
-
-
----
-
-Searched for "BAB 9"
-Searched for "Kamus Data"
-Searched for "9A"
-Searched for "# "
+Viewed struktur_tabel.md:1-68
 Listed directory doc
-Searched for "tabel"
-Viewed SIM_Madrasah_Terpadu_SRS_v2.md:1-100
-Viewed SIM_Madrasah_Terpadu_SRS_v2.md:400-550
-Viewed SIM_Madrasah_Terpadu_SRS_v2.md:550-650
-Viewed SIM_Madrasah_Terpadu_SRS_v2.md:650-720
-Searched for "master_provinsi"
+Searched for "(Schema|Tabel|table|migration|Kamus Data|Database|ENTITAS)"
+Viewed SIM_Madrasah_Terpadu_SRS_v2.md:205-450
+Viewed backend.md:1-389
+Searched for "CatatanBk"
+Viewed FRONTEND.md:200-450
+Searched for "madrasah"
+Searched for "JadwalPelajaran"
 
-Berikut adalah **Daftar Lengkap 29 Tabel Database beserta Seluruh Field/Kolomnya** yang didefinisikan secara resmi pada [`doc/backend.md`](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md) dan [`doc/SIM_Madrasah_Terpadu_SRS_v2.md`](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md) Bab 9:
+# Laporan Verifikasi & Audit Forensik Skema Basis Data
 
----
-
-### 1. DOMAIN MASTER & WILAYAH
-
-**nama tabel: `master_provinsi`**
-- `id_provinsi` *(UUID PK)*
-- `kode_provinsi` *(string)*
-- `nama_provinsi` *(string)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `master_kabupaten`**
-- `id_kabupaten` *(UUID PK)*
-- `id_provinsi` *(UUID FK ke `master_provinsi`)*
-- `kode_kabupaten` *(string)*
-- `nama_kabupaten` *(string)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `master_kecamatan`**
-- `id_kecamatan` *(UUID PK)*
-- `id_kabupaten` *(UUID FK ke `master_kabupaten`)*
-- `kode_kecamatan` *(string)*
-- `nama_kecamatan` *(string)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `master_desa`**
-- `id_desa` *(UUID PK)*
-- `id_kecamatan` *(UUID FK ke `master_kecamatan`)*
-- `kode_desa` *(string)*
-- `nama_desa` *(string)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `tingkat_pendidikan`**
-- `id_tingkat` *(UUID PK)*
-- `nama_tingkat` *(string, contoh: "Kelas 10")*
-- `urutan` *(integer, contoh: 1–12 untuk validasi kenaikan berjenjang)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `mata_pelajaran`**
-- `id_mapel` *(UUID PK)*
-- `kode_mapel` *(string, contoh: "BID-01")*
-- `nama_mapel` *(string)*
-- `kelompok` *(string / enum, contoh: "Kelompok A (Wajib)", "Kelompok B", "Muatan Lokal")*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `tahun_ajaran`**
-- `id_tahun` *(UUID PK)*
-- `nama_tahun` *(string, contoh: "2026/2027", satu tahun penuh)*
-- `status_aktif` *(boolean)*
-- *(Catatan: Tidak memiliki kolom `semester` karena semester milik `jadwal_pelajaran`)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+**Peran:** Senior Database System Analyst  
+**Objek Verifikasi:** [struktur_tabel.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md)  
+**Dokumen Acuan Utama (Single Source of Truth / SSoT):**
+1. [doc/SIM_Madrasah_Terpadu_SRS_v2.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md) — *Business Requirements & Data Dictionary (SRS Induk v2.0)*
+2. [doc/FRONTEND.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/FRONTEND.md) — *Frontend Interface Contract (Tahap 1)*
+3. [doc/backend.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md) — *Backend & Database Migration Contract (Tahap 2)*
 
 ---
 
-### 2. DOMAIN KEPEGAWAIAN & JABATAN
+## I. Ringkasan Eksekutif & Hasil Verifikasi
 
-**nama tabel: `pegawai`**
-- `id_pegawai` *(UUID PK)*
-- `nik` *(string 16, unique, terenkripsi di level aplikasi)*
-- `nip` *(string, nullable)*
-- `npk` *(string, nullable)*
-- `nama_lengkap_gelar` *(string)*
-- `status_kepegawaian` *(string, contoh: "PNS", "PPPK", "GTT", "PTY")*
-- `tugas_utama` *(enum: 'Guru', 'Tendik')*
-- `alamat_detail` *(string, nullable)*
-- `id_desa` *(UUID FK ke `master_desa`, nullable)*
-- `mapel_sertifikasi` *(jsonb, array id_mapel, nullable)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+Setelah dilakukan audit komparatif mendalam (*cross-verification*) terhadap dokumen [struktur_tabel.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md) terhadap 3 dokumen acuan utama, disimpulkan bahwa **dokumen `struktur_tabel.md` saat ini memiliki 3 HALUSINASI ARSITEKTUR KRITIS (BLOCKER/HIGH)** dan **1 DEVIASI KONTRAK UNILATERAL (MEDIUM)**, meskipun juga berhasil mengidentifikasi **3 TEMUAN BUG/GAP VALID (VERIFIED)**.
 
-**nama tabel: `penugasan_jabatan`**
-- `id_penugasan` *(UUID PK)*
-- `id_pegawai` *(UUID FK ke `pegawai`)*
-- `jenis_jabatan` *(enum: 'Kepala Madrasah', 'Admin Madrasah', 'Operator Kesiswaan', 'Guru BK')*
-- `id_tahun` *(UUID FK ke `tahun_ajaran`)*
-- `tanggal_mulai` *(date)*
-- `tanggal_selesai` *(date, nullable - null jika masih aktif)*
-- `status` *(enum: 'Aktif', 'Berakhir')*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+ Dokumen [struktur_tabel.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md) **TIDAK BOLEH** dijadikan acuan *Single Source of Truth* (SoT) sebelum dilakukan revisi total terhadap tabel halusinasi dan `id_madrasah` yang disuntikkan secara tidak sah.
 
 ---
 
-### 3. DOMAIN KESISWAAN & AKADEMIK INTI
+## II. Matriks Temuan Audit (Audit Findings Matrix)
 
-**nama tabel: `siswa`**
-- `id_siswa` *(UUID PK)*
-- `nik` *(string 16, unique, terenkripsi di level aplikasi)*
-- `nisn` *(string 10, unique)*
-- `nama_lengkap` *(string)*
-- `tempat_lahir` *(string)*
-- `tanggal_lahir` *(date)*
-- `jenis_kelamin` *(enum: 'L', 'P')*
-- `agama` *(string, default: "Islam")*
-- `nama_ibu_kandung` *(string)*
-- `alamat_detail` *(string, nullable)*
-- `id_desa` *(UUID FK ke `master_desa`, nullable)*
-- `status_siswa` *(enum: 'Aktif', 'Lulus', 'Mutasi Keluar', 'Drop Out')*
-- `jalur_masuk` *(string: 'PPDB Reguler', 'Mutasi Masuk', dll.)*
-- `skor_risiko_ai` *(float, nullable, hanya diisi sistem AI)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+Berikut adalah daftar penyimpangan dan validasi kebenaran dokumen [struktur_tabel.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md):
 
-**nama tabel: `rombel`**
-- `id_rombel` *(UUID PK)*
-- `nama_rombel` *(string, contoh: "10-A")*
-- `id_tingkat` *(UUID FK ke `tingkat_pendidikan`)*
-- `id_tahun` *(UUID FK ke `tahun_ajaran`)*
-- `id_wali_kelas` *(UUID FK ke `pegawai`, nullable)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `jadwal_pelajaran`**
-- `id_jadwal` *(UUID PK)*
-- `id_rombel` *(UUID FK ke `rombel`)*
-- `id_pegawai` *(UUID FK ke `pegawai` - Guru Pengajar)*
-- `id_mapel` *(UUID FK ke `mata_pelajaran`)*
-- `semester` *(enum: 'Ganjil', 'Genap')*
-- `hari` *(string, contoh: "Senin", "Selasa")*
-- `jam_mulai` *(time)*
-- `jam_selesai` *(time)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `anggota_rombel`**
-- `id_anggota` *(UUID PK)*
-- `id_siswa` *(UUID FK ke `siswa`)*
-- `id_rombel` *(UUID FK ke `rombel`)*
-- `tanggal_mulai` *(date)*
-- `tanggal_selesai` *(date, nullable - null jika masih aktif)*
-- `status_keanggotaan` *(enum: 'Aktif', 'Pindah Rombel', 'Naik Kelas', 'Tinggal Kelas', 'Lulus', 'Keluar')*
-- `jenis_perpindahan` *(enum: 'Awal Masuk', 'Pindah Rombel', 'Kenaikan Tingkat', 'Mutasi Masuk')*
-- `status_persetujuan` *(enum: 'Tidak Perlu', 'Menunggu Persetujuan', 'Disetujui', 'Ditolak')*
-- `diajukan_oleh` *(UUID FK ke `pegawai` - Operator Kesiswaan, nullable)*
-- `disetujui_oleh` *(UUID FK ke `pegawai` - Kepala Madrasah, nullable)*
-- `tanggal_persetujuan` *(timestamp, nullable)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `pemetaan_kenaikan`**
-- `id_pemetaan` *(UUID PK)*
-- `id_rombel_asal` *(UUID FK ke `rombel`)*
-- `id_rombel_tujuan` *(UUID FK ke `rombel`)*
-- `id_tahun` *(UUID FK ke `tahun_ajaran` - Tahun Ajaran Tujuan)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `riwayat_mutasi`**
-- `id_mutasi` *(UUID PK)*
-- `id_siswa` *(UUID FK ke `siswa`)*
-- `id_tahun` *(UUID FK ke `tahun_ajaran`)*
-- `jenis_mutasi` *(enum: 'Masuk', 'Keluar')*
-- `sekolah_asal` *(string, nullable - diisi jika mutasi masuk)*
-- `sekolah_tujuan` *(string, nullable - diisi jika mutasi keluar)*
-- `tanggal_mutasi` *(date)*
-- `alasan` *(text)*
-- `no_surat_mutasi` *(string)*
-- `id_surat_skp` *(UUID FK ke `surat`, nullable)*
-- `status_persetujuan` *(enum: 'Menunggu Persetujuan', 'Disetujui', 'Ditolak')*
-- `diajukan_oleh` *(UUID FK ke `pegawai` - Operator)*
-- `disetujui_oleh` *(UUID FK ke `pegawai` - Kepala Madrasah, nullable)*
-- `berkas_pendukung` *(jsonb, array BerkasPendukung, nullable)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+| No | Berkas Target | Baris / Bagian | Masalah / Temuan Audit | Source of Truth Realita | Prioritas | Status Verifikasi |
+|---|---|---|---|---|---|---|
+| 1 | `struktur_tabel.md` | [Line 13](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L13) | **Halusinasi Entitas `madrasah` (Akar Multi-Tenant).** Dokumen mengklaim ada tabel `madrasah` di `backend.md` dan SRS. | Tidak ada tabel `madrasah` di SRS Bab 9 maupun `backend.md` Bab 4. Entitas yang sah adalah **`profil_madrasah`** (singleton). Multi-tenant dialokasikan untuk **Fase 5 Roadmap** ([SRS v2 Bab 14](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md#L790)). | **BLOCKER** | ❌ **SALAH / HALUSINASI** |
+| 2 | `struktur_tabel.md` | [Line 13-22](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L13-L22) | **Injeksi Kolom `id_madrasah` (FK) secara Massal.** Penyuntikan FK `id_madrasah` pada tabel `tahun_ajaran`, `pegawai`, `siswa`, `catatan_bk`, `ekstrakurikuler`, dan `sync_log`. | Seluruh entitas tersebut di SRS Bab 9 dan `backend.md` Bab 4 **TIDAK memiliki** kolom `id_madrasah` karena lingkup Tahap 1 & 2 adalah *single-tenant instance*. | **HIGH** | ❌ **SALAH / UNCONTRACTED** |
+| 3 | `struktur_tabel.md` | [Line 20](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L20) | **Klaim Palsu RLS `catatan_bk` Membutuhkan `id_madrasah`.** Mengklaim SRS & backend mewajibkan `id_madrasah` untuk SQL Policy RLS. | Skema RLS di [backend.md Bab 4.6](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L162-L169) murni berbasis `tingkat_kerahasiaan`, `id_pegawai_bk`, dan status `app.current_pegawai_is_kamad`. Tidak ada FK `id_madrasah`. | **HIGH** | ❌ **SALAH / MISINFORMASI** |
+| 4 | `struktur_tabel.md` | [Line 19, 42-46](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L19) | **Penghapusan Unilateral Kolom `tanggal` pada `absensi_siswa`.** Merekomendasikan menghapus `tanggal` demi normalisasi 3NF. | Tiga dokumen acuan ([SRS v2 Bab 9D](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md#L271), [FRONTEND.md Bab 4](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/FRONTEND.md#L306), [backend.md Bab 4.4](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L132)) **semuanya mencantumkan** kolom `tanggal`. | **MEDIUM** | ⚠️ **CONTRACT GAP** |
+| 5 | `struktur_tabel.md` | [Line 15, 17, 30-34](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L15) | **Audit Lebar Kolom `nik` (`VARCHAR(255)`).** Memperingatkan crash database jika `nik` dibatasi `VARCHAR(16)` di backend akibat enkripsi AES-256 Base64. | [backend.md Bab 4.2](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L77) memang menuliskan `$table->string('nik', 16)`. Analisis enkripsi Base64 >44 char sangat tepat. | **HIGH** | ✅ **VERIFIED CORRECT** |
+| 6 | `struktur_tabel.md` | [Line 21, 36-40](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L21) | **Koreksi Komentar Anotasi `ekstrakurikuler.ts`.** Menghapus batasan kaku komentar frontend `tugas_utama = "Pembina Ekstrakurikuler"`. | Sesuai [SRS v2 Bab 9.B.1 & 9.N](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md#L343). `tugas_utama` murni "Guru"/"Tendik", jabatan pembina melekat relasional via `ekstrakurikuler.id_pembina`. | **MEDIUM** | ✅ **VERIFIED CORRECT** |
+| 7 | `struktur_tabel.md` | [Line 14, 18](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L14) | **Penempatan Kolom `semester`.** Mengunci `semester` pada `jadwal_pelajaran` dan membuangnya dari `tahun_ajaran`. | Konsisten 100% dengan [SRS v2 Bab 9.C & 10 poin 16](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md#L268) serta [backend.md Bab 4.3](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L110). | **HIGH** | ✅ **VERIFIED CORRECT** |
 
 ---
 
-### 4. DOMAIN KEHADIRAN GURU & SISWA
+## III. Analisis Detail Deviasi & Kesalahan Kontrak
 
-**nama tabel: `sesi_tatap_muka`**
-- `id_sesi` *(UUID PK)*
-- `id_jadwal` *(UUID FK ke `jadwal_pelajaran`)*
-- `tanggal` *(date)*
-- `id_pegawai_pelaksana` *(UUID FK ke `pegawai`, nullable - guru aktual penginput presensi)*
-- `waktu_input` *(timestamp, nullable)*
-- `is_guru_pengganti` *(boolean, default: false - dihitung sistem)*
-- `id_izin_terkait` *(UUID FK ke `izin_guru`, nullable)*
-- `jurnal_materi` *(text, nullable)*
-- `status_kehadiran_guru` *(enum: 'Tepat Waktu', 'Terlambat', 'Digantikan Terjadwal', 'Digantikan Mendadak', 'Tidak Terlaksana', nullable)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `absensi_siswa`**
-- `id_absensi` *(UUID PK)*
-- `tanggal` *(date)*
-- `id_siswa` *(UUID FK ke `siswa`)*
-- `id_rombel` *(UUID FK ke `rombel`)*
-- `id_sesi` *(UUID FK ke `sesi_tatap_muka`)*
-- `status` *(enum: 'Hadir', 'Sakit', 'Izin', 'Alpa')*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `izin_guru`**
-- `id_izin` *(UUID PK)*
-- `id_pegawai` *(UUID FK ke `pegawai`)*
-- `tanggal_izin` *(date)*
-- `jenis_izin` *(enum: 'Direncanakan H-1', 'Mendesak-Darurat')*
-- `alasan` *(text)*
-- `id_pegawai_pengganti` *(UUID FK ke `pegawai`, nullable)*
-- `saluran_pelaporan` *(enum: 'Langsung/Tatap Muka', 'WA Pribadi Kepala Madrasah', 'WA Group')*
-- `dilaporkan_pada` *(timestamp)*
-- `status_rekonsiliasi` *(enum: 'Tepat Waktu', 'Terlambat')*
-- `dicatat_oleh` *(UUID FK ke `pegawai` - Admin/Kepala Madrasah)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+### 1. Halusinasi Tabel `madrasah` & Pemaksaan Multi-Tenant premature (Blocker)
+* **Klaim `struktur_tabel.md` ([Baris 13](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L13)):**  
+  Menyebutkan tabel `madrasah` sebagai "Akar Multi-Tenant" dengan schema `id_madrasah (PK), nama_madrasah, npsn, alamat, id_desa, status_aktif` dan mengklaim skema ini ada di `backend.md`.
+* **Fakta SSoT Kontrak:**  
+  1. Di `backend.md` Bab 4.7 ([Line 177-193](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L177-L193)), tabel yang didefinisikan adalah **`profil_madrasah`** dengan pola *Singleton Pattern* (`id_profil`, `nsm`, `npsn`, `nama_madrasah`, `jenjang`, `status_akreditasi`, `alamat`, `id_kepala_madrasah`, `nama_kepala_madrasah`, `nip_kepala_madrasah`, `logo_url`).
+  2. Di [SRS v2 Bab 14](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md#L790) & [backend.md Bab 1](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L27), arsitektur Multi-tenant dialokasikan secara eksplisit untuk **Fase 5 (Skala Lanjut)**, sedangkan Tahap 1 & Tahap 2 berfokus pada *single instance application per madrasah*.
+* **Dampak:** Membuat migrasi Laravel gagal atau membuat relasi foreign key fiktif ke tabel yang tidak pernah ada di file migrasi backend.
 
 ---
 
-### 5. DOMAIN ASESMEN NILAI
-
-**nama tabel: `komponen_nilai`**
-- `id_komponen` *(UUID PK)*
-- `id_mapel` *(UUID FK ke `mata_pelajaran`)*
-- `nama_komponen` *(string, contoh: "Tugas", "UH", "UTS", "UAS")*
-- `bobot` *(float)*
-- `kategori` *(enum: 'Formatif', 'Sumatif', 'PAS', nullable)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `nilai_siswa`**
-- `id_nilai` *(UUID PK)*
-- `id_siswa` *(UUID FK ke `siswa`)*
-- `id_komponen` *(UUID FK ke `komponen_nilai`)*
-- `id_rombel` *(UUID FK ke `rombel`)*
-- `id_tahun` *(UUID FK ke `tahun_ajaran`)*
-- `semester` *(enum: 'Ganjil', 'Genap')*
-- `nilai` *(float)*
-- `id_pegawai_penilai` *(UUID FK ke `pegawai`)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+### 2. Injeksi Fiktif Foreign Key `id_madrasah` pada 7 Entitas (High Priority)
+* **Klaim `struktur_tabel.md` ([Baris 13–22](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L13-L22)):**  
+  Menyebutkan kolom `id_madrasah (FK)` pada tabel `tahun_ajaran`, `pegawai`, `siswa`, `catatan_bk`, `ekstrakurikuler`, dan `sync_log`.
+* **Fakta SSoT Kontrak:**  
+  1. [SRS v2 Bab 9.A s.d 9.O](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md#L209) **tidak mencantumkan** `id_madrasah` pada entitas-entitas tersebut.
+  2. Berkas [backend.md Bab 4.2–4.7](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L74-L224) (definisi skema Laravel Blueprint) **tidak pernah membuat** `$table->foreignUuid('id_madrasah')` di tabel `pegawai`, `siswa`, `tahun_ajaran`, `catatan_bk`, `ekstrakurikuler`, maupun `sync_log`.
+* **Dampak:** Merusak tipe data TypeScript di frontend dan membuat validasi Form Request backend menjadi gagal.
 
 ---
 
-### 6. DOMAIN EKSTRAKURIKULER & BIMBINGAN KONSELING
-
-**nama tabel: `ekstrakurikuler`**
-- `id_ekstra` *(UUID PK)*
-- `nama_ekstra` *(string, contoh: "Pramuka", "PMR", "Robotik")*
-- `id_pembina` *(UUID FK ke `pegawai`)*
-- `id_tahun` *(UUID FK ke `tahun_ajaran`)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `keanggotaan_ekstra`**
-- `id_keanggotaan` *(UUID PK)*
-- `id_siswa` *(UUID FK ke `siswa`)*
-- `id_ekstra` *(UUID FK ke `ekstrakurikuler`)*
-- `tanggal_mulai` *(date)*
-- `tanggal_selesai` *(date, nullable - null jika masih aktif)*
-- `status` *(enum: 'Aktif', 'Keluar')*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `absensi_ekstra`**
-- `id_absensi_ekstra` *(UUID PK)*
-- `id_keanggotaan` *(UUID FK ke `keanggotaan_ekstra`)*
-- `tanggal` *(date)*
-- `status` *(enum: 'Hadir', 'Tidak Hadir')*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `catatan_bk`** *(Diisolasi dengan PostgreSQL Row-Level Security)*
-- `id_bk` / `id_catatan` *(UUID PK)*
-- `id_siswa` *(UUID FK ke `siswa`)*
-- `id_pegawai_bk` *(UUID FK ke `pegawai`)*
-- `tanggal` *(date)*
-- `kategori` *(enum: 'Akademik', 'Perilaku', 'Pribadi', 'Sosial')*
-- `catatan` *(text)*
-- `tingkat_kerahasiaan` *(enum: 'Umum', 'Rahasia')*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+### 3. Misinformasi RLS `catatan_bk` (High Priority)
+* **Klaim `struktur_tabel.md` ([Baris 20](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L20)):**  
+  Mengklaim SRS dan Backend mewajibkan `id_madrasah` di tabel `catatan_bk` demi menyederhanakan SQL Policy RLS satu-policy.
+* **Fakta SSoT Kontrak:**  
+  Kebijakan PostgreSQL Row-Level Security (RLS) untuk kerahasiaan BK telah dikunci secara spesifik pada [backend.md Bab 4.6 (Line 162–169)](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L162-L169):
+  ```sql
+  ALTER TABLE catatan_bk ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY catatan_bk_rahasia ON catatan_bk
+    USING (
+      tingkat_kerahasiaan = 'Umum'
+      OR id_pegawai_bk = current_setting('app.current_pegawai_id')::uuid
+      OR current_setting('app.current_pegawai_is_kamad')::boolean = true
+    );
+  ```
+  RLS ini murni memeriksa hak akses individual Guru BK dan Kepala Madrasah atas catatan rahasia, **sama sekali tidak membutuhkan maupun mengecek `id_madrasah`**.
 
 ---
 
-### 7. DOMAIN LEMBAGA, PERSURATAN, AUDIT & SINKRONISASI
-
-**nama tabel: `profil_madrasah`** *(Singleton Guard: Maksimal 1 Baris)*
-- `id_profil` *(UUID PK)*
-- `nsm` *(string 12, unique)*
-- `npsn` *(string 8, unique)*
-- `nama_madrasah` *(string)*
-- `jenjang` *(enum: 'MI', 'MTs', 'MA', 'MAK')*
-- `status_akreditasi` *(enum: 'A', 'B', 'C', 'Belum Akreditasi')*
-- `alamat` *(text)*
-- `telepon` *(string, nullable)*
-- `email` *(string, nullable)*
-- `website` *(string, nullable)*
-- `id_kepala_madrasah` *(UUID FK ke `pegawai`, nullable)*
-- `nama_kepala_madrasah` *(string, nullable)*
-- `nip_kepala_madrasah` *(string, nullable)*
-- `logo_url` *(string, nullable)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `template_surat`**
-- `id_template` *(UUID PK)*
-- `kode_template` *(string, unique, contoh: "SK-AKTIF", "ST-TUGAS")*
-- `nama_template` *(string)*
-- `kategori` *(string, contoh: "Keterangan", "Tugas", "Keputusan", "Rekomendasi")*
-- `header_html` *(text, nullable)*
-- `body_template` *(text)*
-- `variabel_placeholder` *(jsonb, array placeholder, nullable)*
-- `aktif` *(boolean, default: true)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `surat`**
-- `id_surat` *(UUID PK)*
-- `nomor_surat` *(string, unique)*
-- `id_template` *(UUID FK ke `template_surat`, nullable)*
-- `jenis_surat` *(string)*
-- `perihal` *(string)*
-- `tanggal_surat` *(date)*
-- `tujuan_surat` *(string)*
-- `id_siswa_terkait` *(UUID FK ke `siswa`, nullable)*
-- `id_pegawai_terkait` *(UUID FK ke `pegawai`, nullable)*
-- `id_penandatangan` *(UUID FK ke `pegawai`, nullable)*
-- `isi_surat` *(text)*
-- `status` *(enum: 'Draf', 'Menunggu TTD', 'Diterbitkan', 'Ditolak', 'Diarsipkan')*
-- `meta_penandatangan` *(jsonb, nullable, snapshot: { nama, nip, jabatan, tanggal_ttd, hash_esign })*
-- `dibuat_oleh` *(UUID FK ke `pegawai`)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `audit_log`**
-- `id_log` *(UUID PK)*
-- `id_user` *(UUID FK ke `pegawai`)*
-- `nama_tabel` *(string)*
-- `id_record` *(string)*
-- `aksi` *(enum/string: 'Create', 'Update', 'Delete', 'Approve', 'Reject')*
-- `data_sebelum` *(jsonb, nullable)*
-- `data_sesudah` *(jsonb, nullable)*
-- `timestamp` *(datetime / timestamp)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
-
-**nama tabel: `sync_log`**
-- `id_sync` *(UUID PK)*
-- `modul` *(string, contoh: "VervalPD", "EMIS_GTK", "Mutasi_Keluar")*
-- `status` *(enum: 'Sukses', 'Gagal', 'Pending')*
-- `jumlah_record` *(integer)*
-- `pesan_log` *(text, nullable)*
-- `timestamp` *(datetime / timestamp)*
-- `created_at` *(timestamp)*
-- `updated_at` *(timestamp)*
+### 4. Pelanggaran Prinsip Minimal Change & Contract Gap `absensi_siswa.tanggal` (Medium Priority)
+* **Klaim `struktur_tabel.md` ([Baris 19 & 42–46](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md#L19)):**  
+  Menginstruksikan penghapusan kolom `tanggal` dari tabel `absensi_siswa` dengan alasan normalisasi database 3NF.
+* **Fakta SSoT Kontrak:**  
+  1. [SRS v2 Bab 9.D](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/SIM_Madrasah_Terpadu_SRS_v2.md#L271): `absensi_siswa: id_absensi (PK), tanggal, id_siswa (FK), id_rombel (FK), id_sesi (FK), status`.
+  2. [FRONTEND.md Bab 4](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/FRONTEND.md#L306): `AbsensiSiswa { id_absensi, tanggal, id_siswa, id_rombel, id_sesi, status }`.
+  3. [backend.md Bab 4.4](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L132): `$table->date('tanggal');`.
+* **Analisis System Analyst:** Meskipun secara teori 3NF kolom `tanggal` dapat diperoleh via `JOIN sesi_tatap_muka`, **seluruh kontrak 3 dokumen sepakat mencantumkan `tanggal`**. Menghapusnya secara sepihak dari skema frontend/backend tanpa merevisi ketiga dokumen utama melanggar aturan acuan *Minimal Change Principle* dan merusak kontrak interface `AbsensiSiswa`.
 
 ---
 
-### 🛡️ Panduan Arsitektural & Batasan AI Agen (Anti-Drift Guard)
+## IV. Matriks Koreksi Single Source of Truth (SSoT Alignment)
 
-Bagi seluruh agen AI dan pengembang backend yang mengerjakan repositori ini:
+Berikut adalah matriks acuan yang **telah dibersihkan dari halusinasi multi-tenant fiktif** dan telah disinkronkan 100% dengan ketiga dokumen kontrak:
 
-1. **Prinsip Efisiensi Skema & Integritas Data (Anti-Bloat Guard):**
-   - **Perhitungan Predikat Nilai Dinamis:** Rentang predikat huruf (A, B, C, D) dihitung dinamis di `NilaiService` menggunakan rumus baku Kemenag: $\text{Interval} = (100 - \text{KKM}) / 3$ tanpa memerlukan tabel fisik tambahan.
-   - **Penguncian Nilai (*Grade Lock*):** Penguncian nilai akademik dikendalikan melalui `NilaiPolicy` dan endpoint `POST /api/v1/nilai/lock-rombel` berdasarkan siklus otorisasi Kepala Madrasah.
-   - **Legalitas Prestasi & Penghargaan:** Seluruh rekam jejak prestasi, piagam, dan penghargaan siswa diterbitkan dan disimpan secara terpusat dan berkekuatan hukum pada modul `surat` (lengkap dengan snapshot `meta_penandatangan`).
-   - **Pemberian Tugas Bersifat Aditif:** Wali kelas adalah FK langsung pada `rombel.id_wali_kelas`, dan hak akses struktural dikelola secara aditif pada `penugasan_jabatan`.
+| Nama Entitas / Tabel | Spesifikasi Valid di SRS Induk (v2.0) | Spesifikasi Valid di FRONTEND.md | Spesifikasi Valid di backend.md | Keputusan Arsitektur Final (SSoT) |
+| :--- | :--- | :--- | :--- | :--- |
+| **`profil_madrasah`** *(Menggantikan `madrasah`)* | Singleton (PK: `id_profil`, `nama_madrasah`, `kode_instansi`, `alamat`, `id_kepala_madrasah`, `logo_url`). | `ProfilMadrasah` (singleton context). | `id_profil (PK)`, `nsm`, `npsn`, `nama_madrasah`, `jenjang`, `status_akreditasi`, `alamat`, `telepon`, `email`, `website`, `id_kepala_madrasah (FK)`, `nama_kepala_madrasah`, `nip_kepala_madrasah`, `logo_url`. | **Ikuti `backend.md` Bab 4.7.** Singleton table. Tidak ada tabel `madrasah` di Tahap 1 & 2. |
+| **`tahun_ajaran`** | `id_tahun (PK)`, `nama_tahun`, `status_aktif`. **TIDAK ada kolom semester**. | `id_tahun`, `nama_tahun`, `status_aktif`. | `id_tahun (PK)`, `nama_tahun`, `status_aktif`. | **Ikuti `SRS v2` & `backend.md` Bab 4.1.** Satu baris = 1 tahun ajaran penuh (2 semester). |
+| **`pegawai`** | `id_pegawai (PK)`, `nik` (16 digit, terenkripsi), `nip`, `npk`, `nama_lengkap_gelar`, `status_kepegawaian`, `tugas_utama` ("Guru"\|"Tendik"), `alamat_detail`, `id_desa (FK)`, `mapel_sertifikasi`. | `id_pegawai`, `nik`, `nip`, `npk`, `nama_lengkap_gelar`, `status_kepegawaian`, `tugas_utama`, `alamat_detail`, `id_desa`, `mapel_sertifikasi: string[]`. | `id_pegawai (PK)`, `nik (string)`, `nip`, `npk`, `nama_lengkap_gelar`, `status_kepegawaian`, `tugas_utama (enum)`, `alamat_detail`, `id_desa (FK)`, `mapel_sertifikasi (jsonb)`. | ⚠️ **REVISI LEBAR NIK.** <br>Ubah `$table->string('nik', 16)` di `backend.md` menjadi **`$table->string('nik', 255)->unique()`** untuk menampung ciphertext AES-256 Base64. |
+| **`penugasan_jabatan`** | `id_penugasan (PK)`, `id_pegawai (FK)`, `jenis_jabatan` (enum: Kepala Madrasah, Admin Madrasah, Operator Kesiswaan, Guru BK), `id_tahun (FK)`, `tanggal_mulai`, `tanggal_selesai`, `status`. | `id_penugasan`, `id_pegawai`, `jenis_jabatan`, `id_tahun`, `tanggal_mulai`, `tanggal_selesai`, `status`. | `id_penugasan (PK)`, `id_pegawai (FK)`, `jenis_jabatan (enum)`, `id_tahun (FK)`, `tanggal_mulai`, `tanggal_selesai`, `status`. Index `[id_pegawai, jenis_jabatan, status]`. | **Ikuti `backend.md` Bab 4.2.** Mengakomodasi rangkap jabatan aditif. |
+| **`siswa`** | `id_siswa (PK)`, `nik` (terenkripsi), `nisn`, `nama_lengkap`, `tempat_lahir`, `tanggal_lahir`, `jenis_kelamin`, `agama`, `nama_ibu_kandung`, `status_siswa`, `alamat_detail`, `id_desa (FK)`, `skor_risiko_ai`, `jalur_masuk`. | `id_siswa`, `nik`, `nisn`, `nama_lengkap`, `tempat_lahir`, `tanggal_lahir`, `jenis_kelamin`, `agama`, `nama_ibu_kandung`, `status_siswa`, `jalur_masuk`, `alamat_detail`, `id_desa`, `skor_risiko_ai`. | `id_siswa (PK)`, `nik`, `nisn`, `nama_lengkap`, `tempat_lahir`, `tanggal_lahir`, `jenis_kelamin`, `agama`, `nama_ibu_kandung`, `status_siswa`, `alamat_detail`, `id_desa (FK)`, `skor_risiko_ai`, `jalur_masuk`. | ⚠️ **REVISI LEBAR NIK.** <br>Ubah kolom `nik` pada migration `siswa` ke **`VARCHAR(255)`**. |
+| **`jadwal_pelajaran`** | `id_jadwal (PK)`, `id_rombel (FK)`, `id_pegawai (FK)`, `id_mapel (FK)`, `semester` (Ganjil/Genap), `hari`, `jam_mulai`, `jam_selesai`. Unique: `[id_pegawai, hari, jam_mulai, semester]`. | `id_jadwal`, `id_rombel`, `id_pegawai`, `id_mapel`, `semester`, `hari`, `jam_mulai`, `jam_selesai`. | `id_jadwal (PK)`, `id_rombel (FK)`, `id_pegawai (FK)`, `id_mapel (FK)`, `semester (enum)`, `hari`, `jam_mulai (time)`, `jam_selesai (time)`. | **Ikuti `SRS v2` & `backend.md` Bab 4.3.** `semester` terkunci di sini. |
+| **`absensi_siswa`** | `id_absensi (PK)`, `tanggal`, `id_siswa (FK)`, `id_rombel (FK)`, `id_sesi (FK)`, `status`. | `id_absensi`, `tanggal`, `id_siswa`, `id_rombel`, `id_sesi`, `status`. | `id_absensi (PK)`, `tanggal (date)`, `id_siswa (FK)`, `id_rombel (FK)`, `id_sesi (FK)`, `status (enum)`. Unique: `[id_siswa, id_sesi]`. | **Pertahankan `tanggal`.** Jangan dihapus demi menjaga konsistensi kontrak di ketiga dokumen acuan. |
+| **`catatan_bk`** | `id_catatan (PK)`, `id_siswa (FK)`, `id_pegawai_bk (FK)`, `tanggal`, `kategori`, `catatan`, `tingkat_kerahasiaan`. | `id_catatan`, `id_siswa`, `id_pegawai_bk`, `tanggal`, `kategori`, `catatan`, `tingkat_kerahasiaan`. | `id_catatan (PK)`, `id_siswa (FK)`, `id_pegawai_bk (FK)`, `tanggal`, `kategori`, `catatan`, `tingkat_kerahasiaan`. RLS Policy via `id_pegawai_bk`. | **Ikuti `backend.md` Bab 4.6 & `FRONTEND.md`.** Tanpa `id_madrasah`. RLS ditegakkan di PostgreSQL. |
+| **`ekstrakurikuler`** | `id_ekstra (PK)`, `nama_ekstra`, `id_pembina (FK)`, `id_tahun (FK)`. | `id_ekstra`, `nama_ekstra`, `id_pembina`, `id_tahun`. | `id_ekstra (PK)`, `nama_ekstra`, `id_pembina (FK)`, `id_tahun (FK)`. | **Ikuti SRS v2 Bab 9.N.** Hapus komentar anotasi filter kaku `tugas_utama = "Pembina Ekstrakurikuler"` di FE. |
+| **`sync_log`** | `id_sync (PK)`, `modul`, `status`, `jumlah_record`, `pesan_error`, `dijalankan_oleh`, `timestamp`. | `id_sync`, `modul`, `status`, `jumlah_record`, `timestamp`. | `id_sync (PK)`, `modul`, `status`, `jumlah_record`, `pesan_error`, `dijalankan_oleh`, `timestamp`. | **Ikuti `SRS v2` Bab 9.J & `backend.md` Bab 4.7.** Tanpa `id_madrasah`. |
 
-2. **Kepatuhan SSoT:**
-   - Seluruh nama field database **wajib snake_case** dan merujuk persis pada 29 tabel di atas serta [`doc/backend.md`](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md).
-   - Jangan menambahkan kolom `semester` pada tabel `tahun_ajaran` (semester adalah atribut jadwal pelajaran).
+---
+
+## V. Rekomendasi Tindakan Koreksi
+
+1. **Revisi Dokumen Audit [struktur_tabel.md](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/struktur_tabel.md):**
+   * Hapus baris entitas `madrasah` dan ganti dengan `profil_madrasah` (singleton).
+   * Hapus seluruh kolom `id_madrasah (FK)` dari tabel `tahun_ajaran`, `pegawai`, `siswa`, `catatan_bk`, `ekstrakurikuler`, dan `sync_log`.
+   * Hapus klaim bahwa RLS `catatan_bk` membutuhkan `id_madrasah`.
+   * Batalkan instruksi penghapusan `tanggal` pada `absensi_siswa` agar konsisten dengan SSoT.
+
+2. **Instruksi untuk Tim Backend (Laravel Migration):**
+   * Ubah tipe kolom `nik` pada migrasi `pegawai` dan `siswa` dari `$table->string('nik', 16)` menjadi **`$table->string('nik', 255)->unique()`** ([backend.md Bab 4.2](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L77)).
+   * Pastikan tabel `profil_madrasah` menggunakan *Singleton Guard* di Eloquent Observer ([backend.md Bab 4.7](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/backend.md#L178)).
+
+3. **Instruksi untuk Tim Frontend (Next.js):**
+   * Hapus komentar anotasi `// id_pegawai, tugas_utama = "Pembina Ekstrakurikuler"` pada `types/ekstrakurikuler.ts` ([FRONTEND.md Line 384](file:///d:/titip%20video%20hp%20Vivo/APLIKASI/sim-madrasah-frontend/doc/FRONTEND.md#L384)).

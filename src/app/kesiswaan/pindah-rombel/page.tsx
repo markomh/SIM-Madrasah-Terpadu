@@ -56,7 +56,7 @@ export default function PindahRombelPage() {
   const [timelineTarget, setTimelineTarget] = useState<{
     recordId: string;
     title: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
   } | null>(null);
 
   const isKamad = currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList);

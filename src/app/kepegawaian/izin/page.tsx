@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion } from "@/components/app-providers";
 import {
+  Button,
   ErrorBlock,
   PageHeader,
   PrimaryButton,
@@ -165,9 +166,11 @@ export default function IzinGuruPage() {
               </select>
             </Field>
             
-            <PrimaryButton type="submit" disabled={loading} className="w-full">
-              Simpan Izin
-            </PrimaryButton>
+            <div className="pt-3 border-t border-border mt-4 flex justify-end">
+              <Button variant="primary" type="submit" loading={loading} fullWidth>
+                Simpan Izin
+              </Button>
+            </div>
           </form>
         </SurfaceCard>
 
