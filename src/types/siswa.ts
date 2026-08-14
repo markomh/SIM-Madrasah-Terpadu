@@ -3,6 +3,7 @@ export type JalurMasuk = "PPDB Reguler" | "Mutasi Masuk";
 
 export type Siswa = {
   id_siswa: string;
+  id_madrasah: string;
   nik: string;
   nisn: string;
   nama_lengkap: string;

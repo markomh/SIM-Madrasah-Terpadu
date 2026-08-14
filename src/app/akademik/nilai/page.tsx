@@ -32,6 +32,7 @@ import {
   BookOpen,
   ArrowLeftRight,
   Sparkles,
+  X,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -519,8 +520,8 @@ function PanelInputNilai({
             <CheckCircle2 size={16} />
             <span>{successMsg}</span>
           </div>
-          <button type="button" onClick={() => setSuccessMsg(null)} className="font-bold hover:opacity-75">
-            ✕
+          <button type="button" onClick={() => setSuccessMsg(null)} className="font-bold hover:opacity-75 p-1">
+            <X size={14} />
           </button>
         </div>
       )}
@@ -709,7 +710,7 @@ function PanelInputNilai({
                 <Button variant="secondary" type="button" onClick={() => setShowAddActivityModal(false)}>
                   Batal
                 </Button>
-                <Button variant="primary" type="submit">
+                <Button variant="primary" type="submit" iconLeft={<Plus className="h-4 w-4" />}>
                   Simpan Aktivitas
                 </Button>
               </div>

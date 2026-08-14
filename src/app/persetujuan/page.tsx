@@ -3,7 +3,7 @@
 import { isKepalaMadrasah } from "@/lib/access";
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, XCircle, ArrowLeftRight, Shield, User, FileText, Eye, CheckSquare, Square, Clock, Paperclip, Download, AlertTriangle } from "lucide-react";
+import { ArrowRight, CheckCircle2, XCircle, ArrowLeftRight, Shield, User, FileText, Eye, CheckSquare, Square, Clock, Paperclip, Download, AlertTriangle, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion } from "@/components/app-providers";
@@ -383,9 +383,9 @@ export default function PersetujuanPage() {
             <button
               type="button"
               onClick={() => setBatchAlert(null)}
-              className="text-amber-800 dark:text-amber-200 hover:opacity-70 font-bold text-xs px-1.5 py-0.5"
+              className="text-amber-800 dark:text-amber-200 hover:opacity-70 font-bold text-xs p-1"
             >
-              ✕
+              <X size={14} />
             </button>
           </div>
         </div>
@@ -461,7 +461,7 @@ export default function PersetujuanPage() {
 
                           {/* Visual Rombel Transfer Path */}
                           <div className="flex items-center gap-2 rounded-md bg-paper p-2.5 text-xs">
-                            <div className="font-semibold text-gray-700">
+                            <div className="font-semibold text-muted">
                               Asal: <span className="text-ink">{rAsal?.nama_rombel ?? "Kelas Asal"}</span>
                             </div>
                             <ArrowRight size={14} className="text-primary shrink-0" />

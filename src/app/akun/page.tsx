@@ -25,6 +25,7 @@ import {
   services,
 } from "@/services";
 import type { AuditLog, PenugasanJabatan, Pegawai, JenisJabatan } from "@/types";
+import { Plus, RotateCcw, RefreshCw } from "lucide-react";
 
 export default function AkunPage() {
   const { currentUser, penugasanList, setCurrentUserId } = useAuth();
@@ -136,11 +137,12 @@ export default function AkunPage() {
             <div>
               <Button
                 variant="primary"
+                iconLeft={<Plus className="h-4 w-4" />}
                 onClick={handleCreatePenugasan}
                 loading={savingPenugasan}
                 disabled={!newPenugasan.id_pegawai}
               >
-                + Tambah Penugasan
+                Tambah Penugasan
               </Button>
             </div>
           </div>
@@ -164,41 +166,50 @@ export default function AkunPage() {
         </SurfaceCard>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 items-start">
         <SurfaceCard title="Kontrol demo">
-          <div className="space-y-3 text-sm">
-            <p className="text-muted">
-              Data mock dipersist ke localStorage agar demo lintas refresh. Reset mengembalikan seed awal.
-            </p>
-            <Button
-              variant="primary"
-              onClick={() => {
-                resetDemoData();
-                setCurrentUserId("pg_demo_terpadu");
-                bump();
-                setLogs(getAuditLog().slice(0, 20));
-                setMsg("Data demo direset ke seed awal.");
-              }}
-            >
-              Reset Data Demo
-            </Button>
-            <div>
-              <Checkbox
-                id="sim-err"
-                label="Simulasikan error layanan (untuk uji error state)"
-                checked={simulate}
-                onChange={(e) => {
-                  setSimulateError(e.target.checked);
-                  setSimulate(e.target.checked);
-                }}
-              />
+          <div className="space-y-4 text-sm">
+            <div className="space-y-3">
+              <p className="text-muted">
+                Data mock dipersist ke localStorage agar demo lintas refresh. Reset mengembalikan seed awal.
+              </p>
+              <div>
+                <Button
+                  variant="primary"
+                  iconLeft={<RotateCcw className="h-4 w-4" />}
+                  onClick={() => {
+                    resetDemoData();
+                    setCurrentUserId("pg_demo_terpadu");
+                    bump();
+                    setLogs(getAuditLog().slice(0, 20));
+                    setMsg("Data demo direset ke seed awal.");
+                  }}
+                >
+                  Reset Data Demo
+                </Button>
+              </div>
+              <div className="pt-2">
+                <Checkbox
+                  id="sim-err"
+                  label="Simulasikan error layanan (untuk uji error state)"
+                  checked={simulate}
+                  onChange={(e) => {
+                    setSimulateError(e.target.checked);
+                    setSimulate(e.target.checked);
+                  }}
+                />
+              </div>
             </div>
-            <Button
-              variant="secondary"
-              onClick={() => setLogs(getAuditLog().slice(0, 20))}
-            >
-              Muat ulang audit log
-            </Button>
+
+            <div className="pt-3 border-t border-border mt-4">
+              <Button
+                variant="secondary"
+                iconLeft={<RefreshCw className="h-4 w-4" />}
+                onClick={() => setLogs(getAuditLog().slice(0, 20))}
+              >
+                Muat ulang audit log
+              </Button>
+            </div>
           </div>
         </SurfaceCard>
 

@@ -153,6 +153,7 @@ export default function PindahRombelPage() {
                       : "Pindah rombel sesama tingkat berhasil diterapkan secara instan.",
                   );
                   reset({ tanggal_efektif: values.tanggal_efektif, id_siswa: "", id_rombel_tujuan: "" });
+                  setAsalRombelId("");
                   bump();
                 } catch (e) {
                   setError(e instanceof Error ? e.message : "Gagal mengajukan");
@@ -226,20 +227,22 @@ export default function PindahRombelPage() {
                 <input type="date" className={inputClass} {...register("tanggal_efektif")} />
               </Field>
 
-              <PrimaryButton 
-                type="submit" 
-                disabled={isSubmitting || !asalRombelId || !selectedTujuanRombelId}
-                className="w-full flex items-center justify-center gap-2 font-bold py-2.5"
-              >
-                <Shuffle size={16} />
-                <span>{isSubmitting ? "Memproses..." : "Proses Pindah Rombel"}</span>
-              </PrimaryButton>
+              <div className="pt-3 border-t border-border mt-4">
+                <PrimaryButton 
+                  type="submit" 
+                  disabled={isSubmitting || !asalRombelId || !selectedTujuanRombelId}
+                  className="w-full flex items-center justify-center gap-2 font-bold py-2.5"
+                  iconLeft={<Shuffle className="h-4 w-4" />}
+                >
+                  <span>{isSubmitting ? "Memproses..." : "Proses Pindah Rombel"}</span>
+                </PrimaryButton>
+              </div>
             </form>
           </SurfaceCard>
         ) : null}
 
         <SurfaceCard title="Menunggu Persetujuan (Lintas Tingkat)">
-          <div className="mb-3 flex items-center justify-between border-b border-border pb-2">
+          <div className="mb-3 flex items-center justify-between border-b border-border pb-2 shrink-0">
             <span className="text-xs text-muted font-medium">
               Total antrean: <strong className="text-ink">{pending.length}</strong>
             </span>
@@ -249,7 +252,8 @@ export default function PindahRombelPage() {
                 className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
               >
                 <Inbox size={14} />
-                <span>Buka Kotak Persetujuan ➔</span>
+                <span>Buka Kotak Persetujuan</span>
+                <ArrowRight size={14} />
               </Link>
             )}
           </div>

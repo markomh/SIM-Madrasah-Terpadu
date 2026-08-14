@@ -36,7 +36,7 @@ export const referensiMock: ReferensiService = {
   async createRombel(data) {
     await simulateLatency();
     maybeThrowSimulatedError();
-    const created: Rombel = { ...data, id_rombel: createId("rb") };
+    const created: Rombel = { ...data, id_rombel: createId("rb"), id_madrasah: data.id_madrasah ?? "md_1" };
     mutateStore((s) => s.rombel.push(created));
     return created;
   },
@@ -61,7 +61,7 @@ export const referensiMock: ReferensiService = {
   async createMapel(data) {
     await simulateLatency();
     maybeThrowSimulatedError();
-    const created: MataPelajaran = { ...data, id_mapel: createId("mp") };
+    const created: MataPelajaran = { ...data, id_mapel: createId("mp"), id_madrasah: data.id_madrasah ?? "md_1" };
     mutateStore((s) => s.mapel.push(created));
     return created;
   },

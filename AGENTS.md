@@ -189,21 +189,28 @@ Contoh Pelanggaran: Membuat DaftarSiswaGuru.tsx dan DaftarSiswaAdmin.tsx.
 
 Tindakan Wajib: Buat HANYA SATU DaftarSiswa.tsx. Gunakan capability flags (misal: canEdit, canDelete) dari lib/access.ts yang dilempar sebagai props untuk menentukan apakah tombol edit/hapus dirender di dalam komponen tunggal tersebut.
 
-**7.2. Kewajiban Penggunaan Komponen Primitif (The Primitive Mandate)**
+**7.2. Kewajiban Penggunaan Komponen Primitif (The Primitive Mandate & Alignment)**
 
 AI DILARANG membangun form input, tombol, kartu, atau tabel dari scratch (menggunakan tag HTML <div>, <button>, <input> dengan utility classes) kecuali tidak ada alternatif sama sekali.
 
-Prosedur: Asumsikan library komponen internal tersedia di src/components/ui. Gunakan komponen standar tersebut (misal: <Button variant="primary">, <InputText name="...">, <Card>).
+Prosedur: Gunakan library komponen standar di `src/components/ui` (misal: `<Button variant="primary" iconLeft={<Plus />}>`, `<Select>`, `<SurfaceCard>`).
 
-Jika AI tertangkap menggunakan <button className="bg-blue-500..."> saat <Button> tersedia, tugas dianggap GAGAL.
+Aturan Tombol & Ikon: Komponen `<Button>` wajib memastikan ikon dan teks berada di dalam container flex terpusat (`inline-flex items-center justify-center gap-2`). DILARANG menambahkan tag pembungkus non-flex di dalam tombol yang menyebabkan ikon terpisah atau terdorong rata kiri.
 
-**7.3. Aturan Tata Letak Stabil (Stable Grid Protocol)**
+Jika AI tertangkap menggunakan `<button className="bg-blue-500...">` saat `<Button>` tersedia, tugas dianggap GAGAL.
 
-Kartu (Cards) atau komponen list yang berdampingan TIDAK BOLEH merusak tata letak atau menyisakan ruang (gap) asimetris ketika panjang konten berbeda-beda.
+**7.3. Protokol Tata Letak Grid (Homogenous Listing vs Asymmetric Workbench)**
 
-Prosedur Wajib: Gunakan CSS Grid untuk listing (contoh Tailwind: grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4).
+AI wajib membedakan jenis layout grid agar tidak menimbulkan *whitespace* canggung atau tata letak yang rusak:
 
-Elemen Card di dalam grid harus memanjang memenuhi tinggi baris. Pastikan komponen internal kartu tersebut menggunakan height: 100% (atau h-full di Tailwind) dan flex-col internal dengan flex-grow pada area konten agar footer (tombol aksi) selalu berada di dasar kartu yang sejajar.
+* **7.3.1. Card Listing / Metrics (Homogen):**
+  Untuk kartu-kartu ringkasan, metrik, atau katalog berulang dengan struktur konten serupa:
+  Gunakan `grid grid-cols-... items-stretch`. Kartu internal wajib menggunakan `h-full flex flex-col justify-between` agar tinggi kartu seragam dan tombol aksi di footer selalu sejajar di dasar kartu.
+
+* **7.3.2. Workbench / Form vs Data Table (Asimetris / Heterogen):**
+  Untuk halaman kerja 2-kolom yang menggabungkan formulir input di satu sisi dan tabel/antrean data di sisi lain (misalnya: `kenaikan-kelas`, `pindah-rombel`, `kepegawaian/izin`, `persuratan`, `akun`):
+  Wajib gunakan **`items-start`** pada container grid.
+  **DILARANG KERAS** memaksakan `h-full` atau `flex-col justify-between` / `mt-auto` pada kartu formulir pendek yang berdampingan dengan tabel panjang. Kartu form harus mempertahankan tinggi alaminya (*natural compact height*), sedangkan kartu tabel mengelola ketinggiannya sendiri (misal dengan `max-h-[...] overflow-y-auto`).
 
 **7.4. Pembatasan Filter Semester (Global Context Rule)**
 

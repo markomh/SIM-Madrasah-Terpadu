@@ -6,12 +6,13 @@ import {
   isOperatorKesiswaan,
 } from "@/lib/access";
 import { useEffect, useMemo, useState } from "react";
-import { Printer } from "lucide-react";
+import { Printer, X, Save, User, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion, useTahunAjaran } from "@/components/app-providers";
 import {
   AiLabel,
+  Button,
   ErrorBlock,
   Field,
   LoadingBlock,
@@ -308,7 +309,7 @@ export default function PersuratanPage() {
       {error ? <ErrorBlock message={error} /> : null}
 
       {!loading && !error ? (
-        <div className={`grid gap-4 ${canCreate ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
+        <div className={`grid gap-4 items-start ${canCreate ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
           {/* ═══════════════════════ Kolom kiri: Form + Wizard ═══════════════════════ */}
           {canCreate && (
             <SurfaceCard title="Buat surat">
@@ -413,8 +414,9 @@ export default function PersuratanPage() {
               {/* ─────────────────── WIZARD AUTO-FILL: Pegawai ─────────────────────── */}
               {needsPegawai && (
                 <div className="rounded-[6px] border border-amber/20 bg-amber/5 p-3 space-y-2">
-                  <p className="text-xs font-semibold text-amber uppercase tracking-wide">
-                    👤 Auto-fill Data Pegawai
+                  <p className="text-xs font-semibold text-amber uppercase tracking-wide flex items-center gap-1.5">
+                    <User size={13} className="shrink-0" />
+                    <span>Auto-fill Data Pegawai</span>
                   </p>
                   <Field label="Pilih pegawai yang ditugaskan">
                     <select
@@ -488,7 +490,10 @@ export default function PersuratanPage() {
                 />
               </Field>
 
-              <PrimaryButton type="submit">Simpan draft</PrimaryButton>
+              <PrimaryButton type="submit" className="w-full flex items-center justify-center gap-1.5">
+                <Save size={15} className="shrink-0" />
+                <span>Simpan draft</span>
+              </PrimaryButton>
             </form>
 
             {/* ── Draf AI ────────────────────────────────────────────────── */}
@@ -506,7 +511,7 @@ export default function PersuratanPage() {
               />
               <SecondaryButton
                 type="button"
-                className="mt-2"
+                className="mt-2 flex items-center gap-1.5"
                 onClick={async () => {
                   await services.persuratan.generateAiDraft(
                     aiInstruksi || "Surat tugas generik",
@@ -516,7 +521,8 @@ export default function PersuratanPage() {
                   bump();
                 }}
               >
-                Generate draf AI
+                <Sparkles size={14} className="text-ai shrink-0" />
+                <span>Generate draf AI</span>
               </SecondaryButton>
             </div>
 
@@ -637,12 +643,12 @@ export default function PersuratanPage() {
 
       {/* ═══════════════════════ Preview Surat A4 + Tombol Cetak ════════════════════ */}
       {previewSurat && profil ? (
-        <div id="modal-preview-surat" className="fixed inset-0 z-50 flex flex-col bg-gray-900/75 backdrop-blur-sm print:fixed print:inset-0 print:z-[99999] print:bg-white print:p-0 print:m-0 print:block">
+        <div id="modal-preview-surat" className="fixed inset-0 z-50 flex flex-col bg-ink/75 backdrop-blur-sm print:fixed print:inset-0 print:z-[99999] print:bg-white print:p-0 print:m-0 print:block">
           <div className="flex-1 overflow-y-auto p-4 md:p-6 print:p-0 print:overflow-visible">
             <div className="mx-auto w-fit max-w-full my-4 print:my-0 print:w-full print:max-w-none">
               
               {/* Toolbar — disembunyikan saat cetak (via @media print di SuratPreview.tsx) */}
-              <div className="sticky top-0 z-20 mb-4 flex items-center justify-between rounded-md bg-white p-3 shadow-lg border border-gray-200 print:hidden">
+              <div className="sticky top-0 z-20 mb-4 flex items-center justify-between rounded-md bg-surface p-3 shadow-lg border border-border print:hidden">
                 <h2 className="text-sm font-bold text-ink">
                   Preview Dokumen — {previewSurat.perihal}
                 </h2>
@@ -657,13 +663,15 @@ export default function PersuratanPage() {
                     <Printer size={15} />
                     Cetak / Simpan PDF
                   </button>
-                  <button
-                    type="button"
-                    className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 px-3 py-2 rounded-[4px] transition"
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="flex items-center gap-1"
                     onClick={() => setPreviewSurat(null)}
                   >
-                    Tutup ✕
-                  </button>
+                    <span>Tutup</span>
+                    <X size={14} />
+                  </Button>
                 </div>
               </div>
 

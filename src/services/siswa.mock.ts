@@ -56,6 +56,7 @@ export const siswaMock: SiswaService = {
     const created: Siswa = {
       ...data,
       id_siswa: createId("sw"),
+      id_madrasah: data.id_madrasah ?? "md_1",
       skor_risiko_ai: null,
     };
     mutateStore((store) => {

@@ -17,29 +17,58 @@ import { mockEkstrakurikulerService } from "./ekstrakurikuler.mock";
 import { mockBkService } from "./bk.mock";
 import { mockPenugasanJabatanService } from "./penugasan-jabatan.mock";
 import { lembagaMock } from "./lembaga.mock";
+
+import { siswaApi } from "./siswa.api";
+import { pegawaiApi } from "./pegawai.api";
+import { referensiApi } from "./referensi.api";
+import { jadwalApi } from "./jadwal.api";
+import { absensiApi, sesiTatapMukaApi } from "./sesi-tatap-muka.api";
+import { izinGuruApi } from "./izin-guru.api";
+import { nilaiApi } from "./nilai.api";
+import { ekstrakurikulerApi } from "./ekstrakurikuler.api";
+import { bkApi } from "./bk.api";
+import { persuratanApi } from "./persuratan.api";
+import { persetujuanApi } from "./persetujuan.api";
+import { wawasanApi } from "./wawasan.api";
+import { pengaturanApi } from "./pengaturan.api";
+import {
+  wilayahApi,
+  penugasanJabatanApi,
+  lembagaApi,
+  mutasiApi,
+  keanggotaanApi,
+} from "./remaining-api";
 import { loadStore, resetStore, SIMULATE_ERROR_KEY } from "./store";
 
-/** Single entry point — Stage 2 swaps mock implementations here. */
+import { madrasahMock } from "./madrasah.mock";
+import { madrasahApi } from "./madrasah.api";
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+
+/**
+ * Single entry point for services — Swaps between Live Backend API (Tahap 2) and Mock (Tahap 1)
+ */
 export const services = {
-  siswa: siswaMock,
-  referensi: referensiMock,
-  pegawai: pegawaiMock,
-  keanggotaan: keanggotaanMock,
-  mutasi: mutasiMock,
-  persetujuan: persetujuanMock,
-  absensi: absensiMock,
-  jadwal: jadwalMock,
-  persuratan: persuratanMock,
-  wawasan: wawasanMock,
-  sesiTatapMuka: sesiTatapMukaMock,
-  izinGuru: izinGuruMock,
-  pengaturan: pengaturanMock,
-  wilayah: mockWilayahService,
-  nilai: mockNilaiService,
-  ekstrakurikuler: mockEkstrakurikulerService,
-  bk: mockBkService,
-  penugasanJabatan: mockPenugasanJabatanService,
-  lembaga: lembagaMock,
+  madrasah: USE_MOCK ? madrasahMock : madrasahApi,
+  siswa: USE_MOCK ? siswaMock : (siswaApi as unknown as typeof siswaMock),
+  referensi: USE_MOCK ? referensiMock : (referensiApi as unknown as typeof referensiMock),
+  pegawai: USE_MOCK ? pegawaiMock : (pegawaiApi as unknown as typeof pegawaiMock),
+  keanggotaan: USE_MOCK ? keanggotaanMock : (keanggotaanApi as unknown as typeof keanggotaanMock),
+  mutasi: USE_MOCK ? mutasiMock : (mutasiApi as unknown as typeof mutasiMock),
+  persetujuan: USE_MOCK ? persetujuanMock : persetujuanApi,
+  absensi: USE_MOCK ? absensiMock : (absensiApi as unknown as typeof absensiMock),
+  jadwal: USE_MOCK ? jadwalMock : (jadwalApi as unknown as typeof jadwalMock),
+  persuratan: USE_MOCK ? persuratanMock : (persuratanApi as unknown as typeof persuratanMock),
+  wawasan: USE_MOCK ? wawasanMock : wawasanApi,
+  sesiTatapMuka: USE_MOCK ? sesiTatapMukaMock : (sesiTatapMukaApi as unknown as typeof sesiTatapMukaMock),
+  izinGuru: USE_MOCK ? izinGuruMock : (izinGuruApi as unknown as typeof izinGuruMock),
+  pengaturan: USE_MOCK ? pengaturanMock : pengaturanApi,
+  wilayah: USE_MOCK ? mockWilayahService : (wilayahApi as unknown as typeof mockWilayahService),
+  nilai: USE_MOCK ? mockNilaiService : (nilaiApi as unknown as typeof mockNilaiService),
+  ekstrakurikuler: USE_MOCK ? mockEkstrakurikulerService : (ekstrakurikulerApi as unknown as typeof mockEkstrakurikulerService),
+  bk: USE_MOCK ? mockBkService : (bkApi as unknown as typeof mockBkService),
+  penugasanJabatan: USE_MOCK ? mockPenugasanJabatanService : (penugasanJabatanApi as unknown as typeof mockPenugasanJabatanService),
+  lembaga: USE_MOCK ? lembagaMock : (lembagaApi as unknown as typeof lembagaMock),
 };
 
 export function getAuditLog() {

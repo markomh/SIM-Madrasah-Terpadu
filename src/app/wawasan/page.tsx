@@ -29,15 +29,24 @@ export default function WawasanPage() {
 
   useEffect(() => {
     if (!canAccess) return;
-    setLoading(true);
+    let active = true;
     Promise.all([services.wawasan.getSiswaBerisiko(50), services.wawasan.getRekomendasiJadwal()])
       .then(([r, j]) => {
+        if (!active) return;
         setRisiko(r);
         setRekom(j);
         setError(null);
       })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch((e: Error) => {
+        if (!active) return;
+        setError(e.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [version, canAccess]);
 
   if (!canAccess) {
@@ -58,12 +67,13 @@ export default function WawasanPage() {
       {error ? <ErrorBlock message={error} /> : null}
 
       {!loading && !error ? (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2 items-stretch">
           <SurfaceCard
             title="Siswa berisiko"
             action={<AiLabel />}
+            className="flex flex-col h-full"
           >
-            <div className="space-y-2">
+            <div className="space-y-2 flex-1">
               {risiko.length === 0 ? <p className="text-sm text-muted">Tidak ada siswa di atas ambang skor.</p> : null}
               {risiko.map((s) => (
                 <StatusStrip key={s.id_siswa} tone="ai" className="rounded-[4px] p-3">
@@ -79,18 +89,20 @@ export default function WawasanPage() {
             </div>
           </SurfaceCard>
 
-          <SurfaceCard title="Rekomendasi jadwal" action={<AiLabel />}>
+          <SurfaceCard title="Rekomendasi jadwal" action={<AiLabel />} className="flex flex-col h-full">
             {rekom ? (
-              <div>
-                <p className="text-sm text-muted">{rekom.ringkasan}</p>
-                <ul className="mt-3 space-y-2">
-                  {rekom.usulan.map((u, i) => (
-                    <StatusStrip key={i} tone="ai" className="rounded-[4px] p-3 text-sm">
-                      {u.hari} {u.jam_mulai}–{u.jam_selesai} · rombel {u.id_rombel} · mapel {u.id_mapel}
-                    </StatusStrip>
-                  ))}
-                </ul>
-                <p className="mt-3 text-xs font-semibold text-ai">{rekom.label}</p>
+              <div className="flex flex-col flex-1 justify-between">
+                <div>
+                  <p className="text-sm text-muted">{rekom.ringkasan}</p>
+                  <ul className="mt-3 space-y-2">
+                    {rekom.usulan.map((u, i) => (
+                      <StatusStrip key={i} tone="ai" className="rounded-[4px] p-3 text-sm">
+                        {u.hari} {u.jam_mulai}–{u.jam_selesai} · rombel {u.id_rombel} · mapel {u.id_mapel}
+                      </StatusStrip>
+                    ))}
+                  </ul>
+                </div>
+                <p className="mt-4 text-xs font-semibold text-ai border-t border-border pt-2">{rekom.label}</p>
               </div>
             ) : null}
           </SurfaceCard>

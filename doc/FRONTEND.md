@@ -88,14 +88,38 @@ Ini adalah bagian **paling kritis** dari dokumen ini. Setiap interface berikut w
 
 ```typescript
 // types/referensi.ts
+// types/madrasah.ts (baru — akar multi-tenant, SRS Bab 9P)
+// Tahap 1 tetap demo SATU madrasah (store diisi tepat 1 baris) — field `id_madrasah` di berbagai
+// tipe di bawah HANYA untuk menjaga kontrak identik dengan Tahap 2 (backend.md Bab 4), bukan untuk
+// membangun UI pemilihan tenant. Jangan bangun fitur "ganti madrasah" di Tahap 1 — itu di luar cakupan.
+export type Madrasah = {
+  id_madrasah: string;
+  nama_madrasah: string;
+  npsn: string;
+  alamat: string | null;
+  id_desa: string | null;
+  status_aktif: boolean;
+};
+
 export type TingkatPendidikan = {
   id_tingkat: string;
   nama_tingkat: string;   // "Kelas 10"
-  urutan: number;         // untuk validasi kenaikan berjenjang
+  urutan: number;         // untuk validasi kenaikan berjenjang — referensi nasional bersama, TIDAK punya id_madrasah
+};
+
+// types/mata-pelajaran.ts (baru — diformalkan; sebelumnya seperti kasus AbsensiSiswa/JadwalPelajaran,
+// tipe ini sudah lama dipakai di implementasi tapi tidak pernah resmi tercatat di kontrak Bab 4 ini)
+export type MataPelajaran = {
+  id_mapel: string;
+  id_madrasah: string;    // baru — entitas akar tenant; daftar mapel bisa berbeda kebijakan antar madrasah (mis. muatan lokal)
+  kode_mapel: string;
+  nama_mapel: string;
+  kelompok_mapel: string | null;
 };
 
 export type TahunAjaran = {
   id_tahun: string;
+  id_madrasah: string;    // baru — entitas akar tenant, SRS Bab 9P
   nama_tahun: string;     // "2026/2027" — satu baris = satu tahun ajaran PENUH (2 semester)
   status_aktif: boolean;
 };
@@ -109,6 +133,7 @@ export type TahunAjaran = {
 
 export type Rombel = {
   id_rombel: string;
+  id_madrasah: string;    // baru — entitas akar tenant
   nama_rombel: string;    // "10-A"
   id_tingkat: string;
   id_tahun: string;       // FK ke TahunAjaran — tahun PENUH, bukan per-semester
@@ -137,6 +162,7 @@ export type JalurMasuk = "PPDB Reguler" | "Mutasi Masuk";
 
 export type Siswa = {
   id_siswa: string;
+  id_madrasah: string;         // baru — entitas akar tenant, SRS Bab 9P
   nik: string;                 // 16 digit, tampilkan tersamar (mis. 32**********01) kecuali di form edit
   nisn: string;
   nama_lengkap: string;
@@ -152,14 +178,6 @@ export type Siswa = {
   skor_risiko_ai: number | null;   // 0–100, read-only di UI, hanya tampilan
 };
 
-// types/orang-tua.ts (Placeholder Fase 4)
-export type OrangTua = {
-  id_orang_tua: string;
-  nik: string;
-  nama_lengkap: string;
-  nomor_telepon: string | null;
-  pekerjaan: string | null;
-};
 // types/keanggotaan.ts
 export type StatusKeanggotaan =
   | "Aktif" | "Pindah Rombel" | "Naik Kelas" | "Tinggal Kelas" | "Lulus" | "Keluar";
@@ -226,6 +244,7 @@ export type TugasUtama = "Guru" | "Tendik";
 
 export type Pegawai = {
   id_pegawai: string;
+  id_madrasah: string;    // baru — entitas akar tenant, SRS Bab 9P; 1 pegawai = 1 madrasah, tidak lintas tenant
   nik: string;
   nip: string | null;
   npk: string | null;
@@ -269,14 +288,7 @@ export type PenugasanJabatan = {
 //   isPengajar(idPegawai, idRombel, idMapel, semester, jadwalList) =>
 //     jadwalList.some(j => j.id_pegawai === idPegawai && j.id_rombel === idRombel
 //                        && j.id_mapel === idMapel && j.semester === semester)
-//   isPengajarAktif(idPegawai, jadwalList) =>
-//     jadwalList.some(j => j.id_pegawai === idPegawai)
 //   getRombelDiajar(idPegawai, jadwalList) => daftar unik {id_rombel, id_mapel, semester} dari jadwalList
-//
-// Catatan Perbedaan isPengajar vs isPengajarAktif:
-// - `isPengajarAktif` digunakan untuk visibilitas navigasi menu (coarse-grained: menentukan apakah guru mengajar di jadwal mana pun),
-//   seperti pada menu sidebar /akademik/nilai dan /akademik/presensi-siswa.
-// - `isPengajar` adalah guard fine-grained yang memvalidasi otorisasi transaksional (input presensi/nilai) pada kombinasi rombel, mapel, dan semester spesifik.
 //
 // SEMUA fungsi ini dipanggil ulang tiap kali dibutuhkan dari data yang sedang dimuat — TIDAK PERNAH
 // disimpan sebagai field/state statis, karena penugasan/rombel/jadwal bisa berubah kapan saja.
@@ -325,7 +337,6 @@ export type SesiTatapMuka = {
   waktu_input: string | null;       // timestamp
   is_guru_pengganti: boolean;       // read-only, dihitung sistem — jangan diinput manual di form
   id_izin_terkait: string | null;   // FK ke IzinGuru
-  jurnal_materi: string | null;
   status_kehadiran_guru: StatusKehadiranGuru; // read-only, dihitung sistem
 };
 
@@ -380,8 +391,9 @@ export type StatusAbsensiEkstra = "Hadir" | "Tidak Hadir";
 
 export type Ekstrakurikuler = {
   id_ekstra: string;
+  id_madrasah: string;    // baru — entitas akar tenant, SRS Bab 9P
   nama_ekstra: string;
-  id_pembina: string;      // id_pegawai, tugas_utama = "Pembina Ekstrakurikuler"
+  id_pembina: string;      // id_pegawai mana pun (tugas_utama = "Guru") — status Pembina DIDEFINISIKAN oleh FK ini sendiri, bukan field tugas_utama/peran terpisah (lihat model final di types/pegawai.ts)
   id_tahun: string;
 };
 
@@ -407,8 +419,9 @@ export type TingkatKerahasiaan = "Umum" | "Rahasia";
 
 export type CatatanBk = {
   id_catatan: string;
+  id_madrasah: string;    // baru — sengaja langsung (bukan hanya lewat id_siswa), lihat SRS Bab 9P soal RLS satu-policy
   id_siswa: string;
-  id_pegawai_bk: string;   // id_pegawai, tugas_utama = "Guru BK"
+  id_pegawai_bk: string;   // id_pegawai dengan PenugasanJabatan aktif jenis_jabatan = "Guru BK" (lihat types/penugasan-jabatan.ts) — BUKAN lagi field tugas_utama
   tanggal: string;
   kategori: KategoriCatatanBk;
   catatan: string;
@@ -492,24 +505,24 @@ Satu-satunya cara menulis `AbsensiSiswa` adalah lewat `SesiTatapMukaService.cata
 | Rute | Halaman | Peran yang bisa akses (role switcher) |
 |---|---|---|
 | `/` | Dashboard (ringkasan beda per peran — lihat Bab 6.1) | Semua |
-| `/kesiswaan/siswa` | Daftar Siswa Induk (tabel, filter, pencarian) — form tambah/edit kini menyertakan alamat berjenjang (provinsi→kabupaten→kecamatan→desa) | Admin, Operator, Wali Kelas (view rombelnya saja), Kepala Madrasah (view), Guru BK (view/pencarian direktori siswa untuk konseling) |
-| `/kesiswaan/siswa/[id]` | Detail & Edit Siswa | Admin, Operator, Kepala Madrasah (view) |
+| `/kesiswaan/siswa` | Daftar Siswa Induk (tabel, filter, pencarian) — form tambah/edit kini menyertakan alamat berjenjang (provinsi→kabupaten→kecamatan→desa) | Admin, Operator, Wali Kelas (view rombelnya saja) |
+| `/kesiswaan/siswa/[id]` | Detail & Edit Siswa | Admin, Operator |
 | `/kesiswaan/siswa/tambah` | Form Tambah Siswa (PPDB) | Admin, Operator |
 | `/kesiswaan/kenaikan-kelas` | Wizard Kenaikan Kelas Massal (Pemetaan Kenaikan) | Admin, Operator |
 | `/kesiswaan/pindah-rombel` | Form Pengajuan Pindah Rombel (sesama & lintas tingkat) | Operator (ajukan), Kepala Madrasah (approve) |
 | `/kesiswaan/mutasi` | Form Mutasi Masuk/Keluar + status | Operator (ajukan), Kepala Madrasah (approve) |
-| `/akademik/jadwal` *(pindah dari `/guru-tendik/jadwal`)* | Penjadwalan (drag-and-drop bentrok-cek, kini memvalidasi `semester` sebagai bagian kunci unik) | Admin, Kepala Madrasah (view), Guru Mapel (view) |
+| `/akademik/jadwal` *(pindah dari `/guru-tendik/jadwal`)* | Penjadwalan (drag-and-drop bentrok-cek, kini memvalidasi `semester` sebagai bagian kunci unik) | Admin |
 | `/akademik/presensi-siswa` *(pindah dari `/guru-tendik/presensi-siswa`)* | **Satu-satunya jalur input presensi siswa** — Input Presensi per Sesi Tatap Muka (halaman ini yang otomatis membuktikan kehadiran guru — tidak ada halaman "presensi guru" terpisah, dan tidak ada jalur input lain di halaman manapun) | Wali Kelas, Guru Mapel |
-| `/akademik/rekap-presensi` *(pindah dari `/kesiswaan/absensi`, nama rute berubah — tautkan ulang seluruh referensi/`Link` yang lama)* | Rekap Presensi Siswa (read-only) — matriks siswa × sesi, tautan "Isi Presensi" ke sesi yang belum lengkap. **Kepala Madrasah** memiliki akses monitoring read-only ke seluruh rombel se-madrasah. | Wali Kelas, Guru Mapel, Admin Madrasah, Kepala Madrasah |
-| `/akademik/nilai` *(baru)* | **Akses berbasis relasi, bukan label peran** (lihat Bab 12 SRS induk "Rangkap Jabatan"): siapa pun dengan `isPengajar(currentUser, id_rombel, id_mapel, semester)` bernilai benar bisa **input** nilai untuk kombinasi itu — termasuk pegawai yang kebetulan juga Wali Kelas rombel lain atau rombel yang sama. Siapa pun dengan `isWaliKelas(currentUser, id_rombel)` benar melihat **rekap lengkap lintas-mapel** rombel itu (read-only untuk mapel yang bukan diajarnya sendiri). **Kepala Madrasah & Admin Madrasah** memiliki akses *read-only* untuk memonitor & mengaudit rekap nilai seluruh rombel se-madrasah. Satu akun bisa punya kedua hak sekaligus di rombel yang sama | Guru Mapel (input/kelola nilai mapelnya), Wali Kelas (rekap rombelnya), Kepala Madrasah (view rekap), Admin Madrasah (view/audit administratif) |
-| `/kepegawaian/pegawai` *(pindah dari `/guru-tendik/pegawai`)* | Daftar Guru & Tendik — form kini menyertakan alamat berjenjang dan `mapel_sertifikasi` | Admin, Kepala Madrasah (view) |
+| `/akademik/rekap-presensi` *(pindah dari `/kesiswaan/absensi`, nama rute berubah — tautkan ulang seluruh referensi/`Link` yang lama)* | Rekap Presensi Siswa (read-only) — matriks siswa × sesi, tautan "Isi Presensi" ke sesi yang belum lengkap | Wali Kelas, Guru Mapel, Admin Madrasah |
+| `/akademik/nilai` *(baru)* | **Akses berbasis relasi, bukan label peran** (lihat Bab 12 SRS induk "Rangkap Jabatan"): siapa pun dengan `isPengajar(currentUser, id_rombel, id_mapel, semester)` bernilai benar bisa **input** nilai untuk kombinasi itu — termasuk pegawai yang kebetulan juga Wali Kelas rombel lain atau rombel yang sama. Siapa pun dengan `isWaliKelas(currentUser, id_rombel)` benar melihat **rekap lengkap lintas-mapel** rombel itu (read-only untuk mapel yang bukan diajarnya sendiri). Satu akun bisa punya kedua hak sekaligus di rombel yang sama | Guru Mapel (jabatan pokok), + status turunan Wali Kelas jika relevan |
+| `/kepegawaian/pegawai` *(pindah dari `/guru-tendik/pegawai`)* | Daftar Guru & Tendik — form kini menyertakan alamat berjenjang dan `mapel_sertifikasi` | Admin |
 | `/kepegawaian/izin` *(pindah dari `/guru-tendik/izin`)* | Catat Izin Guru (H-1 / Mendesak-Darurat), lihat riwayat izin per guru | Admin, Kepala Madrasah |
 | `/kepegawaian/kedisiplinan` *(pindah dari `/guru-tendik/kedisiplinan`)* | Rekap Kehadiran Guru, Realisasi JTM, Flag "Digantikan Mendadak" berulang, draf Surat Teguran | Kepala Madrasah |
 | `/ekstrakurikuler` *(baru)* | Daftar ekstrakurikuler, CRUD keanggotaan siswa, presensi kegiatan — dibatasi Pembina hanya untuk ekstrakurikuler yang dibinanya | Pembina Ekstrakurikuler, Admin |
 | `/bk` *(baru)* | Catatan bimbingan konseling per siswa. **Entri "Rahasia" tidak boleh dirender ke DOM untuk peran selain Guru BK penulis & Kepala Madrasah** — bukan cuma disembunyikan via CSS, filter dilakukan di service sebelum data sampai ke komponen | Guru BK, Kepala Madrasah (view) |
 | `/persetujuan` | Kotak Masuk Persetujuan (semua pengajuan menunggu) | Kepala Madrasah |
 | `/persuratan` | Buat & Arsip Surat | Admin, Operator, Kepala Madrasah (approve/e-sign) |
-| `/wawasan` | Dashboard AI — siswa berisiko, rekomendasi jadwal | Kepala Madrasah, Wali Kelas, Admin Madrasah |
+| `/wawasan` | Dashboard AI — siswa berisiko, rekomendasi jadwal | Kepala Madrasah, Wali Kelas |
 | `/referensi` | Mapel, Tingkat Pendidikan, Hari Libur, **Master Wilayah** *(baru — hanya tampilan data seed, bukan form input manual satu-satu, sesuai Bab 9A.1 SRS induk)* | Admin |
 | `/akun` | Kelola Pengguna, **Manajemen `PenugasanJabatan`** (assign/akhiri jabatan Kepala Madrasah/Admin/Operator/Guru BK ke pegawai manapun), Role Switcher Tahap 1 (kini memilih **pegawai demo**, bukan label peran — lihat Bab 6.1) | Admin |
 | `/portal-ortu` | Portal Orang Tua (read-only) — placeholder fase lanjutan, boleh dibangun terakhir. **Catatan terbuka (konsisten dengan SRS induk Bab 12):** belum ada entitas `orang_tua` formal yang menghubungkan akun ke `siswa` — bukan `Pegawai`, jadi tidak tercakup model `PenugasanJabatan`/akses aditif di atas. Selesaikan model relasinya saat modul ini benar-benar dikerjakan (Fase 4), jangan dipaksakan memakai pola `Pegawai` yang sudah ada | Orang Tua/Wali (mock terpisah, bukan bagian `Pegawai`) |
@@ -531,6 +544,19 @@ Dashboard (`/`) **bersifat komposit** — merender satu blok/kartu untuk **setia
 - Jika `isGuruBk`: jumlah catatan BK bulan ini, siswa dengan catatan terbaru — **tidak menampilkan isi catatan "Rahasia" milik Guru BK lain**.
 
 **Wajib disediakan di data seed:** minimal satu pegawai demo yang memicu **lebih dari tiga** blok di atas sekaligus (mis. Guru + Kepala Madrasah + Wali Kelas) — inilah bukti bahwa dashboard komposit benar-benar bekerja, bukan cuma menampilkan satu blok karena kebetulan tidak pernah diuji dengan kombinasi.
+
+### 6.2 Konteks Tenant (baru — SRS Bab 9P, keputusan produk: multi-tenant sungguhan di Tahap 2)
+
+Tahap 1 **tetap demo satu madrasah** — store diisi **tepat satu baris** `Madrasah` (lihat `types/madrasah.ts` Bab 4), dan seluruh entitas akar tenant di data seed (`Siswa`, `Pegawai`, `Rombel`, `TahunAjaran`, `MataPelajaran`, `Ekstrakurikuler`, `CatatanBk`) diisi `id_madrasah` yang sama, konsisten, merujuk satu-satunya `Madrasah` itu.
+
+**Yang WAJIB dilakukan di Tahap 1 (murni demi kesesuaian kontrak, bukan fitur baru):**
+- Tambahkan `madrasah.service.ts`/`.mock.ts` sederhana (`getCurrent(): Promise<Madrasah>`) yang mengembalikan satu-satunya baris seed.
+- Tampilkan `nama_madrasah` di header aplikasi (`app-shell.tsx`) — sekadar label statis, bukan dropdown pemilihan tenant.
+- Seluruh data seed baru (termasuk domain yang sudah ada) diberi `id_madrasah` yang konsisten merujuk satu tenant tersebut.
+
+**Yang TIDAK BOLEH dibangun di Tahap 1 (di luar cakupan, akan jadi kerja sia-sia karena Tahap 2 yang menegakkan isolasi sungguhan):**
+- Jangan bangun UI "pilih madrasah" atau simulasi banyak tenant di frontend — itu murni tanggung jawab backend (login pegawai otomatis menentukan tenant, lihat `backend.md` Bab 6.1).
+- Jangan menyaring data mock berdasarkan `id_madrasah` di service layer — karena hanya ada satu tenant di Tahap 1, semua data yang ada memang milik tenant itu; penyaringan sungguhan baru relevan begitu Tahap 2 API benar-benar melayani lebih dari satu madrasah.
 
 ---
 
@@ -600,6 +626,7 @@ Sebelum agen melanjutkan ke modul berikutnya, pastikan:
 | 2026-08-12 | Tata Kelola / Ambang Kedisiplinan JTM | Implementasi Pengecualian Kepala Madrasah (`isKepalaMadrasah`) dan Guru BK non-pengajar dari rekap kedisiplinan JTM harian (`getRekapKedisiplinan`) serta penambahan catatan edukatif di UI `/kepegawaian/kedisiplinan`. | Menyesuaikan dengan Permendikbud 6/2018 Pasal 15 & SRS Bab 10 Poin 15: beban manajerial Kamad dan konseling BK murni tidak dievaluasi lewat ambang KBM harian. |
 | 2026-08-12 | UI/UX & Terminologi / Disambiguasi JTM | Pemisahan tegas label UI antara "Realisasi Kehadiran JTM" (`/kepegawaian/kedisiplinan`) dan "JTM Terjadwal (Sertifikasi)" (`/akademik/jadwal`). | Menyesuaikan dengan SRS v2 Bab 10 Poin 22 untuk mencegah kebingungan pengguna antara rasio presensi KBM harian vs total beban mengajar mingguan untuk TPG. |
 | 2026-08-12 | Arsitektur & Otorisasi / Contract Lock | Final Audit Traceability (task_09 & task_10) menyatakan 100% konsistensi antara SRS v2, CONTRACT_MATRIX, FRONTEND.md, backend.md, dan codebase `src/`. Status Kontrak resmi di-LOCK (`CONTRACT LOCKED — READY FOR TAHAP 2`). | Memastikan zero contract drift, zero build error, dan 100% kesiapan arsitektural sebelum Backend Laravel Tahap 2 dimulai. |
+| 2026-08-13 | Arsitektur / Multi-Tenant | Formalisasi tipe `Madrasah` (`src/types/madrasah.ts`), `MataPelajaran` (`src/types/mata-pelajaran.ts`), serta penambahan field `id_madrasah` di seluruh entitas akar tenant (`Siswa`, `Pegawai`, `Rombel`, `TahunAjaran`, `MataPelajaran`, `Ekstrakurikuler`, `CatatanBk`) dan seed `store.ts` (`id_madrasah: "md_1"`). Implementasi `madrasah.service.ts`/`.mock.ts`/`.api.ts` dan penampilan nama madrasah di header `<AppShell>`. | Mematuhi SRS Bab 9P dan FRONTEND.md Bab 6.2 untuk keselarasan kontrak Multi-Tenant Tahap 2, dengan menjaga Tahap 1 tetap sebagai demo 1 madrasah standalone. |
 
 ---
 

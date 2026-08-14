@@ -28,6 +28,7 @@ export const mutasiMock: MutasiService = {
     const id_siswa = createId("sw");
     const draft: Siswa = {
       id_siswa,
+      id_madrasah: "md_1",
       nik: data.nik,
       nisn: data.nisn,
       nama_lengkap: data.nama_lengkap.toUpperCase(),

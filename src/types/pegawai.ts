@@ -1,5 +1,6 @@
 export type Pegawai = {
   id_pegawai: string;
+  id_madrasah: string;
   nik: string;
   nip: string | null;
   npk: string | null;

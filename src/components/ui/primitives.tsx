@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { statusToTone, type Tone } from "@/lib/status-helpers";
 import { Button, type ButtonProps } from "./button";
 import { Badge } from "./badge";
+import { Sparkles } from "lucide-react";
 
 export * from "./button";
 export * from "./badge";
@@ -22,6 +23,7 @@ export * from "./progress";
 export * from "./avatar";
 export * from "./tooltip";
 export * from "./pagination";
+export * from "./permission-guard";
 
 export type StripTone = Tone;
 
@@ -55,7 +57,12 @@ export function StatusStrip({
 }
 
 export function AiLabel() {
-  return <Badge variant="ai">Hasil AI — perlu verifikasi</Badge>;
+  return (
+    <Badge variant="ai" className="inline-flex items-center gap-1.5">
+      <Sparkles size={13} className="shrink-0" />
+      <span>Hasil AI — perlu verifikasi</span>
+    </Badge>
+  );
 }
 
 export function Skeleton({ className = "" }: { className?: string }) {
@@ -141,7 +148,7 @@ export function SurfaceCard({
   return (
     <section className={`rounded-[6px] border border-border bg-surface ${className}`}>
       {title ? (
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
           {action}
         </div>

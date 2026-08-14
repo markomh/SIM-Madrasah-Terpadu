@@ -88,8 +88,8 @@ export default function BkPage() {
       />
       {error && <ErrorBlock message={error} />}
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <SurfaceCard className="md:col-span-1" title="Pilih Siswa">
+      <div className="grid gap-6 md:grid-cols-3 items-stretch">
+        <SurfaceCard className="md:col-span-1 h-full" title="Pilih Siswa">
           <Select 
             label="Cari/Pilih Siswa"
             value={selectedSiswaId}
@@ -103,7 +103,7 @@ export default function BkPage() {
           </Select>
         </SurfaceCard>
 
-        <SurfaceCard className="md:col-span-2" title="Riwayat Catatan BK">
+        <SurfaceCard className="md:col-span-2 h-full" title="Riwayat Catatan BK">
           {!selectedSiswaId ? (
             <p className="text-muted text-sm">Silakan pilih siswa terlebih dahulu.</p>
           ) : (

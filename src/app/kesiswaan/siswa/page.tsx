@@ -359,7 +359,7 @@ export default function SiswaListPage() {
                     </Link>
                     {canEdit && (
                       <Link
-                        href={`/kesiswaan/siswa/${s.id_siswa}`}
+                        href={`/kesiswaan/siswa/${s.id_siswa}?mode=edit`}
                         className="text-xs font-semibold text-ink hover:underline"
                       >
                         Edit

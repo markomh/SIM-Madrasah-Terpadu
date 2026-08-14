@@ -1,3 +1,5 @@
+export type * from "./madrasah";
+export type * from "./mata-pelajaran";
 export type * from "./referensi";
 export type * from "./siswa";
 export type * from "./keanggotaan";

@@ -57,9 +57,9 @@ export function Button({
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClass} ${widthClass} ${className}`}
       {...props}
     >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : iconLeft ? <span>{iconLeft}</span> : null}
-      {children ? <span>{children}</span> : null}
-      {!loading && iconRight ? <span>{iconRight}</span> : null}
+      {loading ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : iconLeft ? <span className="inline-flex shrink-0 items-center">{iconLeft}</span> : null}
+      {children}
+      {!loading && iconRight ? <span className="inline-flex shrink-0 items-center">{iconRight}</span> : null}
     </button>
   );
 }

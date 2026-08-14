@@ -19,20 +19,17 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const USER_STORAGE_KEY = "sim-madrasah-userid";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [userId, setUserId] = useState<string>("pg_demo_terpadu"); // Default user
+  const [userId, setUserId] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return window.localStorage.getItem(USER_STORAGE_KEY) || "pg_demo_terpadu";
+    }
+    return "pg_demo_terpadu";
+  });
   const [currentUser, setCurrentUser] = useState<Pegawai | null>(null);
-  
   const [penugasanList, setPenugasanList] = useState<PenugasanJabatan[]>([]);
   const [rombelList, setRombelList] = useState<Rombel[]>([]);
   const [ekstraList, setEkstraList] = useState<Ekstrakurikuler[]>([]);
   const [jadwalList, setJadwalList] = useState<JadwalPelajaran[]>([]);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(USER_STORAGE_KEY);
-    if (saved) {
-      setUserId(saved);
-    }
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

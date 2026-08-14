@@ -207,7 +207,7 @@ export function SuratPreview({ surat, profil, kamadAktif }: Props) {
                       <span
                         key={i}
                         className="h-3.5 w-3.5 rounded-[2px]"
-                        style={{ backgroundColor: Math.random() > 0.4 ? "var(--color-primary)" : "transparent" }}
+                        style={{ backgroundColor: (i % 2 === 0 || i === 4) ? "var(--color-primary)" : "transparent" }}
                       />
                     ))}
                   </div>

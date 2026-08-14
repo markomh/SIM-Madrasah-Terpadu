@@ -20,7 +20,7 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
 import type { HariLibur, MataPelajaran, Rombel, TingkatPendidikan } from "@/types";
-import { BookOpen, Calendar, GraduationCap, School } from "lucide-react";
+import { BookOpen, Calendar, GraduationCap, School, Plus, Save } from "lucide-react";
 
 type TabDomain = "kurikulum" | "rombel" | "kalender";
 
@@ -163,7 +163,7 @@ export default function ReferensiPage() {
         <div>
           {/* TAB 1: KURIKULUM & MATA PELAJARAN */}
           {activeTab === "kurikulum" && (
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 lg:grid-cols-3 items-start">
               <div className="lg:col-span-2">
                 <SurfaceCard title="Katalog Mata Pelajaran (Kurikulum)">
                   <p className="mb-3 text-xs text-muted">Daftar mata pelajaran umum, PAI/Agama, dan Muatan Lokal yang berlaku di madrasah.</p>
@@ -177,6 +177,7 @@ export default function ReferensiPage() {
                     </Select>
                     <Button
                       variant="primary"
+                      iconLeft={<Plus className="h-4 w-4" />}
                       onClick={async () => {
                         if (!kodeMapel || !namaMapel) return;
                         await services.referensi.createMapel({ kode_mapel: kodeMapel, nama_mapel: namaMapel, kelompok_mapel: kelompok });
@@ -185,7 +186,7 @@ export default function ReferensiPage() {
                         bump();
                       }}
                     >
-                      + Tambah Mapel
+                      Tambah Mapel
                     </Button>
                   </div>
                   <DataTable
@@ -198,8 +199,8 @@ export default function ReferensiPage() {
                         key: "kelompok",
                         header: "Kelompok",
                         render: (m) => (
-                          <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${m.kelompok_mapel.includes("Wajib") ? "bg-primary-soft text-primary" : "bg-paper text-muted border border-border"}`}>
-                            {m.kelompok_mapel}
+                          <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${(m.kelompok_mapel ?? "").includes("Wajib") ? "bg-primary-soft text-primary" : "bg-paper text-muted border border-border"}`}>
+                            {m.kelompok_mapel ?? "-"}
                           </span>
                         ),
                       },
@@ -217,6 +218,7 @@ export default function ReferensiPage() {
                     <Button
                       variant="primary"
                       fullWidth
+                      iconLeft={<Plus className="h-4 w-4" />}
                       onClick={async () => {
                         if (!namaTingkat) return;
                         await services.referensi.createTingkat({ nama_tingkat: namaTingkat, urutan });
@@ -224,7 +226,7 @@ export default function ReferensiPage() {
                         bump();
                       }}
                     >
-                      + Tambah Tingkat
+                      Tambah Tingkat
                     </Button>
                   </div>
                   <DataTable
@@ -258,6 +260,7 @@ export default function ReferensiPage() {
                   <Button
                     variant="primary"
                     fullWidth
+                    iconLeft={<Plus className="h-4 w-4" />}
                     onClick={async () => {
                       if (!selected || !namaRombel) return;
                       await services.referensi.createRombel({
@@ -270,7 +273,7 @@ export default function ReferensiPage() {
                       bump();
                     }}
                   >
-                    + Tambah Rombel
+                    Tambah Rombel
                   </Button>
                 </div>
               </div>
@@ -305,6 +308,7 @@ export default function ReferensiPage() {
                 <Input label="Keterangan Hari Libur" placeholder="mis. Hari Raya Idul Fitri" value={namaLibur} onChange={(e) => setNamaLibur(e.target.value)} className="min-w-[240px]" />
                 <Button
                   variant="primary"
+                  iconLeft={<Plus className="h-4 w-4" />}
                   onClick={async () => {
                     if (!selected || !tglLibur || !namaLibur) return;
                     await services.referensi.createHariLibur({ tanggal: tglLibur, nama: namaLibur, id_tahun: selected.id_tahun });
@@ -313,7 +317,7 @@ export default function ReferensiPage() {
                     bump();
                   }}
                 >
-                  + Tambah Libur
+                  Tambah Libur
                 </Button>
               </div>
 

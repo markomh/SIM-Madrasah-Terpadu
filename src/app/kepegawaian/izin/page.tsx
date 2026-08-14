@@ -19,6 +19,7 @@ import {
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
 import type { IzinGuru, Pegawai } from "@/types";
+import { Save } from "lucide-react";
 
 export default function IzinGuruPage() {
   const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
@@ -118,7 +119,7 @@ export default function IzinGuruPage() {
         description="Mencatat izin guru. Rekonsiliasi dengan presensi akan dilakukan otomatis."
       />
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3 items-start">
         <SurfaceCard className="md:col-span-1" title="Catat Izin Baru">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Field label="Nama Pegawai / Guru">
@@ -167,7 +168,7 @@ export default function IzinGuruPage() {
             </Field>
             
             <div className="pt-3 border-t border-border mt-4 flex justify-end">
-              <Button variant="primary" type="submit" loading={loading} fullWidth>
+              <Button variant="primary" type="submit" loading={loading} fullWidth iconLeft={<Save className="h-4 w-4" />}>
                 Simpan Izin
               </Button>
             </div>

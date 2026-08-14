@@ -34,6 +34,8 @@ import {
   AlertCircle,
   XCircle,
   RotateCcw,
+  X,
+  Save,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -439,8 +441,8 @@ export default function JadwalPage() {
             <AiLabel />
             <span className="font-medium">{aiNote}</span>
           </div>
-          <button type="button" onClick={() => setAiNote(null)} className="text-ai hover:opacity-75 font-bold">
-            ✕
+          <button type="button" onClick={() => setAiNote(null)} className="text-ai hover:opacity-75 font-bold p-1">
+            <X size={14} />
           </button>
         </div>
       )}
@@ -451,8 +453,8 @@ export default function JadwalPage() {
             <CheckCircle2 size={16} />
             <span>{successMsg}</span>
           </div>
-          <button type="button" onClick={() => setSuccessMsg(null)} className="text-primary hover:opacity-75 font-bold">
-            ✕
+          <button type="button" onClick={() => setSuccessMsg(null)} className="text-primary hover:opacity-75 font-bold p-1">
+            <X size={14} />
           </button>
         </div>
       )}
@@ -481,7 +483,7 @@ export default function JadwalPage() {
               <span
                 className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                   myJtmSummary.statusJtm === "IDEAL"
-                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                    ? "bg-primary-soft text-primary"
                     : myJtmSummary.statusJtm === "UNDERLOAD"
                     ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
                     : "bg-red-500/15 text-red-700 dark:text-red-300"
@@ -506,7 +508,7 @@ export default function JadwalPage() {
           {canEdit ? (
             <div className="mt-1 flex items-center gap-1.5">
               <select
-                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-transparent border-none p-0 focus:ring-0 cursor-pointer"
+                className="text-xs font-bold text-primary bg-transparent border-none p-0 focus:ring-0 cursor-pointer"
                 value={activePresetId}
                 onChange={(e) => setActivePresetId(e.target.value)}
               >
@@ -518,7 +520,7 @@ export default function JadwalPage() {
               </select>
             </div>
           ) : (
-            <p className="mt-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate" title={activePreset?.nama_preset}>
+            <p className="mt-1 text-xs font-bold text-primary truncate" title={activePreset?.nama_preset}>
               {activePreset?.nama_preset ?? "MTs (40 Menit/JP)"}
             </p>
           )}
@@ -696,8 +698,9 @@ export default function JadwalPage() {
               </Field>
 
               <div className="flex gap-2">
-                <PrimaryButton type="submit" disabled={isSaving} className="w-full">
-                  {isSaving ? "Menyimpan..." : editingJadwal ? "Perbarui Slot" : "Simpan Slot"}
+                <PrimaryButton type="submit" disabled={isSaving} className="w-full flex items-center justify-center gap-1.5">
+                  <Save size={14} className="shrink-0" />
+                  <span>{isSaving ? "Menyimpan..." : editingJadwal ? "Perbarui Slot" : "Simpan Slot"}</span>
                 </PrimaryButton>
                 <SecondaryButton
                   type="button"
@@ -746,7 +749,7 @@ export default function JadwalPage() {
                 type="button"
                 onClick={() => setViewMode("jtm")}
                 className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold transition-all ${
-                  viewMode === "jtm" ? "bg-surface text-emerald-600 dark:text-emerald-400 shadow-xs" : "text-muted hover:text-ink"
+                  viewMode === "jtm" ? "bg-surface text-primary shadow-xs" : "text-muted hover:text-ink"
                 }`}
               >
                 <CheckCircle size={14} />
@@ -1143,9 +1146,9 @@ export default function JadwalPage() {
               <button
                 type="button"
                 onClick={() => setSelectedSlotDetail(null)}
-                className="text-xs font-bold text-muted hover:text-ink px-2 py-1"
+                className="text-xs font-bold text-muted hover:text-ink p-1"
               >
-                ✕
+                <X size={14} />
               </button>
             </div>
 
@@ -1241,9 +1244,9 @@ export default function JadwalPage() {
                     setShowAddRoutineForm(false);
                     setEditingRoutineSlot(null);
                   }}
-                  className="text-xs font-bold text-muted hover:text-ink px-2 py-1"
+                  className="text-xs font-bold text-muted hover:text-ink p-1"
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
             </div>
@@ -1350,8 +1353,9 @@ export default function JadwalPage() {
                     >
                       Batal
                     </SecondaryButton>
-                    <PrimaryButton size="sm" type="submit">
-                      Simpan Rutinitas
+                    <PrimaryButton size="sm" type="submit" className="flex items-center gap-1.5">
+                      <Save size={14} className="shrink-0" />
+                      <span>Simpan Rutinitas</span>
                     </PrimaryButton>
                   </div>
                 </form>
@@ -1479,9 +1483,9 @@ export default function JadwalPage() {
                 <button
                   type="button"
                   onClick={() => setShowPrintModal(false)}
-                  className="rounded px-2 py-1 text-xs font-bold text-muted hover:text-ink"
+                  className="rounded p-1 text-xs font-bold text-muted hover:text-ink"
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
             </div>

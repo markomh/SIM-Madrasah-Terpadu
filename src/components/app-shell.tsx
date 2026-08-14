@@ -120,17 +120,21 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
+  const [namaMadrasah, setNamaMadrasah] = useState<string>("MTs Terpadu Nusantara");
 
   useEffect(() => {
     services.pegawai.getAll().then((data) => setAllPegawai(data));
     services.persetujuan.getPending().then((items) => setPendingCount(items.length)).catch(() => {});
+    services.madrasah.getCurrent().then((m) => {
+      if (m?.nama_madrasah) setNamaMadrasah(m.nama_madrasah);
+    }).catch(() => {});
   }, [pathname]);
 
   const visible = navigation
     .map((g) => ({ ...g, items: g.items.filter((i) => i.visible(authCtx)) }))
     .filter((g) => g.items.length > 0);
 
-  const Nav = () => (
+  const navContent = (
     <nav className="space-y-5">
       {visible.map((group) => (
         <div key={group.group}>
@@ -185,12 +189,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               <School size={18} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-ink">SIM Madrasah</p>
-              <p className="text-xs text-muted">Terpadu</p>
+              <p className="text-sm font-semibold text-ink">{namaMadrasah}</p>
+              <p className="text-xs text-muted">SIM Madrasah Terpadu</p>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <Nav />
+            {navContent}
           </div>
         </aside>
 
@@ -207,7 +211,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                     <Menu size={18} />
                   </button>
                   <div>
-                    <p className="text-xs text-muted">Sistem Informasi Manajemen</p>
+                    <p className="text-xs text-muted">{namaMadrasah}</p>
                     <p className="text-base font-semibold">{title ?? "SIM Madrasah Terpadu"}</p>
                   </div>
                 </div>
@@ -318,7 +322,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
           <button type="button" className="absolute inset-0 bg-ink/40" onClick={() => setMobileOpen(false)} aria-label="Tutup" />
           <div className="absolute left-0 top-0 h-full w-72 overflow-y-auto bg-surface p-4 shadow-lg">
             <p className="mb-4 text-sm font-semibold">Menu</p>
-            <Nav />
+            {navContent}
           </div>
         </div>
       ) : null}

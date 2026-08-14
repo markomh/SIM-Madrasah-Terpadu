@@ -328,13 +328,13 @@ export default function KenaikanKelasPage() {
                     <input
                       type="text"
                       className={`${inputClass} pl-8 py-1.5 text-xs`}
-                      placeholder="🔍 Cari Nama Lengkap Siswa / NISN..."
+                      placeholder="Cari Nama Lengkap Siswa / NISN..."
                       value={searchQueryAsal}
                       onChange={(e) => setSearchQueryAsal(e.target.value)}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-xs font-bold text-gray-800 cursor-pointer select-none">
+                    <label className="flex items-center gap-2 text-xs font-bold text-ink cursor-pointer select-none">
                       <input 
                         type="checkbox" 
                         className="rounded border-border text-primary focus:ring-primary h-4 w-4"
@@ -370,8 +370,8 @@ export default function KenaikanKelasPage() {
                           onChange={() => toggleSiswa(s.id_siswa)}
                         />
                         <div className="text-xs">
-                          <p className="font-bold text-gray-900">{s.nama_lengkap}</p>
-                          <p className="text-[10px] text-gray-500 font-mono">NISN: {s.nisn}</p>
+                          <p className="font-bold text-ink">{s.nama_lengkap}</p>
+                          <p className="text-[10px] text-muted font-mono">NISN: {s.nisn}</p>
                         </div>
                       </label>
                     ))
@@ -392,107 +392,111 @@ export default function KenaikanKelasPage() {
             action={
               selectedAsalRombel && selectedTujuanRombel ? (
                 getTingkatNumber(selectedTujuanRombel) > getTingkatNumber(selectedAsalRombel) ? (
-                  <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                  <span className="inline-flex items-center gap-1 bg-primary-soft text-primary px-2 py-0.5 rounded text-[10px] font-bold">
                     <ArrowUpRight size={12} /> Promosi (Tingkat {getTingkatNumber(selectedAsalRombel)} ➔ {getTingkatNumber(selectedTujuanRombel)})
                   </span>
                 ) : getTingkatNumber(selectedTujuanRombel) === getTingkatNumber(selectedAsalRombel) ? (
-                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">
+                  <span className="inline-flex items-center gap-1 bg-primary-soft text-primary px-2 py-0.5 rounded text-[10px] font-bold">
                     <RefreshCw size={12} /> Rotasi Paralel ({selectedAsalRombel.nama_rombel} ➔ {selectedTujuanRombel.nama_rombel})
                   </span>
                 ) : null
               ) : null
             }
           >
-            <div className="mb-4 grid grid-cols-2 gap-3">
-              <Field label="Smart Rombel Tujuan" helperText="Diurutkan sesuai tingkat berikutnya">
-                <select
-                  className={inputClass}
-                  value={tujuanRombelId}
-                  onChange={(e) => setTujuanRombelId(e.target.value)}
-                >
-                  <option value="">— Pilih Rombel Tujuan —</option>
+            <div className="space-y-4">
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                <Field label="Smart Rombel Tujuan" helperText="Diurutkan sesuai tingkat berikutnya">
+                  <select
+                    className={inputClass}
+                    value={tujuanRombelId}
+                    onChange={(e) => setTujuanRombelId(e.target.value)}
+                  >
+                    <option value="">— Pilih Rombel Tujuan —</option>
 
-                  {promosiRombel.length > 0 && (
-                    <optgroup label={`⬆ Promosi Kenaikan Kelas (Tingkat ${getTingkatNumber(selectedAsalRombel) + 1})`}>
-                      {promosiRombel.map((r) => (
-                        <option key={r.id_rombel} value={r.id_rombel}>
-                          {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
+                    {promosiRombel.length > 0 && (
+                      <optgroup label={`Promosi Kenaikan Kelas (Tingkat ${getTingkatNumber(selectedAsalRombel) + 1})`}>
+                        {promosiRombel.map((r) => (
+                          <option key={r.id_rombel} value={r.id_rombel}>
+                            {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
 
-                  {rotasiRombel.length > 0 && (
-                    <optgroup label={`↔ Rotasi Kelas Paralel (Tingkat ${getTingkatNumber(selectedAsalRombel)})`}>
-                      {rotasiRombel.map((r) => (
-                        <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
-                          {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
+                    {rotasiRombel.length > 0 && (
+                      <optgroup label={`Rotasi Kelas Paralel (Tingkat ${getTingkatNumber(selectedAsalRombel)})`}>
+                        {rotasiRombel.map((r) => (
+                          <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
+                            {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
 
-                  {lainnyaRombel.length > 0 && (
-                    <optgroup label="🔽 Rombel Tingkat Lainnya">
-                      {lainnyaRombel.map((r) => (
-                        <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
-                          {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                        </option>
-                      ))}
-                    </optgroup>
-                  )}
-                </select>
-              </Field>
+                    {lainnyaRombel.length > 0 && (
+                      <optgroup label="Rombel Tingkat Lainnya">
+                        {lainnyaRombel.map((r) => (
+                          <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
+                            {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                </Field>
 
-              <Field label="Tanggal Efektif">
-                <input
-                  type="date"
-                  className={inputClass}
-                  value={tanggalEfektif}
-                  onChange={(e) => setTanggalEfektif(e.target.value)}
-                />
-              </Field>
-            </div>
-            
-            {tujuanRombelId ? (
-              <div className="border border-border rounded-md overflow-hidden mb-4">
-                <div className="bg-paper p-3 border-b border-border flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-800">Daftar Siswa di Rombel Tujuan</span>
-                  <span className="text-[10px] bg-primary-soft text-primary font-bold px-2 py-0.5 rounded">
-                    {tujuanSiswa.length} Siswa
-                  </span>
-                </div>
-                <div className="max-h-[420px] overflow-y-auto bg-surface divide-y divide-border">
-                  {tujuanSiswa.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-muted">Rombel tujuan masih kosong.</div>
-                  ) : (
-                    tujuanSiswa.map((s) => (
-                      <div key={s.id_siswa} className="flex items-center gap-3 p-3 text-xs">
-                        <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
-                        <div>
-                          <p className="font-bold text-gray-900">{s.nama_lengkap}</p>
-                          <p className="text-[10px] text-gray-500 font-mono">NISN: {s.nisn}</p>
+                <Field label="Tanggal Efektif">
+                  <input
+                    type="date"
+                    className={inputClass}
+                    value={tanggalEfektif}
+                    onChange={(e) => setTanggalEfektif(e.target.value)}
+                  />
+                </Field>
+              </div>
+              
+              {tujuanRombelId ? (
+                <div className="border border-border rounded-md overflow-hidden mb-4">
+                  <div className="bg-paper p-3 border-b border-border flex items-center justify-between">
+                    <span className="text-xs font-bold text-ink">Daftar Siswa di Rombel Tujuan</span>
+                    <span className="text-[10px] bg-primary-soft text-primary font-bold px-2 py-0.5 rounded">
+                      {tujuanSiswa.length} Siswa
+                    </span>
+                  </div>
+                  <div className="max-h-[420px] overflow-y-auto bg-surface divide-y divide-border">
+                    {tujuanSiswa.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-muted">Rombel tujuan masih kosong.</div>
+                    ) : (
+                      tujuanSiswa.map((s) => (
+                        <div key={s.id_siswa} className="flex items-center gap-3 p-3 text-xs">
+                          <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                          <div>
+                            <p className="font-bold text-ink">{s.nama_lengkap}</p>
+                            <p className="text-[10px] text-muted font-mono">NISN: {s.nisn}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
+              ) : (
+                <div className="p-8 mb-4 text-center border border-dashed border-border rounded-md text-xs text-muted flex flex-col items-center gap-2">
+                  <Users size={24} className="text-muted/60" />
+                  <span>Silakan pilih Rombel Tujuan untuk melihat pemetaannya.</span>
+                </div>
+              )}
+              
+              <div className="pt-3 border-t border-border mt-4">
+                <PrimaryButton 
+                  className="w-full flex items-center justify-center gap-2 py-2.5 font-bold text-xs shadow-sm"
+                  onClick={handleMove} 
+                  disabled={busy || selectedCount === 0 || !tujuanRombelId || asalRombelId === tujuanRombelId}
+                  iconLeft={<ArrowRight className="h-4 w-4" />}
+                >
+                  <span>{busy ? "Memproses..." : `Pindahkan ${selectedCount} Siswa Terpilih`}</span>
+                </PrimaryButton>
               </div>
-            ) : (
-              <div className="p-8 mb-4 text-center border border-dashed border-border rounded-md text-xs text-muted flex flex-col items-center gap-2">
-                <Users size={24} className="text-muted/60" />
-                <span>Silakan pilih Rombel Tujuan untuk melihat pemetaannya.</span>
-              </div>
-            )}
-            
-            <PrimaryButton 
-              className="w-full flex items-center justify-center gap-2 py-2.5 font-bold text-xs shadow-sm"
-              onClick={handleMove} 
-              disabled={busy || selectedCount === 0 || !tujuanRombelId || asalRombelId === tujuanRombelId}
-            >
-              <ArrowRight size={16} />
-              <span>{busy ? "Memproses..." : `Pindahkan ${selectedCount} Siswa Terpilih ➜`}</span>
-            </PrimaryButton>
+            </div>
           </SurfaceCard>
 
         </div>

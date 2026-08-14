@@ -130,7 +130,7 @@ function EkstraDetail({ ekstra, pembinaName, onBack, canManage }: { ekstra: Ekst
 
   return (
     <div className="space-y-4">
-      <button onClick={onBack} className="text-sm text-primary hover:underline font-medium">&larr; Kembali ke daftar</button>
+      <PrimaryButton size="sm" onClick={onBack}>&larr; Kembali ke daftar</PrimaryButton>
       
       <SurfaceCard title={`Detail: ${ekstra.nama_ekstra}`}>
         <div className="text-sm mb-4">

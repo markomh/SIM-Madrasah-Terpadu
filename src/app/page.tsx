@@ -11,6 +11,8 @@ import { services } from "@/services";
 import type { PersetujuanItem } from "@/services/persetujuan.service";
 import type { Siswa } from "@/types";
 
+import { Zap } from "lucide-react";
+
 export default function DashboardPage() {
   const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
   const { version } = useDataVersion();
@@ -289,7 +291,7 @@ export default function DashboardPage() {
       {(currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) ? (
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-2 border-b border-border pb-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="h-2 w-2 rounded-full bg-primary" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Wali Kelas</h2>
           </div>
           <div className="space-y-4">
@@ -319,7 +321,7 @@ export default function DashboardPage() {
       {(currentUser && isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList)) ? (
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-2 border-b border-border pb-1">
-            <span className="h-2 w-2 rounded-full bg-purple-500" />
+            <span className="h-2 w-2 rounded-full bg-amber" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Pembina Ekstrakurikuler</h2>
           </div>
           <SurfaceCard title="Pembinaan Ekstrakurikuler">
@@ -335,7 +337,7 @@ export default function DashboardPage() {
       {(currentUser && isGuruBk(currentUser.id_pegawai, penugasanList)) ? (
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-2 border-b border-border pb-1">
-            <span className="h-2 w-2 rounded-full bg-rose-500" />
+            <span className="h-2 w-2 rounded-full bg-danger" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Bimbingan Konseling (BK)</h2>
           </div>
           <SurfaceCard title="Bimbingan Konseling (BK)">
@@ -351,14 +353,15 @@ export default function DashboardPage() {
       {(currentUser && isPengajarAktif(currentUser.id_pegawai, jadwalList)) ? (
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-2 border-b border-border pb-1">
-            <span className="h-2 w-2 rounded-full bg-indigo-500" />
+            <span className="h-2 w-2 rounded-full bg-primary" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Guru Mata Pelajaran</h2>
           </div>
           <SurfaceCard title="Sesi Mengajar & Presensi Kelas">
             <p className="text-sm text-muted mb-3">Akses cepat ke sesi mengajar aktif hari ini untuk pencatatan presensi siswa per jam pelajaran.</p>
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="/akademik/presensi-siswa" className="rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
-                ⚡ Mode Sesi Mengajar Aktif (Presensi)
+              <Link href="/akademik/presensi-siswa" className="inline-flex items-center rounded-[4px] bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
+                <Zap size={14} className="mr-1.5 inline shrink-0" />
+                Mode Sesi Mengajar Aktif (Presensi)
               </Link>
               <Link href="/akademik/nilai" className="rounded-[4px] border border-border bg-surface px-3 py-2 text-sm font-semibold text-ink hover:bg-paper">
                 Input Nilai Harian
@@ -375,7 +378,7 @@ export default function DashboardPage() {
       {(currentUser?.tugas_utama === "Tendik" && !isAdminMadrasah(currentUser.id_pegawai, penugasanList) && !isKepalaMadrasah(currentUser.id_pegawai, penugasanList) && !isOperatorKesiswaan(currentUser.id_pegawai, penugasanList)) ? (
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-2 border-b border-border pb-1">
-            <span className="h-2 w-2 rounded-full bg-slate-400" />
+            <span className="h-2 w-2 rounded-full bg-muted" />
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted">Panel Staf Tenaga Kependidikan (Tendik)</h2>
           </div>
           <SurfaceCard title="Informasi Staf Tendik">

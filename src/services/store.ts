@@ -24,12 +24,14 @@ import type {
   CatatanBk,
   KomponenNilai,
   NilaiSiswa,
+  Madrasah,
 } from "@/types";
 
 export const STORAGE_KEY = "sim-madrasah-demo-store-v5";
 export const SIMULATE_ERROR_KEY = "sim-madrasah-simulate-error";
 
 export type DemoStore = {
+  madrasah: Madrasah[];
   tahunAjaran: TahunAjaran[];
   tingkat: TingkatPendidikan[];
   mapel: MataPelajaran[];
@@ -93,9 +95,20 @@ export function maybeThrowSimulatedError(): void {
 }
 
 function buildSeed(): DemoStore {
+  const madrasah: Madrasah[] = [
+    {
+      id_madrasah: "md_1",
+      nama_madrasah: "MTs Terpadu Nusantara",
+      npsn: "10892345",
+      alamat: "Jl. Pendidikan No. 123, Kompleks Islamic Center",
+      id_desa: "desa_1",
+      status_aktif: true,
+    },
+  ];
+
   const tahunAjaran: TahunAjaran[] = [
-    { id_tahun: "ta_2526", nama_tahun: "2025/2026", status_aktif: false },
-    { id_tahun: "ta_2627", nama_tahun: "2026/2027", status_aktif: true },
+    { id_tahun: "ta_2526", id_madrasah: "md_1", nama_tahun: "2025/2026", status_aktif: false },
+    { id_tahun: "ta_2627", id_madrasah: "md_1", nama_tahun: "2026/2027", status_aktif: true },
   ];
 
   const tingkat: TingkatPendidikan[] = [
@@ -105,38 +118,38 @@ function buildSeed(): DemoStore {
   ];
 
   const mapel: MataPelajaran[] = [
-    { id_mapel: "mp_pai", kode_mapel: "PAI", nama_mapel: "Pendidikan Agama Islam", kelompok_mapel: "Agama" },
-    { id_mapel: "mp_mtk", kode_mapel: "MTK", nama_mapel: "Matematika", kelompok_mapel: "Umum" },
-    { id_mapel: "mp_bind", kode_mapel: "BIN", nama_mapel: "Bahasa Indonesia", kelompok_mapel: "Umum" },
-    { id_mapel: "mp_bing", kode_mapel: "BIG", nama_mapel: "Bahasa Inggris", kelompok_mapel: "Umum" },
-    { id_mapel: "mp_ipa", kode_mapel: "IPA", nama_mapel: "Ilmu Pengetahuan Alam", kelompok_mapel: "Umum" },
-    { id_mapel: "mp_qur", kode_mapel: "QUR", nama_mapel: "Al-Qur'an Hadis", kelompok_mapel: "Agama" },
-    { id_mapel: "mp_pjok", kode_mapel: "PJK", nama_mapel: "PJOK", kelompok_mapel: "Umum" },
+    { id_mapel: "mp_pai", id_madrasah: "md_1", kode_mapel: "PAI", nama_mapel: "Pendidikan Agama Islam", kelompok_mapel: "Agama" },
+    { id_mapel: "mp_mtk", id_madrasah: "md_1", kode_mapel: "MTK", nama_mapel: "Matematika", kelompok_mapel: "Umum" },
+    { id_mapel: "mp_bind", id_madrasah: "md_1", kode_mapel: "BIN", nama_mapel: "Bahasa Indonesia", kelompok_mapel: "Umum" },
+    { id_mapel: "mp_bing", id_madrasah: "md_1", kode_mapel: "BIG", nama_mapel: "Bahasa Inggris", kelompok_mapel: "Umum" },
+    { id_mapel: "mp_ipa", id_madrasah: "md_1", kode_mapel: "IPA", nama_mapel: "Ilmu Pengetahuan Alam", kelompok_mapel: "Umum" },
+    { id_mapel: "mp_qur", id_madrasah: "md_1", kode_mapel: "QUR", nama_mapel: "Al-Qur'an Hadis", kelompok_mapel: "Agama" },
+    { id_mapel: "mp_pjok", id_madrasah: "md_1", kode_mapel: "PJK", nama_mapel: "PJOK", kelompok_mapel: "Umum" },
   ];
 
   const pegawai: Pegawai[] = [
-    { id_pegawai: "pg_kepala", nik: "3175010101800001", nip: "197801012005011001", npk: null, nama_lengkap_gelar: "Dra. Nurul Hidayah, M.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Merdeka No.1", id_desa: "desa_1", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_admin", nik: "3175010201850002", nip: "198502022010011002", npk: null, nama_lengkap_gelar: "Ahmad Firdaus, S.Kom.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Sudirman No.2", id_desa: "desa_2", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_ops", nik: "3175010301900003", nip: null, npk: "NPK-003", nama_lengkap_gelar: "Lina Safitri, S.Pd.", status_kepegawaian: "Non-PNS", tugas_utama: "Guru", alamat_detail: "Jl. Pahlawan No.3", id_desa: "desa_3", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_wali_a", nik: "3175010401880004", nip: "198804042008011003", npk: null, nama_lengkap_gelar: "Budi Santoso, S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Mawar No.4", id_desa: "desa_4", mapel_sertifikasi: ["mp_qur"] },
-    { id_pegawai: "pg_wali_b", nik: "3175010501870005", nip: "198705052009012004", npk: null, nama_lengkap_gelar: "Suci Rahmawati, S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Melati No.5", id_desa: "desa_1", mapel_sertifikasi: ["mp_pai"] },
-    { id_pegawai: "pg_wali_c", nik: "3175010601860006", nip: null, npk: "NPK-006", nama_lengkap_gelar: "Rangga Pratama, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Kamboja No.6", id_desa: "desa_2", mapel_sertifikasi: ["mp_pai"] },
-    { id_pegawai: "pg_guru_1", nik: "3175010701910007", nip: null, npk: "NPK-007", nama_lengkap_gelar: "Dewi Kartika, S.Pd.", status_kepegawaian: "Non-PNS", tugas_utama: "Guru", alamat_detail: "Jl. Anggrek No.7", id_desa: "desa_3", mapel_sertifikasi: ["mp_bind", "mp_bing"] },
-    { id_pegawai: "pg_guru_2", nik: "3175010801890008", nip: "198908082011011005", npk: null, nama_lengkap_gelar: "Hendra Wijaya, M.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Flamboyan No.8", id_desa: "desa_4", mapel_sertifikasi: ["mp_mtk", "mp_ipa"] },
-    { id_pegawai: "pg_tendik", nik: "3175010901920009", nip: null, npk: "NPK-009", nama_lengkap_gelar: "Maya Anggraini", status_kepegawaian: "Honorer", tugas_utama: "Tendik", alamat_detail: "Jl. Kenanga No.9", id_desa: "desa_1", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_pembina", nik: "3175011101850011", nip: null, npk: "NPK-011", nama_lengkap_gelar: "Agus Salim, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Veteran No.10", id_desa: "desa_2", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_bk", nik: "3175011201900012", nip: null, npk: "NPK-012", nama_lengkap_gelar: "Siti Aminah, S.Psi.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Diponegoro No.11", id_desa: "desa_3", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_demo_terpadu", nik: "3175999900000099", nip: "199901012020011001", npk: null, nama_lengkap_gelar: "Siti Nurhaliza (Demo Terpadu), S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Demo Terpadu", id_desa: "desa_1", mapel_sertifikasi: ["mp_mtk"] },
-    { id_pegawai: "pg_guru_polos", nik: "3175011301900013", nip: null, npk: "NPK-013", nama_lengkap_gelar: "Bambang Pamungkas, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Polos No.13", id_desa: "desa_4", mapel_sertifikasi: ["mp_pjok"] },
+    { id_pegawai: "pg_kepala", id_madrasah: "md_1", nik: "3175010101800001", nip: "197801012005011001", npk: null, nama_lengkap_gelar: "Dra. Nurul Hidayah, M.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Merdeka No.1", id_desa: "desa_1", mapel_sertifikasi: [] },
+    { id_pegawai: "pg_admin", id_madrasah: "md_1", nik: "3175010201850002", nip: "198502022010011002", npk: null, nama_lengkap_gelar: "Ahmad Firdaus, S.Kom.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Sudirman No.2", id_desa: "desa_2", mapel_sertifikasi: [] },
+    { id_pegawai: "pg_ops", id_madrasah: "md_1", nik: "3175010301900003", nip: null, npk: "NPK-003", nama_lengkap_gelar: "Lina Safitri, S.Pd.", status_kepegawaian: "Non-PNS", tugas_utama: "Guru", alamat_detail: "Jl. Pahlawan No.3", id_desa: "desa_3", mapel_sertifikasi: [] },
+    { id_pegawai: "pg_wali_a", id_madrasah: "md_1", nik: "3175010401880004", nip: "198804042008011003", npk: null, nama_lengkap_gelar: "Budi Santoso, S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Mawar No.4", id_desa: "desa_4", mapel_sertifikasi: ["mp_qur"] },
+    { id_pegawai: "pg_wali_b", id_madrasah: "md_1", nik: "3175010501870005", nip: "198705052009012004", npk: null, nama_lengkap_gelar: "Suci Rahmawati, S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Melati No.5", id_desa: "desa_1", mapel_sertifikasi: ["mp_pai"] },
+    { id_pegawai: "pg_wali_c", id_madrasah: "md_1", nik: "3175010601860006", nip: null, npk: "NPK-006", nama_lengkap_gelar: "Rangga Pratama, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Kamboja No.6", id_desa: "desa_2", mapel_sertifikasi: ["mp_pai"] },
+    { id_pegawai: "pg_guru_1", id_madrasah: "md_1", nik: "3175010701910007", nip: null, npk: "NPK-007", nama_lengkap_gelar: "Dewi Kartika, S.Pd.", status_kepegawaian: "Non-PNS", tugas_utama: "Guru", alamat_detail: "Jl. Anggrek No.7", id_desa: "desa_3", mapel_sertifikasi: ["mp_bind", "mp_bing"] },
+    { id_pegawai: "pg_guru_2", id_madrasah: "md_1", nik: "3175010801890008", nip: "198908082011011005", npk: null, nama_lengkap_gelar: "Hendra Wijaya, M.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Flamboyan No.8", id_desa: "desa_4", mapel_sertifikasi: ["mp_mtk", "mp_ipa"] },
+    { id_pegawai: "pg_tendik", id_madrasah: "md_1", nik: "3175010901920009", nip: null, npk: "NPK-009", nama_lengkap_gelar: "Maya Anggraini", status_kepegawaian: "Honorer", tugas_utama: "Tendik", alamat_detail: "Jl. Kenanga No.9", id_desa: "desa_1", mapel_sertifikasi: [] },
+    { id_pegawai: "pg_pembina", id_madrasah: "md_1", nik: "3175011101850011", nip: null, npk: "NPK-011", nama_lengkap_gelar: "Agus Salim, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Veteran No.10", id_desa: "desa_2", mapel_sertifikasi: [] },
+    { id_pegawai: "pg_bk", id_madrasah: "md_1", nik: "3175011201900012", nip: null, npk: "NPK-012", nama_lengkap_gelar: "Siti Aminah, S.Psi.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Diponegoro No.11", id_desa: "desa_3", mapel_sertifikasi: [] },
+    { id_pegawai: "pg_demo_terpadu", id_madrasah: "md_1", nik: "3175999900000099", nip: "199901012020011001", npk: null, nama_lengkap_gelar: "Siti Nurhaliza (Demo Terpadu), S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Demo Terpadu", id_desa: "desa_1", mapel_sertifikasi: ["mp_mtk"] },
+    { id_pegawai: "pg_guru_polos", id_madrasah: "md_1", nik: "3175011301900013", nip: null, npk: "NPK-013", nama_lengkap_gelar: "Bambang Pamungkas, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Polos No.13", id_desa: "desa_4", mapel_sertifikasi: ["mp_pjok"] },
   ];
 
   const rombel: Rombel[] = [
-    { id_rombel: "rb_10a", nama_rombel: "10-A", id_tingkat: "t_10", id_tahun: "ta_2627", id_wali_kelas: "pg_demo_terpadu" },
-    { id_rombel: "rb_10b", nama_rombel: "10-B", id_tingkat: "t_10", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_b" },
-    { id_rombel: "rb_11a", nama_rombel: "11-A", id_tingkat: "t_11", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_c" },
-    { id_rombel: "rb_11b", nama_rombel: "11-B", id_tingkat: "t_11", id_tahun: "ta_2627", id_wali_kelas: "pg_guru_1" },
-    { id_rombel: "rb_12a", nama_rombel: "12-A", id_tingkat: "t_12", id_tahun: "ta_2627", id_wali_kelas: "pg_guru_2" },
-    { id_rombel: "rb_12b", nama_rombel: "12-B", id_tingkat: "t_12", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
+    { id_rombel: "rb_10a", id_madrasah: "md_1", nama_rombel: "10-A", id_tingkat: "t_10", id_tahun: "ta_2627", id_wali_kelas: "pg_demo_terpadu" },
+    { id_rombel: "rb_10b", id_madrasah: "md_1", nama_rombel: "10-B", id_tingkat: "t_10", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_b" },
+    { id_rombel: "rb_11a", id_madrasah: "md_1", nama_rombel: "11-A", id_tingkat: "t_11", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_c" },
+    { id_rombel: "rb_11b", id_madrasah: "md_1", nama_rombel: "11-B", id_tingkat: "t_11", id_tahun: "ta_2627", id_wali_kelas: "pg_guru_1" },
+    { id_rombel: "rb_12a", id_madrasah: "md_1", nama_rombel: "12-A", id_tingkat: "t_12", id_tahun: "ta_2627", id_wali_kelas: "pg_guru_2" },
+    { id_rombel: "rb_12b", id_madrasah: "md_1", nama_rombel: "12-B", id_tingkat: "t_12", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
   ];
 
   const firstNames = [
@@ -155,6 +168,7 @@ function buildSeed(): DemoStore {
     const risk = i % 5 === 0 ? 80 + (i % 15) : i % 3 === 0 ? 55 + (i % 20) : i % 4 === 0 ? 40 + (i % 10) : null;
     return {
       id_siswa: `sw_${String(i + 1).padStart(2, "0")}`,
+      id_madrasah: "md_1",
       nik: `3175${String(100000000000 + i).slice(0, 12)}`,
       nisn: `${3000000000 + i * 17}`,
       nama_lengkap: `${fn} ${lastNames[i]}`.toUpperCase(),
@@ -208,6 +222,7 @@ function buildSeed(): DemoStore {
 
   siswa.push({
     id_siswa: "sw_31_pending",
+    id_madrasah: "md_1",
     nik: "3175999900000031",
     nisn: "3099990031",
     nama_lengkap: "RAFIQ ALFARIZI",
@@ -383,8 +398,8 @@ function buildSeed(): DemoStore {
   ];
 
   const ekstrakurikuler: Ekstrakurikuler[] = [
-    { id_ekstra: "ek_1", nama_ekstra: "Pramuka", id_pembina: "pg_demo_terpadu", id_tahun: "ta_2627" },
-    { id_ekstra: "ek_2", nama_ekstra: "Paskibra", id_pembina: "pg_wali_a", id_tahun: "ta_2627" },
+    { id_ekstra: "ek_1", id_madrasah: "md_1", nama_ekstra: "Pramuka", id_pembina: "pg_demo_terpadu", id_tahun: "ta_2627" },
+    { id_ekstra: "ek_2", id_madrasah: "md_1", nama_ekstra: "Paskibra", id_pembina: "pg_wali_a", id_tahun: "ta_2627" },
   ];
   const keanggotaanEkstra: KeanggotaanEkstra[] = [
     { id_keanggotaan: "ak_1", id_ekstra: "ek_1", id_siswa: "sw_01", tanggal_mulai: "2026-07-20", tanggal_selesai: null, status: "Aktif" },
@@ -480,6 +495,7 @@ function buildSeed(): DemoStore {
   const catatanBk: CatatanBk[] = [
     {
       id_catatan: "cbk_1",
+      id_madrasah: "md_1",
       id_siswa: "sw_01",
       id_pegawai_bk: "pg_bk",
       tanggal: "2026-07-22",
@@ -489,6 +505,7 @@ function buildSeed(): DemoStore {
     },
     {
       id_catatan: "cbk_2",
+      id_madrasah: "md_1",
       id_siswa: "sw_01",
       id_pegawai_bk: "pg_bk",
       tanggal: "2026-07-23",
@@ -534,6 +551,7 @@ function buildSeed(): DemoStore {
   ];
 
   return {
+    madrasah,
     tahunAjaran,
     tingkat,
     mapel,
@@ -635,6 +653,7 @@ export function loadStore(): DemoStore {
         const store: DemoStore = {
           ...seed,
           ...parsed,
+          madrasah: parsed.madrasah?.length ? parsed.madrasah : seed.madrasah,
           penugasanJabatan: mergedPenugasan,
           jadwal: mergedJadwal,
           mapel: mergedMapel,

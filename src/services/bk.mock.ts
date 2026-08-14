@@ -25,6 +25,7 @@ export const mockBkService: BkService = {
     const newCatatan: CatatanBk = {
       ...data,
       id_catatan: createId("cbk"),
+      id_madrasah: data.id_madrasah ?? "md_1",
     };
     mutateStore(s => {
       s.catatanBk.push(newCatatan);
