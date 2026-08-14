@@ -21,17 +21,19 @@ trait BelongsToTenant
         // Global scope — query otomatis terfilter per id_madrasah.
         // Developer TIDAK BISA lupa WHERE karena scope ini selalu aktif.
         static::addGlobalScope('tenant', function (Builder $builder) {
-            if ($madrasahId = app('currentTenant')?->id_madrasah) {
-                $builder->where(
-                    $builder->getModel()->getTable() . '.id_madrasah',
-                    $madrasahId
-                );
+            if (app()->bound('currentTenant')) {
+                if ($madrasahId = app('currentTenant')->id_madrasah) {
+                    $builder->where(
+                        $builder->getModel()->getTable() . '.id_madrasah',
+                        $madrasahId
+                    );
+                }
             }
         });
 
         // Auto-fill id_madrasah saat creating baru.
         static::creating(function ($model) {
-            if (empty($model->id_madrasah) && app('currentTenant')) {
+            if (empty($model->id_madrasah) && app()->bound('currentTenant')) {
                 $model->id_madrasah = app('currentTenant')->id_madrasah;
             }
         });

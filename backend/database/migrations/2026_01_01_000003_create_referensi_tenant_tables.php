@@ -22,7 +22,7 @@ return new class extends Migration
     {
         Schema::create('tahun_ajaran', function (Blueprint $table) {
             $table->uuid('id_tahun')->primary();
-            $table->foreignUuid('id_madrasah')->constrained('madrasah');
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah');
             $table->string('nama_tahun'); // Contoh: "2026/2027"
             // TIDAK ADA kolom semester di sini — lihat catatan kritis di atas
             $table->boolean('status_aktif')->default(false);
@@ -31,7 +31,7 @@ return new class extends Migration
 
         Schema::create('mata_pelajaran', function (Blueprint $table) {
             $table->uuid('id_mapel')->primary();
-            $table->foreignUuid('id_madrasah')->constrained('madrasah');
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah');
             $table->string('kode_mapel');
             $table->string('nama_mapel');
             $table->string('kelompok_mapel')->nullable();
@@ -42,7 +42,7 @@ return new class extends Migration
 
         Schema::create('hari_libur', function (Blueprint $table) {
             $table->uuid('id_libur')->primary();
-            $table->foreignUuid('id_madrasah')->constrained('madrasah');
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah');
             $table->date('tanggal');
             $table->string('keterangan');
             $table->timestamps();

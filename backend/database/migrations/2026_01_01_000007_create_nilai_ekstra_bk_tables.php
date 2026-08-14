@@ -31,10 +31,10 @@ return new class extends Migration
 
         Schema::create('nilai_siswa', function (Blueprint $table) {
             $table->uuid('id_nilai')->primary();
-            $table->foreignUuid('id_siswa')->constrained('siswa');
-            $table->foreignUuid('id_komponen')->constrained('komponen_nilai');
-            $table->foreignUuid('id_rombel')->constrained('rombel');
-            $table->foreignUuid('id_tahun')->constrained('tahun_ajaran');
+            $table->foreignUuid('id_siswa')->constrained('siswa', 'id_siswa');
+            $table->foreignUuid('id_komponen')->constrained('komponen_nilai', 'id_komponen');
+            $table->foreignUuid('id_rombel')->constrained('rombel', 'id_rombel');
+            $table->foreignUuid('id_tahun')->constrained('tahun_ajaran', 'id_tahun');
             // semester ada DI SINI (konsisten dengan jadwal_pelajaran — bukan di tahun_ajaran)
             $table->enum('semester', ['Ganjil', 'Genap']);
             $table->decimal('nilai', 5, 2);
@@ -50,17 +50,17 @@ return new class extends Migration
         // ============================================================
         Schema::create('ekstrakurikuler', function (Blueprint $table) {
             $table->uuid('id_ekstra')->primary();
-            $table->foreignUuid('id_madrasah')->constrained('madrasah'); // Root tenant
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah'); // Root tenant
             $table->string('nama_ekstra');
             $table->foreignUuid('id_pembina')->nullable()->constrained('pegawai', 'id_pegawai');
-            $table->foreignUuid('id_tahun')->constrained('tahun_ajaran');
+            $table->foreignUuid('id_tahun')->constrained('tahun_ajaran', 'id_tahun');
             $table->timestamps();
         });
 
         Schema::create('keanggotaan_ekstra', function (Blueprint $table) {
             $table->uuid('id_keanggotaan')->primary();
-            $table->foreignUuid('id_siswa')->constrained('siswa');
-            $table->foreignUuid('id_ekstra')->constrained('ekstrakurikuler');
+            $table->foreignUuid('id_siswa')->constrained('siswa', 'id_siswa');
+            $table->foreignUuid('id_ekstra')->constrained('ekstrakurikuler', 'id_ekstra');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai')->nullable();
             $table->enum('status', ['Aktif', 'Keluar'])->default('Aktif');
@@ -69,7 +69,7 @@ return new class extends Migration
 
         Schema::create('absensi_ekstra', function (Blueprint $table) {
             $table->uuid('id_absensi_ekstra')->primary();
-            $table->foreignUuid('id_keanggotaan')->constrained('keanggotaan_ekstra');
+            $table->foreignUuid('id_keanggotaan')->constrained('keanggotaan_ekstra', 'id_keanggotaan');
             $table->date('tanggal');
             $table->enum('status', ['Hadir', 'Tidak Hadir']);
             $table->timestamps();
@@ -82,8 +82,8 @@ return new class extends Migration
             $table->uuid('id_catatan')->primary();
             // id_madrasah FK langsung (bukan hanya via siswa) — dibutuhkan untuk
             // single-policy PostgreSQL RLS yang memeriksa tenant + kerahasiaan sekaligus
-            $table->foreignUuid('id_madrasah')->constrained('madrasah');
-            $table->foreignUuid('id_siswa')->constrained('siswa');
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah');
+            $table->foreignUuid('id_siswa')->constrained('siswa', 'id_siswa');
             $table->foreignUuid('id_pegawai_bk')->constrained('pegawai', 'id_pegawai');
             $table->date('tanggal');
             $table->enum('kategori', ['Akademik', 'Perilaku', 'Pribadi', 'Sosial']);
@@ -97,23 +97,27 @@ return new class extends Migration
         // Menegakkan dua kondisi sekaligus: tenant isolation + kerahasiaan BK
         // @see doc/backend.md Bab 4.6
         // ============================================================
-        DB::statement('ALTER TABLE catatan_bk ENABLE ROW LEVEL SECURITY;');
-        DB::statement("
-            CREATE POLICY catatan_bk_rahasia ON catatan_bk
-            USING (
-                id_madrasah = current_setting('app.current_madrasah_id')::uuid
-                AND (
-                    tingkat_kerahasiaan = 'Umum'
-                    OR id_pegawai_bk = current_setting('app.current_pegawai_id')::uuid
-                    OR current_setting('app.current_pegawai_is_kamad')::boolean = true
-                )
-            );
-        ");
+        if (DB::connection($this->getConnection())->getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE catatan_bk ENABLE ROW LEVEL SECURITY;');
+            DB::statement("
+                CREATE POLICY catatan_bk_rahasia ON catatan_bk
+                USING (
+                    id_madrasah = current_setting('app.current_madrasah_id')::uuid
+                    AND (
+                        tingkat_kerahasiaan = 'Umum'
+                        OR id_pegawai_bk = current_setting('app.current_pegawai_id')::uuid
+                        OR current_setting('app.current_pegawai_is_kamad')::boolean = true
+                    )
+                );
+            ");
+        }
     }
 
     public function down(): void
     {
-        DB::statement('DROP POLICY IF EXISTS catatan_bk_rahasia ON catatan_bk;');
+        if (DB::connection($this->getConnection())->getDriverName() === 'pgsql') {
+            DB::statement('DROP POLICY IF EXISTS catatan_bk_rahasia ON catatan_bk;');
+        }
         Schema::dropIfExists('catatan_bk');
         Schema::dropIfExists('absensi_ekstra');
         Schema::dropIfExists('keanggotaan_ekstra');

@@ -46,7 +46,7 @@ class AuthTest extends TestCase
             'status_kepegawaian' => 'PNS',
             'tugas_utama'        => 'Guru',
             'email'              => 'kamad@test.com',
-            'password'           => bcrypt('password'),
+            'password'           => 'password',
         ]);
 
         PenugasanJabatan::create([
@@ -86,7 +86,7 @@ class AuthTest extends TestCase
             'status_kepegawaian' => 'PNS',
             'tugas_utama'        => 'Tendik',
             'email'              => 'user@test.com',
-            'password'           => bcrypt('password'),
+            'password'           => 'password',
         ]);
 
         $this->actingAs($pegawai, 'sanctum')
@@ -115,7 +115,7 @@ class AuthTest extends TestCase
             'status_kepegawaian' => 'PNS',
             'tugas_utama'        => 'Guru',
             'email'              => 'rangkap@test.com',
-            'password'           => bcrypt('password'),
+            'password'           => 'password',
         ]);
 
         // Rangkap Kamad + Guru BK (identik dengan pg_demo_terpadu di frontend seed)

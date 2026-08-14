@@ -26,7 +26,7 @@ return new class extends Migration
 
         Schema::create('master_kabupaten', function (Blueprint $table) {
             $table->uuid('id_kabupaten')->primary();
-            $table->foreignUuid('id_provinsi')->constrained('master_provinsi');
+            $table->foreignUuid('id_provinsi')->constrained('master_provinsi', 'id_provinsi');
             $table->string('kode_kabupaten')->unique();
             $table->string('nama_kabupaten');
             $table->timestamps();
@@ -34,7 +34,7 @@ return new class extends Migration
 
         Schema::create('master_kecamatan', function (Blueprint $table) {
             $table->uuid('id_kecamatan')->primary();
-            $table->foreignUuid('id_kabupaten')->constrained('master_kabupaten');
+            $table->foreignUuid('id_kabupaten')->constrained('master_kabupaten', 'id_kabupaten');
             $table->string('kode_kecamatan')->unique();
             $table->string('nama_kecamatan');
             $table->timestamps();
@@ -42,7 +42,7 @@ return new class extends Migration
 
         Schema::create('master_desa', function (Blueprint $table) {
             $table->uuid('id_desa')->primary();
-            $table->foreignUuid('id_kecamatan')->constrained('master_kecamatan');
+            $table->foreignUuid('id_kecamatan')->constrained('master_kecamatan', 'id_kecamatan');
             $table->string('kode_desa')->unique();
             $table->string('nama_desa');
             $table->timestamps();

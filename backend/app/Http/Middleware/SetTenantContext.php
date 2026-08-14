@@ -31,11 +31,14 @@ class SetTenantContext
 
             // Set variabel sesi PostgreSQL untuk Row-Level Security (catatan_bk).
             // SET LOCAL berlaku untuk transaction saat ini saja — aman untuk pooling.
-            DB::statement('SET LOCAL app.current_madrasah_id = ?', [$pegawai->id_madrasah]);
-            DB::statement('SET LOCAL app.current_pegawai_id = ?', [$pegawai->id_pegawai]);
-            DB::statement('SET LOCAL app.current_pegawai_is_kamad = ?', [
-                $this->accessService->isKepalaMadrasah($pegawai) ? 'true' : 'false',
-            ]);
+            // Hanya dijalankan pada koneksi PostgreSQL (dilewati saat testing dengan SQLite).
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('SET LOCAL app.current_madrasah_id = ?', [$pegawai->id_madrasah]);
+                DB::statement('SET LOCAL app.current_pegawai_id = ?', [$pegawai->id_pegawai]);
+                DB::statement('SET LOCAL app.current_pegawai_is_kamad = ?', [
+                    $this->accessService->isKepalaMadrasah($pegawai) ? 'true' : 'false',
+                ]);
+            }
         }
 
         return $next($request);

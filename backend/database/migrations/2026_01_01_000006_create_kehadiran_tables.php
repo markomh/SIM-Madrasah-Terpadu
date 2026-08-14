@@ -18,7 +18,7 @@ return new class extends Migration
     {
         Schema::create('izin_guru', function (Blueprint $table) {
             $table->uuid('id_izin')->primary();
-            $table->foreignUuid('id_pegawai')->constrained('pegawai');
+            $table->foreignUuid('id_pegawai')->constrained('pegawai', 'id_pegawai');
             $table->date('tanggal_izin');
             $table->enum('jenis_izin', ['Direncanakan H-1', 'Mendesak-Darurat']);
             $table->text('alasan');
@@ -34,7 +34,7 @@ return new class extends Migration
 
         Schema::create('sesi_tatap_muka', function (Blueprint $table) {
             $table->uuid('id_sesi')->primary();
-            $table->foreignUuid('id_jadwal')->constrained('jadwal_pelajaran');
+            $table->foreignUuid('id_jadwal')->constrained('jadwal_pelajaran', 'id_jadwal');
             $table->date('tanggal');
             $table->foreignUuid('id_pegawai_pelaksana')->nullable()->constrained('pegawai', 'id_pegawai');
             $table->timestamp('waktu_input')->nullable();
@@ -53,9 +53,9 @@ return new class extends Migration
         Schema::create('absensi_siswa', function (Blueprint $table) {
             $table->uuid('id_absensi')->primary();
             $table->date('tanggal');
-            $table->foreignUuid('id_siswa')->constrained('siswa');
-            $table->foreignUuid('id_rombel')->constrained('rombel');
-            $table->foreignUuid('id_sesi')->constrained('sesi_tatap_muka'); // WAJIB per-sesi, bukan per-hari
+            $table->foreignUuid('id_siswa')->constrained('siswa', 'id_siswa');
+            $table->foreignUuid('id_rombel')->constrained('rombel', 'id_rombel');
+            $table->foreignUuid('id_sesi')->constrained('sesi_tatap_muka', 'id_sesi'); // WAJIB per-sesi, bukan per-hari
             $table->enum('status', ['Hadir', 'Sakit', 'Izin', 'Alpa']);
             $table->timestamps();
             // CONSTRAINT KRITIS: satu siswa satu status per sesi (bukan per hari)

@@ -19,7 +19,7 @@ return new class extends Migration
     {
         Schema::create('pegawai', function (Blueprint $table) {
             $table->uuid('id_pegawai')->primary();
-            $table->foreignUuid('id_madrasah')->constrained('madrasah');
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah');
             // NIK dienkripsi di level aplikasi (EncryptedNik cast), bukan DB encrypt
             // TIDAK BISA unique constraint DB-level karena enkripsi non-deterministic
             // Uniqueness dijaga di Form Request via decrypt + compare, atau nik_hash
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->string('status_kepegawaian'); // PNS, Non-PNS, Honorer
             $table->enum('tugas_utama', ['Guru', 'Tendik']);
             $table->text('alamat_detail')->nullable();
-            $table->foreignUuid('id_desa')->nullable()->constrained('master_desa');
+            $table->foreignUuid('id_desa')->nullable()->constrained('master_desa', 'id_desa');
             $table->jsonb('mapel_sertifikasi')->nullable(); // Array UUID id_mapel
             // Email untuk login Sanctum
             $table->string('email')->unique()->nullable();
@@ -41,9 +41,9 @@ return new class extends Migration
 
         Schema::create('penugasan_jabatan', function (Blueprint $table) {
             $table->uuid('id_penugasan')->primary();
-            $table->foreignUuid('id_pegawai')->constrained('pegawai');
+            $table->foreignUuid('id_pegawai')->constrained('pegawai', 'id_pegawai');
             $table->enum('jenis_jabatan', ['Kepala Madrasah', 'Admin Madrasah', 'Operator Kesiswaan', 'Guru BK']);
-            $table->foreignUuid('id_tahun')->constrained('tahun_ajaran');
+            $table->foreignUuid('id_tahun')->constrained('tahun_ajaran', 'id_tahun');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai')->nullable();
             $table->enum('status', ['Aktif', 'Berakhir'])->default('Aktif');

@@ -20,7 +20,7 @@ return new class extends Migration
         Schema::create('profil_madrasah', function (Blueprint $table) {
             $table->uuid('id_profil')->primary();
             // Unik per madrasah — satu baris per madrasah (bukan lagi singleton global)
-            $table->foreignUuid('id_madrasah')->unique()->constrained('madrasah');
+            $table->foreignUuid('id_madrasah')->unique()->constrained('madrasah', 'id_madrasah');
             $table->string('nama_madrasah');
             $table->string('kode_instansi');
             $table->text('alamat')->nullable();
@@ -34,7 +34,7 @@ return new class extends Migration
 
         Schema::create('template_surat', function (Blueprint $table) {
             $table->uuid('id_template')->primary();
-            $table->foreignUuid('id_madrasah')->constrained('madrasah');
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah');
             // kode_template unik PER madrasah, bukan global lintas tenant
             $table->string('kode_template');
             $table->string('nama_template');
@@ -47,10 +47,10 @@ return new class extends Migration
         Schema::create('surat', function (Blueprint $table) {
             $table->uuid('id_surat')->primary();
             // id_madrasah wajib — nomor surat dihitung berurutan PER madrasah
-            $table->foreignUuid('id_madrasah')->constrained('madrasah');
+            $table->foreignUuid('id_madrasah')->constrained('madrasah', 'id_madrasah');
             // nomor_surat unik per madrasah, format: 421/{urutan}/{kode_instansi}/{tahun}
             $table->string('nomor_surat');
-            $table->foreignUuid('id_template')->nullable()->constrained('template_surat');
+            $table->foreignUuid('id_template')->nullable()->constrained('template_surat', 'id_template');
             $table->string('perihal');
             $table->text('isi_surat');
             $table->string('jenis_surat');

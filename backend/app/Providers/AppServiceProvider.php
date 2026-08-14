@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Regitrasi Global Eloquent Observer untuk Audit Logging pada entitas utama
+        // Registrasi Global Eloquent Observer untuk Audit Logging pada entitas utama
         Siswa::observe(AuditObserver::class);
         Pegawai::observe(AuditObserver::class);
         PenugasanJabatan::observe(AuditObserver::class);

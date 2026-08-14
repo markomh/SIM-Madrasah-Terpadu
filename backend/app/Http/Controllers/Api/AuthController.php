@@ -51,7 +51,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+
+        // Token bisa null (misal actingAs tanpa token asli).
+        // TransientToken tidak punya delete(), hanya PersonalAccessToken asli.
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
 
         return response()->json(['message' => 'Logged out.']);
     }

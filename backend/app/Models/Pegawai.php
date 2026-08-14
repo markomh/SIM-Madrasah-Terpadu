@@ -36,10 +36,14 @@ class Pegawai extends Authenticatable
         'alamat_detail',
         'id_desa',
         'mapel_sertifikasi',
+        'email',
+        'password',
     ];
 
     protected $hidden = [
         'nik', // Terenkripsi — tidak dikirim raw ke response kecuali endpoint profil resmi
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
@@ -47,6 +51,7 @@ class Pegawai extends Authenticatable
         // NIK dienkripsi di level aplikasi menggunakan Laravel's built-in encrypt/decrypt
         // Implementasi: custom cast EncryptedNik
         'nik' => \App\Casts\EncryptedNik::class,
+        'password' => 'hashed',
     ];
 
     protected static function boot(): void
@@ -55,6 +60,12 @@ class Pegawai extends Authenticatable
         static::creating(function ($model) {
             if (empty($model->id_pegawai)) {
                 $model->id_pegawai = (string) Uuid::uuid4();
+            }
+        });
+
+        static::saving(function ($model) {
+            if ($model->isDirty('nik') && !empty($model->nik)) {
+                $model->nik_hash = hash('sha256', $model->nik);
             }
         });
     }
