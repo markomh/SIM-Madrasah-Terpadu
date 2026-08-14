@@ -1,0 +1,71 @@
+﻿version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sim_madrasah_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sim_madrasah
+      POSTGRES_USER: sim_user
+      POSTGRES_PASSWORD: sim_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sim_madrasah_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: sim_madrasah_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - sim_madrasah_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sim_madrasah_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - sim_madrasah_net
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: sim_madrasah
+      DB_USERNAME: sim_user
+      DB_PASSWORD: sim_secret
+      REDIS_HOST: redis
+
+  nginx:
+    image: nginx:alpine
+    container_name: sim_madrasah_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www
+      - ./backend/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - sim_madrasah_net
+    depends_on:
+      - backend
+
+networks:
+  sim_madrasah_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
