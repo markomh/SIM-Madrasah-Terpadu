@@ -3,22 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\CatatanBk;
-use App\Models\Ekstrakurikuler;
 use App\Models\JadwalPelajaran;
 use App\Models\KomponenNilai;
 use App\Models\NilaiSiswa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * NilaiController, EkstrakurikulerController, BkController
- *
- * Menangani Penilaian Akademik (dengan Assessor Schedule Validation), Ekstrakurikuler,
- * dan Catatan BK (dengan PostgreSQL RLS policy `catatan_bk_rahasia`).
- *
- * @see doc/backend.md Bab 7 — Nilai, Ekstra, BK
- */
 class NilaiController extends Controller
 {
     public function index(Request $request): JsonResponse
@@ -111,69 +101,5 @@ class NilaiController extends Controller
         ]);
 
         return response()->json(['data' => $komponen], 201);
-    }
-}
-
-class EkstrakurikulerController extends Controller
-{
-    public function index(): JsonResponse
-    {
-        $data = Ekstrakurikuler::with(['pembina', 'tahunAjaran'])->get();
-
-        return response()->json(['data' => $data]);
-    }
-
-    public function store(Request $request): JsonResponse
-    {
-        $request->validate([
-            'nama_ekstra' => 'required|string|max:100',
-            'id_pembina'  => 'nullable|exists:pegawai,id_pegawai',
-            'id_tahun'    => 'required|exists:tahun_ajaran,id_tahun',
-        ]);
-
-        $ekstra = Ekstrakurikuler::create([
-            'nama_ekstra' => $request->nama_ekstra,
-            'id_pembina'  => $request->id_pembina,
-            'id_tahun'    => $request->id_tahun,
-        ]);
-
-        return response()->json(['data' => $ekstra], 201);
-    }
-}
-
-class BkController extends Controller
-{
-    public function indexCatatan(Request $request): JsonResponse
-    {
-        // Transparent filtering via PostgreSQL Row-Level Security (catatan_bk_rahasia)
-        $query = CatatanBk::with(['siswa', 'pegawaiBk']);
-
-        if ($request->has('id_siswa')) {
-            $query->where('id_siswa', $request->id_siswa);
-        }
-
-        return response()->json(['data' => $query->orderBy('tanggal', 'desc')->get()]);
-    }
-
-    public function storeCatatan(Request $request): JsonResponse
-    {
-        $request->validate([
-            'id_siswa'            => 'required|exists:siswa,id_siswa',
-            'tanggal'             => 'required|date',
-            'kategori'            => 'required|in:Akademik,Perilaku,Pribadi,Sosial',
-            'catatan'             => 'required|string',
-            'tingkat_kerahasiaan' => 'required|in:Umum,Rahasia',
-        ]);
-
-        $catatan = CatatanBk::create([
-            'id_siswa'            => $request->id_siswa,
-            'id_pegawai_bk'       => auth()->user()->id_pegawai,
-            'tanggal'             => $request->tanggal,
-            'kategori'            => $request->kategori,
-            'catatan'             => $request->catatan,
-            'tingkat_kerahasiaan' => $request->tingkat_kerahasiaan,
-        ]);
-
-        return response()->json(['data' => $catatan], 201);
     }
 }

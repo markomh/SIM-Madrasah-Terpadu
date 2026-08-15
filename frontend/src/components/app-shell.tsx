@@ -20,6 +20,7 @@ import {
   ArrowLeftRight,
   Inbox,
   UserCog,
+  LogOut,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-context";
 import { useTahunAjaran } from "@/components/app-providers";
@@ -115,7 +116,7 @@ const navigation: NavGroup[] = [
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const pathname = usePathname() || "/";
   const authCtx = useAuth();
-  const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList } = authCtx;
+  const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList, logout } = authCtx;
   const { list: tahunList, selected, setSelectedId, selectedSemester, setSelectedSemester } = useTahunAjaran();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
@@ -230,7 +231,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                       <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-border" />
                     )}
                   </Link>
-                  <div className="hidden items-center gap-2 rounded-[4px] border border-border px-2 py-1.5 sm:flex">
+                  <div className="hidden items-center gap-3 rounded-[4px] border border-border pl-2 pr-1.5 py-1.5 sm:flex bg-surface hover:bg-paper transition">
                     <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-primary-soft text-xs font-bold text-primary">
                       {currentUser?.nama_lengkap_gelar?.slice(0, 2).toUpperCase() ?? "P"}
                     </div>
@@ -238,6 +239,14 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                       <p className="truncate text-xs font-semibold">{currentUser?.nama_lengkap_gelar ?? "Pegawai"}</p>
                       <p className="text-[10px] text-muted">{currentUser?.tugas_utama}</p>
                     </div>
+                    <div className="h-6 w-px bg-border mx-1"></div>
+                    <button
+                      onClick={logout}
+                      title="Logout / Keluar"
+                      className="flex h-8 w-8 items-center justify-center rounded-[4px] text-muted hover:bg-danger/10 hover:text-danger transition"
+                    >
+                      <LogOut size={16} />
+                    </button>
                   </div>
                 </div>
               </div>

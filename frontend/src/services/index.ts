@@ -43,12 +43,15 @@ import { loadStore, resetStore, SIMULATE_ERROR_KEY } from "./store";
 import { madrasahMock } from "./madrasah.mock";
 import { madrasahApi } from "./madrasah.api";
 
+import { authApi } from "./auth.api";
+
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 /**
  * Single entry point for services — Swaps between Live Backend API (Tahap 2) and Mock (Tahap 1)
  */
 export const services = {
+  auth: authApi,
   madrasah: USE_MOCK ? madrasahMock : madrasahApi,
   siswa: USE_MOCK ? siswaMock : (siswaApi as unknown as typeof siswaMock),
   referensi: USE_MOCK ? referensiMock : (referensiApi as unknown as typeof referensiMock),

@@ -207,6 +207,14 @@ Route::prefix('v1')->group(function () {
         });
 
         // ============================================================
+        // WAWASAN (AI)
+        // ============================================================
+        Route::prefix('wawasan')->controller(\App\Http\Controllers\Api\WawasanController::class)->group(function () {
+            Route::get('siswa-berisiko', 'siswaBerisiko');
+            Route::get('rekomendasi-jadwal', 'rekomendasiJadwal');
+        });
+
+        // ============================================================
         // LAPORAN / EXPORT
         // ============================================================
         Route::prefix('laporan')->controller(\App\Http\Controllers\Api\LaporanController::class)->group(function () {

@@ -12,6 +12,7 @@ import {
 } from "react";
 import type { TahunAjaran } from "@/types";
 import { services } from "@/services";
+import { useAuth } from "./auth-context";
 
 type TahunState = {
   list: TahunAjaran[];
@@ -82,9 +83,14 @@ export function TahunAjaranProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const { currentUser } = useAuth();
+
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+    if (USE_MOCK || currentUser) {
+      void refresh();
+    }
+  }, [refresh, currentUser]);
 
   const selected = useMemo(
     () => state.list.find((t) => t.id_tahun === state.selectedId) ?? null,

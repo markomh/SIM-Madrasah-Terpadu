@@ -33,9 +33,9 @@ class SetTenantContext
             // SET LOCAL berlaku untuk transaction saat ini saja — aman untuk pooling.
             // Hanya dijalankan pada koneksi PostgreSQL (dilewati saat testing dengan SQLite).
             if (DB::connection()->getDriverName() === 'pgsql') {
-                DB::statement('SET LOCAL app.current_madrasah_id = ?', [$pegawai->id_madrasah]);
-                DB::statement('SET LOCAL app.current_pegawai_id = ?', [$pegawai->id_pegawai]);
-                DB::statement('SET LOCAL app.current_pegawai_is_kamad = ?', [
+                DB::statement("SELECT set_config('app.current_madrasah_id', ?, false)", [$pegawai->id_madrasah]);
+                DB::statement("SELECT set_config('app.current_pegawai_id', ?, false)", [$pegawai->id_pegawai]);
+                DB::statement("SELECT set_config('app.current_pegawai_is_kamad', ?, false)", [
                     $this->accessService->isKepalaMadrasah($pegawai) ? 'true' : 'false',
                 ]);
             }
