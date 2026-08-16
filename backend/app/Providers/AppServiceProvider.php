@@ -10,6 +10,8 @@ use App\Models\PenugasanJabatan;
 use App\Models\Siswa;
 use App\Models\Surat;
 use App\Observers\AuditObserver;
+use App\Policies\KedisiplinanPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +23,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // ============================================================
+        // Gate Definitions — Otorisasi terpusat untuk aksi tanpa model
+        // ============================================================
+        // KedisiplinanPolicy tidak terikat model Eloquent, sehingga perlu
+        // didaftarkan manual via Gate::define (bukan auto-discovery).
+        Gate::define('rekap-kedisiplinan', [KedisiplinanPolicy::class, 'rekap']);
+
         // Registrasi Global Eloquent Observer untuk Audit Logging pada entitas utama
         Siswa::observe(AuditObserver::class);
         Pegawai::observe(AuditObserver::class);
@@ -31,3 +40,4 @@ class AppServiceProvider extends ServiceProvider
         NilaiSiswa::observe(AuditObserver::class);
     }
 }
+

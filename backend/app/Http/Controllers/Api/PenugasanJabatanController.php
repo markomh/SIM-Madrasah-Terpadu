@@ -13,12 +13,20 @@ use Illuminate\Http\Request;
  * Menangani penugasan jabatan aditif pegawai (Kepala Madrasah, Admin, Ops Kesiswaan, Guru BK).
  * Model aditif — pegawai bisa memiliki multiple penugasan aktif secara bersamaan.
  *
+ * Otorisasi (SRS Bab 12):
+ * - index: Kepala Madrasah (read-only) dan Admin Madrasah
+ * - store/destroy: HANYA Admin Madrasah ("manajemen pengguna")
+ * Ditegakkan via PenugasanJabatanPolicy.
+ *
+ * @see doc/SIM_Madrasah_Terpadu_SRS_v2.md Bab 12 — Matriks Hak Akses
  * @see doc/backend.md Bab 7 — Penugasan Jabatan
  */
 class PenugasanJabatanController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', PenugasanJabatan::class);
+
         $query = PenugasanJabatan::with(['pegawai', 'tahunAjaran']);
 
         if ($request->has('id_pegawai')) {
@@ -34,6 +42,8 @@ class PenugasanJabatanController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', PenugasanJabatan::class);
+
         $request->validate([
             'id_pegawai'    => 'required|exists:pegawai,id_pegawai',
             'jenis_jabatan' => 'required|in:Kepala Madrasah,Admin Madrasah,Operator Kesiswaan,Guru BK',
@@ -55,8 +65,11 @@ class PenugasanJabatanController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $penugasan = PenugasanJabatan::findOrFail($id);
+        $this->authorize('delete', $penugasan);
+
         $penugasan->update(['status' => 'Berakhir', 'tanggal_selesai' => now()->toDateString()]);
 
         return response()->json(['message' => 'Penugasan jabatan diakhiri.']);
     }
 }
+
