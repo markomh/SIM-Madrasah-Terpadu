@@ -11,7 +11,8 @@ class ProfilMadrasahController extends Controller
 {
     public function show(): JsonResponse
     {
-        $profil = ProfilMadrasah::with('kepalaMadrasah')->first();
+        $tenantId = app('currentTenant')?->id_madrasah;
+        $profil = ProfilMadrasah::where('id_madrasah', $tenantId)->with('kepalaMadrasah')->first();
 
         return response()->json(['data' => $profil]);
     }

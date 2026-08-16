@@ -27,7 +27,7 @@ class PenugasanJabatanController extends Controller
     {
         $this->authorize('viewAny', PenugasanJabatan::class);
 
-        $query = PenugasanJabatan::with(['pegawai', 'tahunAjaran']);
+        $query = PenugasanJabatan::whereHas('pegawai')->with(['pegawai', 'tahunAjaran']);
 
         if ($request->has('id_pegawai')) {
             $query->where('id_pegawai', $request->id_pegawai);
@@ -51,10 +51,27 @@ class PenugasanJabatanController extends Controller
             'tanggal_mulai' => 'required|date',
         ]);
 
+        // Enforce tenant scoping on foreign keys
+        $pegawai = \App\Models\Pegawai::findOrFail($request->id_pegawai);
+        $tahun   = \App\Models\TahunAjaran::findOrFail($request->id_tahun);
+
+        $existing = PenugasanJabatan::where('id_pegawai', $request->id_pegawai)
+            ->where('jenis_jabatan', $request->jenis_jabatan)
+            ->where('id_tahun', $request->id_tahun)
+            ->where('status', 'Aktif')
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => "Pegawai ini sudah memiliki penugasan aktif untuk jabatan \"{$request->jenis_jabatan}\" pada tahun ajaran tersebut.",
+                'data'    => $existing->load(['pegawai', 'tahunAjaran']),
+            ], 422);
+        }
+
         $penugasan = PenugasanJabatan::create([
-            'id_pegawai'    => $request->id_pegawai,
+            'id_pegawai'    => $pegawai->id_pegawai,
             'jenis_jabatan' => $request->jenis_jabatan,
-            'id_tahun'      => $request->id_tahun,
+            'id_tahun'      => $tahun->id_tahun,
             'tanggal_mulai' => $request->tanggal_mulai,
             'status'        => 'Aktif',
         ]);
@@ -64,7 +81,7 @@ class PenugasanJabatanController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $penugasan = PenugasanJabatan::findOrFail($id);
+        $penugasan = PenugasanJabatan::whereHas('pegawai')->findOrFail($id);
         $this->authorize('delete', $penugasan);
 
         $penugasan->update(['status' => 'Berakhir', 'tanggal_selesai' => now()->toDateString()]);

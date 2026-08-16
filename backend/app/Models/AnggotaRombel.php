@@ -22,4 +22,14 @@ class AnggotaRombel extends Model
         parent::boot();
         static::creating(fn ($m) => $m->id_anggota = $m->id_anggota ?: (string) Uuid::uuid4());
     }
+
+    public function rombel()
+    {
+        return $this->belongsTo(Rombel::class, 'id_rombel');
+    }
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'id_siswa');
+    }
 }

@@ -11,7 +11,8 @@ class KeanggotaanController extends Controller
 {
     public function aktif(Request $request): JsonResponse
     {
-        $query = AnggotaRombel::whereNull('tanggal_selesai')
+        $query = AnggotaRombel::whereHas('rombel')
+            ->whereNull('tanggal_selesai')
             ->where('status_persetujuan', '!=', 'Menunggu Persetujuan');
 
         if ($request->has('id_rombel')) {
@@ -29,7 +30,9 @@ class KeanggotaanController extends Controller
 
     public function pending(Request $request): JsonResponse
     {
-        $data = AnggotaRombel::where('status_persetujuan', 'Menunggu Persetujuan')->get();
+        $data = AnggotaRombel::whereHas('rombel')
+            ->where('status_persetujuan', 'Menunggu Persetujuan')
+            ->get();
 
         return response()->json(['data' => $data]);
     }

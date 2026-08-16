@@ -21,7 +21,8 @@ class MutasiController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $data = RiwayatMutasi::with(['siswa', 'tahunAjaran'])
+        $data = RiwayatMutasi::whereHas('siswa')
+            ->with(['siswa', 'tahunAjaran'])
             ->orderBy('created_at', 'desc')
             ->get();
 

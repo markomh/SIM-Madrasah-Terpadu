@@ -21,7 +21,7 @@ class JadwalController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = JadwalPelajaran::with(['rombel.tingkat', 'pegawai', 'mataPelajaran']);
+        $query = JadwalPelajaran::whereHas('rombel')->with(['rombel.tingkat', 'pegawai', 'mataPelajaran']);
 
         if ($request->has('id_rombel')) {
             $query->where('id_rombel', $request->id_rombel);

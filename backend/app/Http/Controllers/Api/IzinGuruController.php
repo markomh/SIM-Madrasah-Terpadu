@@ -14,7 +14,7 @@ class IzinGuruController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = IzinGuru::with(['pegawai', 'pegawaiPengganti', 'dicatatOleh']);
+        $query = IzinGuru::whereHas('pegawai')->with(['pegawai', 'pegawaiPengganti', 'dicatatOleh']);
 
         if ($request->has('id_pegawai')) {
             $query->where('id_pegawai', $request->id_pegawai);
@@ -25,7 +25,7 @@ class IzinGuruController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $izin = IzinGuru::with(['pegawai', 'pegawaiPengganti', 'dicatatOleh'])->findOrFail($id);
+        $izin = IzinGuru::whereHas('pegawai')->with(['pegawai', 'pegawaiPengganti', 'dicatatOleh'])->findOrFail($id);
 
         return response()->json(['data' => $izin]);
     }

@@ -455,6 +455,151 @@ class DatabaseSeeder extends Seeder
             'id_desa'            => $idDesa2,
         ]);
 
-        $this->command->info('Seed berhasil: 2 madrasah, wilayah, profil madrasah, pegawai demo terpadu (lengkap multi-role), rombel, jadwal, ekstra, data persetujuan pending, dan pegawai overlap.');
+        // ============================================================
+        // Madrasah 3 — Madrasah Ibtidaiyah (MI Darussalam)
+        // Khusus pengujian jenjang MI (Pola Guru Kelas) & Akun Demo Admin MI
+        // ============================================================
+        $madrasah3 = Madrasah::create([
+            'id_madrasah'   => '019153a0-f8f2-777b-bb66-6b211a7e28a3',
+            'nama_madrasah' => 'MI Darussalam',
+            'npsn'          => '20100003',
+            'alamat'        => 'Jl. Pendidikan MI No. 3, Jakarta Selatan',
+            'id_desa'       => $idDesa1,
+            'status_aktif'  => true,
+        ]);
+
+        $tahun3 = TahunAjaran::create([
+            'id_tahun'     => '019153a0-f8f2-777b-bb66-6b211a7e28a8',
+            'id_madrasah'  => $madrasah3->id_madrasah,
+            'nama_tahun'   => '2026/2027',
+            'status_aktif' => true,
+        ]);
+
+        // Admin Madrasah Ibtidaiyah
+        $adminMi = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah3->id_madrasah,
+            'nik'                => '3201010101010099',
+            'nip'                => '199501012020011099',
+            'nama_lengkap_gelar' => 'Ahmad Subagja, S.Kom.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Tendik',
+            'email'              => 'admin@mi-darussalam.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        PenugasanJabatan::create([
+            'id_penugasan'  => (string) Uuid::uuid4(),
+            'id_pegawai'    => $adminMi->id_pegawai,
+            'jenis_jabatan' => 'Admin Madrasah',
+            'id_tahun'      => $tahun3->id_tahun,
+            'tanggal_mulai' => '2026-07-01',
+            'status'        => 'Aktif',
+        ]);
+
+        // Guru Kelas MI (1 guru mengajar banyak mapel di 1 rombel)
+        $guruKelasMi = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah3->id_madrasah,
+            'nik'                => '3201010101010098',
+            'nip'                => '198704042011012098',
+            'nama_lengkap_gelar' => 'Siti Rahmawati, S.Pd.I.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Guru',
+            'email'              => 'gurukelas@mi-darussalam.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        // Profil Madrasah 3 (MI)
+        \App\Models\ProfilMadrasah::create([
+            'id_profil'     => (string) Uuid::uuid4(),
+            'id_madrasah'   => $madrasah3->id_madrasah,
+            'nama_madrasah' => 'MI Darussalam',
+            'kode_instansi' => 'MI003',
+            'alamat'        => 'Jl. Pendidikan MI No. 3, Jakarta Selatan',
+        ]);
+
+        // Tingkat Pendidikan MI & Rombel 1-A
+        $tingkat1Mi = \App\Models\TingkatPendidikan::firstOrCreate(
+            ['nama_tingkat' => 'Kelas 1'],
+            ['urutan' => 1]
+        );
+
+        $rombel1A = \App\Models\Rombel::create([
+            'id_rombel'     => (string) Uuid::uuid4(),
+            'id_madrasah'   => $madrasah3->id_madrasah,
+            'nama_rombel'   => '1-A',
+            'id_tingkat'    => $tingkat1Mi->id_tingkat,
+            'id_wali_kelas' => $guruKelasMi->id_pegawai,
+            'id_tahun'      => $tahun3->id_tahun,
+        ]);
+
+        // Mapel MI (Tematik, MTK, Pancasila)
+        $mapelTematik = \App\Models\MataPelajaran::create([
+            'id_mapel'    => (string) Uuid::uuid4(),
+            'id_madrasah' => $madrasah3->id_madrasah,
+            'kode_mapel'  => 'TMT-1',
+            'nama_mapel'  => 'Tematik Terpadu',
+        ]);
+
+        $mapelMtkMi = \App\Models\MataPelajaran::create([
+            'id_mapel'    => (string) Uuid::uuid4(),
+            'id_madrasah' => $madrasah3->id_madrasah,
+            'kode_mapel'  => 'MTK-1',
+            'nama_mapel'  => 'Matematika MI',
+        ]);
+
+        // Pola Guru Kelas MI: guru yang sama mengajar beberapa mapel berbeda di rombel 1-A
+        \App\Models\JadwalPelajaran::create([
+            'id_jadwal'   => (string) Uuid::uuid4(),
+            'id_rombel'   => $rombel1A->id_rombel,
+            'id_pegawai'  => $guruKelasMi->id_pegawai,
+            'id_mapel'    => $mapelTematik->id_mapel,
+            'semester'    => 'Ganjil',
+            'hari'        => 'Senin',
+            'jam_mulai'   => '07:30',
+            'jam_selesai' => '09:00',
+        ]);
+
+        \App\Models\JadwalPelajaran::create([
+            'id_jadwal'   => (string) Uuid::uuid4(),
+            'id_rombel'   => $rombel1A->id_rombel,
+            'id_pegawai'  => $guruKelasMi->id_pegawai,
+            'id_mapel'    => $mapelMtkMi->id_mapel,
+            'semester'    => 'Ganjil',
+            'hari'        => 'Selasa',
+            'jam_mulai'   => '07:30',
+            'jam_selesai' => '09:00',
+        ]);
+
+        // Siswa Demo MI
+        $siswaMi = \App\Models\Siswa::create([
+            'id_siswa'         => (string) Uuid::uuid4(),
+            'id_madrasah'      => $madrasah3->id_madrasah,
+            'nik'              => '3201010505050099',
+            'nisn'             => '0055123999',
+            'nama_lengkap'     => 'Muhammad Alwi',
+            'tempat_lahir'     => 'Jakarta',
+            'tanggal_lahir'    => '2019-01-15',
+            'jenis_kelamin'    => 'L',
+            'agama'            => 'Islam',
+            'nama_ibu_kandung' => 'Siti Maryam',
+            'status_siswa'     => 'Aktif',
+            'id_desa'          => $idDesa1,
+        ]);
+
+        \App\Models\AnggotaRombel::create([
+            'id_anggota'         => (string) Uuid::uuid4(),
+            'id_siswa'           => $siswaMi->id_siswa,
+            'id_rombel'          => $rombel1A->id_rombel,
+            'tanggal_mulai'      => '2026-07-01',
+            'status_keanggotaan' => 'Aktif',
+            'jenis_perpindahan'  => 'Awal Masuk',
+            'status_persetujuan' => 'Tidak Perlu',
+        ]);
+
+        $this->command->info('Seed berhasil: 3 madrasah (MTs, MA, MI), wilayah, profil madrasah, akun demo Admin MI, pegawai demo terpadu (lengkap multi-role), rombel, jadwal, ekstra, data persetujuan pending, dan pegawai overlap.');
     }
 }

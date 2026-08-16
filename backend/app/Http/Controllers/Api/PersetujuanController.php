@@ -29,8 +29,9 @@ class PersetujuanController extends Controller
     {
         $items = [];
 
-        // 1. Pindah Rombel
-        $pindahRombel = AnggotaRombel::where('status_persetujuan', 'Menunggu Persetujuan')
+        // 1. Pindah Rombel (scoped to current tenant via rombel)
+        $pindahRombel = AnggotaRombel::whereHas('rombel')
+            ->where('status_persetujuan', 'Menunggu Persetujuan')
             ->get();
 
         foreach ($pindahRombel as $pr) {
@@ -52,8 +53,9 @@ class PersetujuanController extends Controller
             ];
         }
 
-        // 2. Mutasi
-        $mutasi = RiwayatMutasi::where('status_persetujuan', 'Menunggu Persetujuan')
+        // 2. Mutasi (scoped to current tenant via siswa)
+        $mutasi = RiwayatMutasi::whereHas('siswa')
+            ->where('status_persetujuan', 'Menunggu Persetujuan')
             ->get();
 
         foreach ($mutasi as $m) {
