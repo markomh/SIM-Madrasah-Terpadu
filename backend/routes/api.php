@@ -30,6 +30,23 @@ Route::prefix('v1')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
 
+        // Madrasah
+        Route::get('madrasah/current', [\App\Http\Controllers\Api\MadrasahController::class, 'current']);
+
+        // Persetujuan (Approval Hub)
+        Route::prefix('persetujuan')->controller(\App\Http\Controllers\Api\PersetujuanController::class)->group(function () {
+            Route::get('pending', 'pending');
+            Route::post('pindah-rombel/{id}/setujui', 'approvePindahRombel');
+            Route::post('pindah-rombel/{id}/tolak', 'rejectPindahRombel');
+            Route::post('mutasi/{id}/setujui', 'approveMutasi');
+            Route::post('mutasi/{id}/tolak', 'rejectMutasi');
+            Route::post('batch-approve', 'batchApprove');
+            Route::post('batch-reject', 'batchReject');
+            Route::get('mutasi/{id}/preview-skp', 'previewMutasiSkp');
+            Route::post('mutasi/{id}/approve-sign-skp', 'approveAndSignMutasiSkp');
+        });
+
+
         // ============================================================
         // REFERENSI MASTER — Bersama, tidak diisolasi tenant
         // ============================================================
@@ -48,7 +65,12 @@ Route::prefix('v1')->group(function () {
             Route::post('mata-pelajaran', 'storeMataPelajaran');
             Route::put('mata-pelajaran/{id}', 'updateMataPelajaran');
             Route::delete('mata-pelajaran/{id}', 'destroyMataPelajaran');
+            Route::get('tingkat', 'indexTingkat');
+            Route::post('tingkat', 'storeTingkat');
+            Route::get('hari-libur', 'indexHariLibur');
+            Route::post('hari-libur', 'storeHariLibur');
         });
+
 
         // ============================================================
         // KEPEGAWAIAN
@@ -87,20 +109,30 @@ Route::prefix('v1')->group(function () {
             Route::get('{id}/siswa', 'indexSiswa');
         });
 
+        Route::prefix('keanggotaan')->controller(\App\Http\Controllers\Api\KeanggotaanController::class)->group(function () {
+            Route::get('aktif', 'aktif');
+            Route::get('pending', 'pending');
+        });
+
         // ============================================================
         // KESISWAAN — WORKFLOWS (Kenaikan kelas, Pindah rombel, Mutasi)
+
         // ============================================================
         Route::prefix('kenaikan-kelas')->controller(\App\Http\Controllers\Api\KenaikanKelasController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('proses', 'proses'); // Atomic multi-rombel promotion (Kamad only)
+            Route::post('pemetaan', 'setPemetaan');
+            Route::post('proses-massal', 'prosesMassal');
         });
 
         Route::prefix('pindah-rombel')->controller(\App\Http\Controllers\Api\PindahRombelController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::post('massal', 'massal');
             Route::post('{id}/setujui', 'setujui');
             Route::post('{id}/tolak', 'tolak');
         });
+
 
         Route::prefix('mutasi')->controller(\App\Http\Controllers\Api\MutasiController::class)->group(function () {
             Route::get('/', 'index');
@@ -124,6 +156,7 @@ Route::prefix('v1')->group(function () {
         // ============================================================
         Route::prefix('sesi-tatap-muka')->controller(\App\Http\Controllers\Api\SesiTatapMukaController::class)->group(function () {
             Route::get('/', 'index');
+            Route::get('rekap-tanggal', 'rekapTanggal');
             Route::post('/', 'store'); // Catat presensi (is_guru_pengganti dihitung sistem)
             Route::get('{id}', 'show');
         });

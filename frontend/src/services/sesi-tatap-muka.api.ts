@@ -31,12 +31,36 @@ export const sesiTatapMukaApi = {
     return apiClient.get<SesiTatapMuka[]>(`/sesi-tatap-muka?id_rombel=${idRombel}&tanggal=${tanggal}`);
   },
 
-  getRekapTanggal: async (tanggal: string): Promise<SesiTatapMuka[]> => {
-    return apiClient.get<SesiTatapMuka[]>(`/sesi-tatap-muka?tanggal=${tanggal}`);
+  getRekapTanggal: async (tanggal: string) => {
+    return apiClient.get<{
+      terjadwal: number;
+      diinput: number;
+      tepatWaktu: number;
+      terlambat: number;
+      digantikan: number;
+      daftarDetail: Array<{
+        id_sesi: string;
+        nama_guru_seharusnya: string;
+        nama_guru_pelaksana: string | null;
+        status: string;
+        mapel: string;
+        rombel: string;
+      }>;
+    }>(`/sesi-tatap-muka/rekap-tanggal?tanggal=${tanggal}`);
   },
 
   getRekapKedisiplinan: async (bulan: string) => {
-    return apiClient.get(`/kedisiplinan/rekap?bulan=${bulan}`);
+    return apiClient.get<Array<{
+      id_pegawai: string;
+      nama: string;
+      tepatWaktu: number;
+      terlambat: number;
+      digantikanTerjadwal: number;
+      digantikanMendadakBulanIni: number;
+      totalSesi: number;
+      realisasiJtmPersen: number;
+      isFlagged: boolean;
+    }>>(`/kedisiplinan/rekap?bulan=${bulan}`);
   },
 };
 

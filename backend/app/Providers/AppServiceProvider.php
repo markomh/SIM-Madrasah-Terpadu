@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\AbsensiSiswa;
 use App\Models\CatatanBk;
+use App\Models\NilaiSiswa;
 use App\Models\Pegawai;
 use App\Models\PenugasanJabatan;
 use App\Models\Siswa;
@@ -25,5 +27,7 @@ class AppServiceProvider extends ServiceProvider
         PenugasanJabatan::observe(AuditObserver::class);
         CatatanBk::observe(AuditObserver::class);
         Surat::observe(AuditObserver::class);
+        AbsensiSiswa::observe(AuditObserver::class);
+        NilaiSiswa::observe(AuditObserver::class);
     }
 }

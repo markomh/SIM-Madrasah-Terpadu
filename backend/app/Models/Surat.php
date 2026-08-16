@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
 class Surat extends Model
 {
+    use BelongsToTenant;
+
     protected $table = 'surat';
     protected $primaryKey = 'id_surat';
     public $incrementing = false;

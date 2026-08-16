@@ -24,6 +24,14 @@ class SesiTatapMukaController extends Controller
         return response()->json(['data' => $query->orderBy('created_at', 'desc')->get()]);
     }
 
+    public function rekapTanggal(Request $request): JsonResponse
+    {
+        $tanggal = $request->input('tanggal', now()->toDateString());
+        $rekap = $this->sesiService->getRekapTanggal($tanggal);
+
+        return response()->json(['data' => $rekap]);
+    }
+
     public function show(string $id): JsonResponse
     {
         $sesi = SesiTatapMuka::with(['jadwal.rombel', 'jadwal.mataPelajaran', 'pegawaiPelaksana', 'absensiSiswa.siswa'])

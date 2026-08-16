@@ -117,4 +117,55 @@ class ReferensiController extends Controller
 
         return response()->json(['message' => 'Mata pelajaran berhasil dihapus.']);
     }
+
+    // ============================================================
+    // Tingkat Pendidikan
+    // ============================================================
+
+    public function indexTingkat(): JsonResponse
+    {
+        $data = \App\Models\TingkatPendidikan::orderBy('urutan')->get();
+        return response()->json(['data' => $data]);
+    }
+
+    public function storeTingkat(Request $request): JsonResponse
+    {
+        $request->validate([
+            'nama_tingkat' => 'required|string|max:50',
+            'urutan'       => 'required|integer',
+        ]);
+
+        $tingkat = \App\Models\TingkatPendidikan::create([
+            'nama_tingkat' => $request->nama_tingkat,
+            'urutan'       => $request->urutan,
+        ]);
+
+        return response()->json(['data' => $tingkat], 201);
+    }
+
+    // ============================================================
+    // Hari Libur
+    // ============================================================
+
+    public function indexHariLibur(): JsonResponse
+    {
+        $data = \App\Models\HariLibur::orderBy('tanggal')->get();
+        return response()->json(['data' => $data]);
+    }
+
+    public function storeHariLibur(Request $request): JsonResponse
+    {
+        $request->validate([
+            'tanggal'    => 'required|date',
+            'keterangan' => 'required|string|max:255',
+        ]);
+
+        $libur = \App\Models\HariLibur::create([
+            'tanggal'    => $request->tanggal,
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return response()->json(['data' => $libur], 201);
+    }
 }
+

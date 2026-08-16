@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\IzinGuru;
+use App\Services\PegawaiAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class IzinGuruController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function index(Request $request): JsonResponse
     {
         $query = IzinGuru::with(['pegawai', 'pegawaiPengganti', 'dicatatOleh']);
@@ -29,6 +32,12 @@ class IzinGuruController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+            return response()->json([
+                'message' => 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang berhak mencatat izin guru.',
+            ], 403);
+        }
+
         $request->validate([
             'id_pegawai'           => 'required|exists:pegawai,id_pegawai',
             'tanggal_izin'         => 'required|date',

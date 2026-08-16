@@ -101,13 +101,144 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ============================================================
-        // Pegawai Madrasah 1 — Demo Terpadu (rangkap 4 jabatan)
-        // Identik dengan pg_demo_terpadu di frontend store
+        // Pegawai Madrasah 1 — Persona 1: Kepala Madrasah Murni
+        // ============================================================
+        $kamad = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah1->id_madrasah,
+            'nik'                => '3201010101010010',
+            'nip'                => '197501012000031001',
+            'nama_lengkap_gelar' => 'Drs. H. Ahmad Dahlan, M.Pd.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Guru',
+            'email'              => 'kamad@mts-terpadu.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        PenugasanJabatan::create([
+            'id_penugasan'  => (string) Uuid::uuid4(),
+            'id_pegawai'    => $kamad->id_pegawai,
+            'jenis_jabatan' => 'Kepala Madrasah',
+            'id_tahun'      => $tahun1->id_tahun,
+            'tanggal_mulai' => '2026-07-01',
+            'status'        => 'Aktif',
+        ]);
+
+        // ============================================================
+        // Pegawai Madrasah 1 — Persona 2: Admin Madrasah Murni
+        // ============================================================
+        $admin = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah1->id_madrasah,
+            'nik'                => '3201010101010020',
+            'nip'                => '199002022015011002',
+            'nama_lengkap_gelar' => 'Rizky Pratama, S.Kom.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Tendik',
+            'email'              => 'admin@mts-terpadu.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        PenugasanJabatan::create([
+            'id_penugasan'  => (string) Uuid::uuid4(),
+            'id_pegawai'    => $admin->id_pegawai,
+            'jenis_jabatan' => 'Admin Madrasah',
+            'id_tahun'      => $tahun1->id_tahun,
+            'tanggal_mulai' => '2026-07-01',
+            'status'        => 'Aktif',
+        ]);
+
+        // ============================================================
+        // Pegawai Madrasah 1 — Persona 3: Operator Kesiswaan Murni
+        // ============================================================
+        $operator = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah1->id_madrasah,
+            'nik'                => '3201010101010030',
+            'nip'                => null,
+            'nama_lengkap_gelar' => 'Siti Nurhaliza, A.Md.',
+            'status_kepegawaian' => 'Non-PNS',
+            'tugas_utama'        => 'Tendik',
+            'email'              => 'operator@mts-terpadu.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        PenugasanJabatan::create([
+            'id_penugasan'  => (string) Uuid::uuid4(),
+            'id_pegawai'    => $operator->id_pegawai,
+            'jenis_jabatan' => 'Operator Kesiswaan',
+            'id_tahun'      => $tahun1->id_tahun,
+            'tanggal_mulai' => '2026-07-01',
+            'status'        => 'Aktif',
+        ]);
+
+        // ============================================================
+        // Pegawai Madrasah 1 — Persona 4: Guru BK Murni
+        // ============================================================
+        $guruBk = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah1->id_madrasah,
+            'nik'                => '3201010101010040',
+            'nip'                => '198805052012012003',
+            'nama_lengkap_gelar' => 'Nurul Hidayah, S.Psi.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Guru',
+            'email'              => 'bk@mts-terpadu.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        PenugasanJabatan::create([
+            'id_penugasan'  => (string) Uuid::uuid4(),
+            'id_pegawai'    => $guruBk->id_pegawai,
+            'jenis_jabatan' => 'Guru BK',
+            'id_tahun'      => $tahun1->id_tahun,
+            'tanggal_mulai' => '2026-07-01',
+            'status'        => 'Aktif',
+        ]);
+
+        // ============================================================
+        // Pegawai Madrasah 1 — Persona 5: Guru Biasa / Mapel Murni
+        // ============================================================
+        $guruBiasa = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah1->id_madrasah,
+            'nik'                => '3201010101010050',
+            'nip'                => '199208082019011004',
+            'nama_lengkap_gelar' => 'Bambang Sudarsono, S.Pd.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Guru',
+            'email'              => 'guru@mts-terpadu.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        // ============================================================
+        // Pegawai Madrasah 1 — Persona 6: Wali Kelas (+ Pengajar)
+        // ============================================================
+        $waliKelas = Pegawai::create([
+            'id_pegawai'         => (string) Uuid::uuid4(),
+            'id_madrasah'        => $madrasah1->id_madrasah,
+            'nik'                => '3201010101010060',
+            'nip'                => '198503032010012005',
+            'nama_lengkap_gelar' => 'Dewi Sartika, S.Pd.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Guru',
+            'email'              => 'walikelas@mts-terpadu.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        // ============================================================
+        // Pegawai Madrasah 1 — Persona 7: Akun Demo Multi-Role (Kamad + BK + Pembina + Pengajar)
         // ============================================================
         $demoTerpadu = Pegawai::create([
             'id_pegawai'         => '019153a0-f8f2-777b-bb66-6b211a7e28a5',
             'id_madrasah'        => $madrasah1->id_madrasah,
-            'nik'                => '3201010101010001', // Akan dienkripsi via cast
+            'nik'                => '3201010101010001',
             'nip'                => '19800101200501001',
             'nama_lengkap_gelar' => 'Dr. H. Syaiful Rahman, M.Pd.',
             'status_kepegawaian' => 'PNS',
@@ -117,7 +248,7 @@ class DatabaseSeeder extends Seeder
             'id_desa'            => $idDesa1,
         ]);
 
-        // Jabatan aditif — Kepala Madrasah
+        // Multi-role jabatan aditif: Kepala Madrasah + Guru BK
         PenugasanJabatan::create([
             'id_penugasan'  => (string) Uuid::uuid4(),
             'id_pegawai'    => $demoTerpadu->id_pegawai,
@@ -127,7 +258,6 @@ class DatabaseSeeder extends Seeder
             'status'        => 'Aktif',
         ]);
 
-        // Jabatan aditif — Guru BK (demo multi-role)
         PenugasanJabatan::create([
             'id_penugasan'  => (string) Uuid::uuid4(),
             'id_pegawai'    => $demoTerpadu->id_pegawai,
@@ -135,6 +265,157 @@ class DatabaseSeeder extends Seeder
             'id_tahun'      => $tahun1->id_tahun,
             'tanggal_mulai' => '2026-07-01',
             'status'        => 'Aktif',
+        ]);
+
+        // ============================================================
+        // Profil Madrasah
+        // ============================================================
+        \App\Models\ProfilMadrasah::create([
+            'id_profil'           => (string) Uuid::uuid4(),
+            'id_madrasah'         => $madrasah1->id_madrasah,
+            'nama_madrasah'       => 'MTs Terpadu Nusantara',
+            'kode_instansi'       => 'MTS001',
+            'alamat'              => 'Jl. Pendidikan No. 1, Jakarta Selatan',
+            'id_kepala_madrasah'  => $kamad->id_pegawai,
+        ]);
+
+        \App\Models\ProfilMadrasah::create([
+            'id_profil'           => (string) Uuid::uuid4(),
+            'id_madrasah'         => $madrasah2->id_madrasah,
+            'nama_madrasah'       => 'MA Al-Hikmah',
+            'kode_instansi'       => 'MA002',
+            'alamat'              => 'Jl. Al-Hikmah No. 5, Bogor',
+        ]);
+
+        // ============================================================
+        // Tingkat Pendidikan, Rombel, & Wali Kelas
+        // ============================================================
+        $tingkat7 = \App\Models\TingkatPendidikan::create([
+            'id_tingkat'   => (string) Uuid::uuid4(),
+            'nama_tingkat' => 'Kelas 7',
+            'urutan'       => 1,
+        ]);
+
+        $rombel7A = \App\Models\Rombel::create([
+            'id_rombel'     => (string) Uuid::uuid4(),
+            'id_madrasah'   => $madrasah1->id_madrasah,
+            'nama_rombel'   => '7-A',
+            'id_tingkat'    => $tingkat7->id_tingkat,
+            'id_wali_kelas' => $waliKelas->id_pegawai, // Wali kelas murni
+            'id_tahun'      => $tahun1->id_tahun,
+        ]);
+
+        // ============================================================
+        // Ekstrakurikuler & Pembina
+        // ============================================================
+        \App\Models\Ekstrakurikuler::create([
+            'id_ekstra'     => (string) Uuid::uuid4(),
+            'id_madrasah'   => $madrasah1->id_madrasah,
+            'nama_ekstra'   => 'Pramuka',
+            'id_pembina'    => $demoTerpadu->id_pegawai, // Pembina Pramuka demo
+            'id_tahun'      => $tahun1->id_tahun,
+        ]);
+
+        // ============================================================
+        // Mata Pelajaran & Jadwal Mengajar
+        // ============================================================
+        $mapelMtk = \App\Models\MataPelajaran::create([
+            'id_mapel'     => (string) Uuid::uuid4(),
+            'id_madrasah'  => $madrasah1->id_madrasah,
+            'kode_mapel'   => 'MTK-7',
+            'nama_mapel'   => 'Matematika',
+        ]);
+
+        $mapelIpa = \App\Models\MataPelajaran::create([
+            'id_mapel'     => (string) Uuid::uuid4(),
+            'id_madrasah'  => $madrasah1->id_madrasah,
+            'kode_mapel'   => 'IPA-7',
+            'nama_mapel'   => 'Ilmu Pengetahuan Alam',
+        ]);
+
+        $mapelIndo = \App\Models\MataPelajaran::create([
+            'id_mapel'     => (string) Uuid::uuid4(),
+            'id_madrasah'  => $madrasah1->id_madrasah,
+            'kode_mapel'   => 'BIN-7',
+            'nama_mapel'   => 'Bahasa Indonesia',
+        ]);
+
+        // Jadwal untuk Demo Terpadu (Matematika)
+        \App\Models\JadwalPelajaran::create([
+            'id_jadwal'    => (string) Uuid::uuid4(),
+            'id_rombel'    => $rombel7A->id_rombel,
+            'id_pegawai'   => $demoTerpadu->id_pegawai,
+            'id_mapel'     => $mapelMtk->id_mapel,
+            'semester'     => 'Ganjil',
+            'hari'         => 'Senin',
+            'jam_mulai'    => '07:30',
+            'jam_selesai'  => '09:00',
+        ]);
+
+        // Jadwal untuk Guru Biasa (IPA)
+        \App\Models\JadwalPelajaran::create([
+            'id_jadwal'    => (string) Uuid::uuid4(),
+            'id_rombel'    => $rombel7A->id_rombel,
+            'id_pegawai'   => $guruBiasa->id_pegawai,
+            'id_mapel'     => $mapelIpa->id_mapel,
+            'semester'     => 'Ganjil',
+            'hari'         => 'Selasa',
+            'jam_mulai'    => '07:30',
+            'jam_selesai'  => '09:00',
+        ]);
+
+        // Jadwal untuk Wali Kelas (Bahasa Indonesia)
+        \App\Models\JadwalPelajaran::create([
+            'id_jadwal'    => (string) Uuid::uuid4(),
+            'id_rombel'    => $rombel7A->id_rombel,
+            'id_pegawai'   => $waliKelas->id_pegawai,
+            'id_mapel'     => $mapelIndo->id_mapel,
+            'semester'     => 'Ganjil',
+            'hari'         => 'Rabu',
+            'jam_mulai'    => '07:30',
+            'jam_selesai'  => '09:00',
+        ]);
+
+        // ============================================================
+        // Siswa Demo & Pending Approvals
+        // ============================================================
+        $siswaDemo = \App\Models\Siswa::create([
+            'id_siswa'        => (string) Uuid::uuid4(),
+            'id_madrasah'     => $madrasah1->id_madrasah,
+            'nik'             => '3201010505050001',
+            'nisn'            => '0055123456',
+            'nama_lengkap'    => 'Ahmad Fauzan',
+            'tempat_lahir'    => 'Jakarta',
+            'tanggal_lahir'   => '2012-05-10',
+            'jenis_kelamin'   => 'L',
+            'agama'           => 'Islam',
+            'nama_ibu_kandung'=> 'Fatimah',
+            'status_siswa'    => 'Aktif',
+            'id_desa'         => $idDesa1,
+        ]);
+
+        \App\Models\AnggotaRombel::create([
+            'id_anggota'          => (string) Uuid::uuid4(),
+            'id_siswa'            => $siswaDemo->id_siswa,
+            'id_rombel'           => $rombel7A->id_rombel,
+            'tanggal_mulai'       => '2026-07-01',
+            'status_keanggotaan'  => 'Aktif',
+            'jenis_perpindahan'   => 'Awal Masuk',
+            'status_persetujuan'  => 'Tidak Perlu',
+        ]);
+
+        // Pending approval sample: Mutasi Masuk
+        \App\Models\RiwayatMutasi::create([
+            'id_mutasi'           => (string) Uuid::uuid4(),
+            'id_siswa'            => $siswaDemo->id_siswa,
+            'jenis_mutasi'        => 'Masuk',
+            'sekolah_asal'        => 'SMP Negeri 1 Bogor',
+            'tanggal_mutasi'      => '2026-08-10',
+            'no_surat_mutasi'     => '421/012/SMP1/2026',
+            'alasan'              => 'Pindah domisili orang tua ke Jakarta',
+            'id_tahun_ajaran'     => $tahun1->id_tahun,
+            'status_persetujuan'  => 'Menunggu Persetujuan',
+            'diajukan_oleh'       => $demoTerpadu->id_pegawai,
         ]);
 
         // ============================================================
@@ -174,6 +455,6 @@ class DatabaseSeeder extends Seeder
             'id_desa'            => $idDesa2,
         ]);
 
-        $this->command->info('Seed berhasil: 2 madrasah, wilayah, pegawai demo terpadu (rangkap Kamad+BK), pegawai madrasah 2 (Kamad), dan pegawai overlap untuk test isolasi tenant.');
+        $this->command->info('Seed berhasil: 2 madrasah, wilayah, profil madrasah, pegawai demo terpadu (lengkap multi-role), rombel, jadwal, ekstra, data persetujuan pending, dan pegawai overlap.');
     }
 }

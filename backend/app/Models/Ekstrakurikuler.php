@@ -20,4 +20,15 @@ class Ekstrakurikuler extends Model
         parent::boot();
         static::creating(fn ($m) => $m->id_ekstra = $m->id_ekstra ?: (string) Uuid::uuid4());
     }
+
+    public function pembina()
+    {
+        return $this->belongsTo(Pegawai::class, 'id_pembina');
+    }
+
+    public function tahunAjaran()
+    {
+        return $this->belongsTo(TahunAjaran::class, 'id_tahun');
+    }
 }
+

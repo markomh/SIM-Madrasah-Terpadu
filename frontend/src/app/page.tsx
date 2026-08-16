@@ -36,11 +36,18 @@ export default function DashboardPage() {
     ])
       .then(([p, r, s, rekap, rekapKedisiplinan]) => {
         if (cancelled) return;
-        setPending(p);
-        setRisiko(r);
-        setSiswaCount(s.filter((x) => !x.id_siswa.includes("pending")).length);
-        setRekapPagi(rekap);
-        setFlaggedCount(rekapKedisiplinan.filter(k => k.isFlagged).length);
+        setPending(Array.isArray(p) ? p : []);
+        setRisiko(Array.isArray(r) ? r : []);
+        setSiswaCount(Array.isArray(s) ? s.filter((x) => !x.id_siswa.includes("pending")).length : 0);
+        setRekapPagi(rekap && Array.isArray(rekap.daftarDetail) ? rekap : {
+          terjadwal: rekap?.terjadwal ?? 0,
+          diinput: rekap?.diinput ?? 0,
+          tepatWaktu: rekap?.tepatWaktu ?? 0,
+          terlambat: rekap?.terlambat ?? 0,
+          digantikan: rekap?.digantikan ?? 0,
+          daftarDetail: Array.isArray(rekap?.daftarDetail) ? rekap.daftarDetail : [],
+        });
+        setFlaggedCount(Array.isArray(rekapKedisiplinan) ? rekapKedisiplinan.filter(k => k?.isFlagged).length : 0);
         setError(null);
       })
       .catch((e: Error) => {
@@ -134,7 +141,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {rekapPagi.daftarDetail.length > 0 && (
+                  {(rekapPagi.daftarDetail?.length ?? 0) > 0 && (
                     <div className="overflow-x-auto text-sm">
                       <table className="w-full">
                         <thead>

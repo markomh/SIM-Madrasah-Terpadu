@@ -77,9 +77,11 @@ export function nowIso(): string {
   return new Date().toISOString();
 }
 
-export function maskNik(nik: string): string {
-  if (nik.length < 6) return nik;
-  return `${nik.slice(0, 2)}${"*".repeat(Math.max(0, nik.length - 4))}${nik.slice(-2)}`;
+export function maskNik(nik: string | null | undefined): string {
+  if (!nik) return "—";
+  const str = String(nik);
+  if (str.length < 6) return str;
+  return `${str.slice(0, 2)}${"*".repeat(Math.max(0, str.length - 4))}${str.slice(-2)}`;
 }
 
 export async function simulateLatency(): Promise<void> {

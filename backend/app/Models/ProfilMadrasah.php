@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Ramsey\Uuid\Uuid;
 
 class ProfilMadrasah extends Model
 {
+    use BelongsToTenant;
+
     protected $table = 'profil_madrasah';
     protected $primaryKey = 'id_profil';
     public $incrementing = false;

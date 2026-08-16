@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CatatanBk;
+use App\Services\PegawaiAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BkController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function indexCatatan(Request $request): JsonResponse
     {
         // Transparent filtering via PostgreSQL Row-Level Security (catatan_bk_rahasia)
@@ -23,6 +26,9 @@ class BkController extends Controller
 
     public function storeCatatan(Request $request): JsonResponse
     {
+        if (! $this->accessService->isGuruBk(auth()->user())) {
+            return response()->json(['message' => 'Akses ditolak: Hanya Guru BK yang berhak mencatat bimbingan konseling.'], 403);
+        }
         $request->validate([
             'id_siswa'            => 'required|exists:siswa,id_siswa',
             'tanggal'             => 'required|date',

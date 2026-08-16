@@ -27,22 +27,22 @@ const mockDesa: MasterDesa[] = [
 ];
 
 export const mockWilayahService: WilayahService = {
-  getProvinsi: async () => {
+  getProvinsi: async (_search?: string) => {
     await simulateLatency();
     maybeThrowSimulatedError();
     return [...mockProvinsi];
   },
-  getKabupaten: async (id_provinsi: string) => {
+  getKabupaten: async (id_provinsi: string, _search?: string) => {
     await simulateLatency();
     maybeThrowSimulatedError();
     return mockKabupaten.filter(k => k.id_provinsi === id_provinsi);
   },
-  getKecamatan: async (id_kabupaten: string) => {
+  getKecamatan: async (id_kabupaten: string, _search?: string) => {
     await simulateLatency();
     maybeThrowSimulatedError();
     return mockKecamatan.filter(k => k.id_kabupaten === id_kabupaten);
   },
-  getDesa: async (id_kecamatan: string) => {
+  getDesa: async (id_kecamatan: string, _search?: string) => {
     await simulateLatency();
     maybeThrowSimulatedError();
     return mockDesa.filter(d => d.id_kecamatan === id_kecamatan);

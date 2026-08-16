@@ -2,21 +2,22 @@ import { MasterProvinsi, MasterKabupaten, MasterKecamatan, MasterDesa } from "@/
 import { PenugasanJabatan } from "@/types/penugasan-jabatan";
 import { ProfilMadrasah, TemplateSurat } from "@/types/lembaga";
 import { RiwayatMutasi } from "@/types/mutasi";
-import { AnggotaRombel } from "@/types/keanggotaan";
+import { AnggotaRombel, PemetaanKenaikan } from "@/types/keanggotaan";
+import { KeanggotaanService } from "./keanggotaan.service";
 import { apiClient } from "./api-client";
 
 export const wilayahApi = {
-  getProvinsi: async (): Promise<MasterProvinsi[]> => {
-    return apiClient.get<MasterProvinsi[]>("/wilayah/provinsi");
+  getProvinsi: async (search?: string): Promise<MasterProvinsi[]> => {
+    return apiClient.get<MasterProvinsi[]>(`/wilayah/provinsi${search ? `?search=${search}` : ""}`);
   },
-  getKabupaten: async (idProvinsi: string): Promise<MasterKabupaten[]> => {
-    return apiClient.get<MasterKabupaten[]>(`/wilayah/kabupaten?id_provinsi=${idProvinsi}`);
+  getKabupaten: async (idProvinsi: string, search?: string): Promise<MasterKabupaten[]> => {
+    return apiClient.get<MasterKabupaten[]>(`/wilayah/kabupaten?id_provinsi=${idProvinsi}${search ? `&search=${search}` : ""}`);
   },
-  getKecamatan: async (idKabupaten: string): Promise<MasterKecamatan[]> => {
-    return apiClient.get<MasterKecamatan[]>(`/wilayah/kecamatan?id_kabupaten=${idKabupaten}`);
+  getKecamatan: async (idKabupaten: string, search?: string): Promise<MasterKecamatan[]> => {
+    return apiClient.get<MasterKecamatan[]>(`/wilayah/kecamatan?id_kabupaten=${idKabupaten}${search ? `&search=${search}` : ""}`);
   },
-  getDesa: async (idKecamatan: string): Promise<MasterDesa[]> => {
-    return apiClient.get<MasterDesa[]>(`/wilayah/desa?id_kecamatan=${idKecamatan}`);
+  getDesa: async (idKecamatan: string, search?: string): Promise<MasterDesa[]> => {
+    return apiClient.get<MasterDesa[]>(`/wilayah/desa?id_kecamatan=${idKecamatan}${search ? `&search=${search}` : ""}`);
   },
 };
 
@@ -69,25 +70,60 @@ export const mutasiApi = {
   },
 };
 
-export const keanggotaanApi = {
-  getPindahRombel: async (): Promise<AnggotaRombel[]> => {
-    return apiClient.get<AnggotaRombel[]>("/pindah-rombel");
+export const keanggotaanApi: KeanggotaanService = {
+  async getAnggotaAktif(filter?: { id_rombel?: string; id_siswa?: string }): Promise<AnggotaRombel[]> {
+    let url = "/keanggotaan/aktif";
+    const params = new URLSearchParams();
+    if (filter?.id_rombel) params.append("id_rombel", filter.id_rombel);
+    if (filter?.id_siswa) params.append("id_siswa", filter.id_siswa);
+    const query = params.toString();
+    if (query) url += `?${query}`;
+    return apiClient.get<AnggotaRombel[]>(url);
   },
-  createPindahRombel: async (idSiswa: string, idRombelTujuan: string): Promise<AnggotaRombel> => {
-    return apiClient.post<AnggotaRombel>("/pindah-rombel", { id_siswa: idSiswa, id_rombel_tujuan: idRombelTujuan });
+
+  async getPending(): Promise<AnggotaRombel[]> {
+    return apiClient.get<AnggotaRombel[]>("/keanggotaan/pending");
   },
-  setujuiPindahRombel: async (id: string): Promise<AnggotaRombel> => {
-    return apiClient.post<AnggotaRombel>(`/pindah-rombel/${id}/setujui`);
+
+  async getPemetaan(id_tahun?: string): Promise<PemetaanKenaikan[]> {
+    const list = await apiClient.get<PemetaanKenaikan[]>("/kenaikan-kelas");
+    return id_tahun ? list.filter((p) => p.id_tahun === id_tahun) : list;
   },
-  tolakPindahRombel: async (id: string): Promise<AnggotaRombel> => {
-    return apiClient.post<AnggotaRombel>(`/pindah-rombel/${id}/tolak`);
+
+  async setPemetaan(items: Omit<PemetaanKenaikan, "id_pemetaan">[]): Promise<PemetaanKenaikan[]> {
+    return apiClient.post<PemetaanKenaikan[]>("/kenaikan-kelas/pemetaan", { items });
   },
-  prosesKenaikanKelas: async (payload: {
-    id_rombel_asal: string;
+
+  async prosesKenaikanMassal(id_tahun_tujuan: string, diajukanOleh: string): Promise<{ processed: number }> {
+    return apiClient.post<{ processed: number }>("/kenaikan-kelas/proses-massal", {
+      id_tahun_tujuan,
+      diajukan_oleh: diajukanOleh,
+    });
+  },
+
+  async ajukanPindahRombel(input: {
+    id_siswa: string;
     id_rombel_tujuan: string;
-    id_tahun_tujuan: string;
-    daftar_siswa: Array<{ id_siswa: string; status: "Naik Kelas" | "Tinggal Kelas" | "Lulus" }>;
-  }): Promise<{ message: string; jumlah_diproses: number }> => {
-    return apiClient.post("/kenaikan-kelas/proses", payload);
+    tanggal_efektif: string;
+    diajukan_oleh: string;
+  }): Promise<AnggotaRombel> {
+    return apiClient.post<AnggotaRombel>("/pindah-rombel", {
+      id_siswa: input.id_siswa,
+      id_rombel_tujuan: input.id_rombel_tujuan,
+    });
+  },
+
+  async pindahRombelMassal(input: {
+    id_siswa_list: string[];
+    id_rombel_tujuan: string;
+    tanggal_efektif: string;
+    diajukan_oleh: string;
+  }): Promise<{ processed: number }> {
+    return apiClient.post<{ processed: number }>("/pindah-rombel/massal", {
+      id_siswa_list: input.id_siswa_list,
+      id_rombel_tujuan: input.id_rombel_tujuan,
+      tanggal_efektif: input.tanggal_efektif,
+      diajukan_oleh: input.diajukan_oleh,
+    });
   },
 };

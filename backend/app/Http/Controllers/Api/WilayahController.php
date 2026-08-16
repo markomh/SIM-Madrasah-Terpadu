@@ -17,12 +17,16 @@ use Illuminate\Support\Facades\DB;
  */
 class WilayahController extends Controller
 {
-    public function indexProvinsi(): JsonResponse
+    public function indexProvinsi(Request $request): JsonResponse
     {
-        $data = DB::table('master_provinsi')
-            ->select('id_provinsi', 'kode_provinsi', 'nama_provinsi')
-            ->orderBy('nama_provinsi')
-            ->get();
+        $query = DB::table('master_provinsi')
+            ->select('id_provinsi', 'kode_provinsi', 'nama_provinsi');
+
+        if ($request->has('search')) {
+            $query->where('nama_provinsi', 'ilike', '%' . $request->search . '%');
+        }
+
+        $data = $query->orderBy('nama_provinsi')->limit(50)->get();
 
         return response()->json(['data' => $data]);
     }
@@ -36,7 +40,11 @@ class WilayahController extends Controller
             $query->where('id_provinsi', $request->id_provinsi);
         }
 
-        return response()->json(['data' => $query->orderBy('nama_kabupaten')->get()]);
+        if ($request->has('search')) {
+            $query->where('nama_kabupaten', 'ilike', '%' . $request->search . '%');
+        }
+
+        return response()->json(['data' => $query->orderBy('nama_kabupaten')->limit(50)->get()]);
     }
 
     public function indexKecamatan(Request $request): JsonResponse
@@ -48,7 +56,11 @@ class WilayahController extends Controller
             $query->where('id_kabupaten', $request->id_kabupaten);
         }
 
-        return response()->json(['data' => $query->orderBy('nama_kecamatan')->get()]);
+        if ($request->has('search')) {
+            $query->where('nama_kecamatan', 'ilike', '%' . $request->search . '%');
+        }
+
+        return response()->json(['data' => $query->orderBy('nama_kecamatan')->limit(50)->get()]);
     }
 
     public function indexDesa(Request $request): JsonResponse
@@ -60,6 +72,10 @@ class WilayahController extends Controller
             $query->where('id_kecamatan', $request->id_kecamatan);
         }
 
-        return response()->json(['data' => $query->orderBy('nama_desa')->get()]);
+        if ($request->has('search')) {
+            $query->where('nama_desa', 'ilike', '%' . $request->search . '%');
+        }
+
+        return response()->json(['data' => $query->orderBy('nama_desa')->limit(50)->get()]);
     }
 }

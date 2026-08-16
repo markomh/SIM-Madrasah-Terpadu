@@ -24,6 +24,6 @@ export const authApi = {
     }
   },
   getMe: async () => {
-    return apiClient.get<any>("/me");
+    return apiClient.get<unknown>("/me");
   },
 };

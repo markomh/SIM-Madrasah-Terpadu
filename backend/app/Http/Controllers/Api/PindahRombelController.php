@@ -99,4 +99,69 @@ class PindahRombelController extends Controller
 
         return response()->json(['data' => $target]);
     }
+
+    public function massal(Request $request): JsonResponse
+    {
+        $request->validate([
+            'id_siswa_list'    => 'required|array|min:1',
+            'id_siswa_list.*'  => 'required|exists:siswa,id_siswa',
+            'id_rombel_tujuan' => 'required|exists:rombel,id_rombel',
+            'tanggal_efektif'  => 'required|date',
+        ]);
+
+        $rombelTujuan = \App\Models\Rombel::with('tingkat')->findOrFail($request->id_rombel_tujuan);
+        $tingkatTujuan = $rombelTujuan->tingkat;
+        $diajukanOleh = auth()->user()->id_pegawai;
+        $tanggalEfektif = $request->tanggal_efektif;
+
+        return DB::transaction(function () use ($request, $rombelTujuan, $tingkatTujuan, $diajukanOleh, $tanggalEfektif) {
+            $processed = 0;
+
+            foreach ($request->id_siswa_list as $idSiswa) {
+                $current = AnggotaRombel::where('id_siswa', $idSiswa)
+                    ->whereNull('tanggal_selesai')
+                    ->where('status_persetujuan', '!=', 'Menunggu Persetujuan')
+                    ->first();
+
+                if (! $current) {
+                    continue;
+                }
+
+                if ($current->id_rombel === $request->id_rombel_tujuan) {
+                    continue;
+                }
+
+                $rombelAsal = \App\Models\Rombel::with('tingkat')->find($current->id_rombel);
+                if (! $rombelAsal) {
+                    continue;
+                }
+                $tingkatAsal = $rombelAsal->tingkat;
+
+                $sameLevel = $tingkatAsal->urutan === $tingkatTujuan->urutan;
+
+                $current->update([
+                    'tanggal_selesai'    => $tanggalEfektif,
+                    'status_keanggotaan' => $sameLevel ? 'Pindah Rombel' : 'Naik Kelas',
+                ]);
+
+                AnggotaRombel::create([
+                    'id_siswa'           => $idSiswa,
+                    'id_rombel'          => $request->id_rombel_tujuan,
+                    'tanggal_mulai'      => $tanggalEfektif,
+                    'status_keanggotaan' => 'Aktif',
+                    'jenis_perpindahan'  => $sameLevel ? 'Pindah Rombel' : 'Kenaikan Tingkat',
+                    'status_persetujuan' => 'Tidak Perlu',
+                    'diajukan_oleh'      => $diajukanOleh,
+                ]);
+
+                $processed++;
+            }
+
+            return response()->json([
+                'data' => [
+                    'processed' => $processed,
+                ]
+            ]);
+        });
+    }
 }

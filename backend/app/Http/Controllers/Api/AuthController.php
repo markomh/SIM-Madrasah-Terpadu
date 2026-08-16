@@ -89,9 +89,13 @@ class AuthController extends Controller
             'tugas_utama'         => $pegawai->tugas_utama,
             'status_kepegawaian'  => $pegawai->status_kepegawaian,
             'penugasan_aktif'     => $pegawai->penugasanAktif->map(fn ($p) => [
-                'id_penugasan'  => $p->id_penugasan,
-                'jenis_jabatan' => $p->jenis_jabatan,
-                'id_tahun'      => $p->id_tahun,
+                'id_penugasan'    => $p->id_penugasan,
+                'id_pegawai'      => $p->id_pegawai,
+                'jenis_jabatan'   => $p->jenis_jabatan,
+                'id_tahun'        => $p->id_tahun,
+                'tanggal_mulai'   => $p->tanggal_mulai?->toDateString() ?? $p->tanggal_mulai,
+                'tanggal_selesai' => $p->tanggal_selesai?->toDateString() ?? $p->tanggal_selesai,
+                'status'          => $p->status,
             ]),
             'capabilities'        => $this->accessService->getCapabilityFlags($pegawai),
         ];

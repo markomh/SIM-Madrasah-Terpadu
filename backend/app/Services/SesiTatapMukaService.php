@@ -40,7 +40,7 @@ class SesiTatapMukaService
 
             // Cari izin yang cocok (retroaktif atau H-1)
             $izinTerkait = null;
-            if ($isGururPengganti) {
+            if ($isGuruPengganti) {
                 $izinTerkait = IzinGuru::where('id_pegawai', $jadwal->id_pegawai)
                     ->where('tanggal_izin', $tanggal)
                     ->first();
@@ -52,7 +52,7 @@ class SesiTatapMukaService
 
             // Hitung status_kehadiran_guru
             $statusKehadiranGuru = $this->hitungStatusKehadiranGuru(
-                isGururPengganti: $isGururPengganti,
+                isGuruPengganti: $isGuruPengganti,
                 izinTerkait: $izinTerkait,
                 waktuInput: $waktuInput,
                 jamMulai: $jamMulai,
@@ -65,7 +65,7 @@ class SesiTatapMukaService
                 [
                     'id_pegawai_pelaksana'  => $idPegawaiPelaksana,
                     'waktu_input'           => $waktuInput,
-                    'is_guru_pengganti'     => $isGururPengganti,
+                    'is_guru_pengganti'     => $isGuruPengganti,
                     'id_izin_terkait'       => $izinTerkait?->id_izin,
                     'jurnal_materi'         => $jurnalMateri,
                     'status_kehadiran_guru' => $statusKehadiranGuru,
@@ -89,13 +89,13 @@ class SesiTatapMukaService
     }
 
     private function hitungStatusKehadiranGuru(
-        bool $isGururPengganti,
+        bool $isGuruPengganti,
         ?IzinGuru $izinTerkait,
         Carbon $waktuInput,
         Carbon $jamMulai,
         int $toleransiMenit
     ): string {
-        if ($isGururPengganti) {
+        if ($isGuruPengganti) {
             return $izinTerkait !== null
                 ? 'Digantikan Terjadwal'
                 : 'Digantikan Mendadak';
@@ -104,6 +104,69 @@ class SesiTatapMukaService
         return $waktuInput->diffInMinutes($jamMulai, false) <= $toleransiMenit
             ? 'Tepat Waktu'
             : 'Terlambat';
+    }
+
+    /**
+     * Rekap kehadiran sesi tatap muka untuk tanggal tertentu (Dashboard Pagi).
+     */
+    public function getRekapTanggal(string $tanggal): array
+    {
+        $dateObj = Carbon::parse($tanggal);
+        $dayMap = [
+            0 => 'Minggu',
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+        ];
+        $dayName = $dayMap[$dateObj->dayOfWeek] ?? 'Senin';
+
+        $jadwalHariIni = JadwalPelajaran::with(['rombel', 'mataPelajaran', 'pegawai'])
+            ->where('hari', $dayName)
+            ->get();
+
+        $result = [
+            'terjadwal'    => $jadwalHariIni->count(),
+            'diinput'      => 0,
+            'tepatWaktu'   => 0,
+            'terlambat'    => 0,
+            'digantikan'   => 0,
+            'daftarDetail' => [],
+        ];
+
+        $sesiList = SesiTatapMuka::with(['pegawaiPelaksana'])
+            ->where('tanggal', $tanggal)
+            ->get()
+            ->keyBy('id_jadwal');
+
+        foreach ($jadwalHariIni as $jadwal) {
+            $sesi = $sesiList->get($jadwal->id_jadwal);
+            $namaGuruPelaksana = null;
+            $status = 'Tidak Terlaksana';
+
+            if ($sesi && $sesi->waktu_input) {
+                $result['diinput']++;
+                if ($sesi->status_kehadiran_guru === 'Tepat Waktu') $result['tepatWaktu']++;
+                if ($sesi->status_kehadiran_guru === 'Terlambat') $result['terlambat']++;
+                if ($sesi->is_guru_pengganti) $result['digantikan']++;
+
+                $namaGuruPelaksana = $sesi->pegawaiPelaksana?->nama_lengkap_gelar;
+                $status = $sesi->status_kehadiran_guru;
+            }
+
+            $result['daftarDetail'][] = [
+                'id_sesi'               => $sesi?->id_sesi ?? ('unsaved_' . $jadwal->id_jadwal),
+                'nama_guru_seharusnya' => $jadwal->pegawai?->nama_lengkap_gelar ?? 'Unknown',
+                'nama_guru_pelaksana'  => $namaGuruPelaksana,
+                'status'                => $status,
+                'mapel'                 => $jadwal->mataPelajaran?->nama_mapel ?? 'Unknown',
+                'rombel'                => $jadwal->rombel?->nama_rombel ?? 'Unknown',
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -117,6 +180,10 @@ class SesiTatapMukaService
      */
     public function getRekapKedisiplinan(string $bulan): array
     {
+        $parsedBulan = Carbon::parse($bulan . '-01');
+        $year = $parsedBulan->year;
+        $month = $parsedBulan->month;
+
         // Ambil semua pegawai yang punya jadwal mengajar di bulan ini
         $pegawaiList = Pegawai::with(['penugasanAktif', 'jadwalMengajar'])
             ->whereHas('jadwalMengajar')
@@ -141,22 +208,33 @@ class SesiTatapMukaService
                 continue;
             }
 
-            // Hitung rasio realisasi kehadiran
-            $totalSesi = SesiTatapMuka::whereHas('jadwal', fn ($q) => $q->where('id_pegawai', $pegawai->id_pegawai))
-                ->whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$bulan])
-                ->count();
+            // Hitung sesi
+            $sesiBulanIni = SesiTatapMuka::whereHas('jadwal', fn ($q) => $q->where('id_pegawai', $pegawai->id_pegawai))
+                ->whereYear('tanggal', $year)
+                ->whereMonth('tanggal', $month)
+                ->get();
 
-            $hadirSesi = SesiTatapMuka::whereHas('jadwal', fn ($q) => $q->where('id_pegawai', $pegawai->id_pegawai))
-                ->whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$bulan])
-                ->whereIn('status_kehadiran_guru', ['Tepat Waktu', 'Terlambat'])
-                ->count();
+            $totalSesi = $sesiBulanIni->count();
+            $tepatWaktu = $sesiBulanIni->where('status_kehadiran_guru', 'Tepat Waktu')->count();
+            $terlambat = $sesiBulanIni->where('status_kehadiran_guru', 'Terlambat')->count();
+            $digantikanTerjadwal = $sesiBulanIni->where('status_kehadiran_guru', 'Digantikan Terjadwal')->count();
+            $digantikanMendadak = $sesiBulanIni->where('status_kehadiran_guru', 'Digantikan Mendadak')->count();
+
+            $sesiTerpenuhi = $tepatWaktu + $terlambat;
+            $realisasiJtmPersen = $totalSesi > 0 ? round(($sesiTerpenuhi / $totalSesi) * 100, 1) : 100.0;
+            $isFlagged = ($totalSesi > 0 && $realisasiJtmPersen < 80.0) || $digantikanMendadak >= 3;
 
             $rekap[] = [
-                'id_pegawai'          => $pegawai->id_pegawai,
-                'nama_lengkap_gelar'  => $pegawai->nama_lengkap_gelar,
-                'total_sesi'          => $totalSesi,
-                'hadir_sesi'          => $hadirSesi,
-                'realisasi_persen'    => $totalSesi > 0 ? round(($hadirSesi / $totalSesi) * 100, 1) : null,
+                'id_pegawai'                  => $pegawai->id_pegawai,
+                'nama'                        => $pegawai->nama_lengkap_gelar,
+                'nama_lengkap_gelar'          => $pegawai->nama_lengkap_gelar,
+                'tepatWaktu'                  => $tepatWaktu,
+                'terlambat'                   => $terlambat,
+                'digantikanTerjadwal'         => $digantikanTerjadwal,
+                'digantikanMendadakBulanIni'  => $digantikanMendadak,
+                'totalSesi'                   => $totalSesi,
+                'realisasiJtmPersen'          => $realisasiJtmPersen,
+                'isFlagged'                   => $isFlagged,
             ];
         }
 

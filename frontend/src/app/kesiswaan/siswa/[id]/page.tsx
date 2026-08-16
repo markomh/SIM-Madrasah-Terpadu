@@ -33,6 +33,7 @@ import {
   SurfaceCard,
   inputClass,
 } from "@/components/ui/primitives";
+import { Combobox } from "@/components/ui/combobox";
 import { siswaFormSchema, type SiswaFormValues } from "@/lib/schemas";
 import { maskNik, services } from "@/services";
 import type { Siswa, Rombel, AnggotaRombel } from "@/types";
@@ -100,6 +101,7 @@ function DetailSiswaContent() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SiswaFormValues>({ resolver: zodResolver(siswaFormSchema) });
 
@@ -548,75 +550,61 @@ function DetailSiswaContent() {
                     </Field>
                   </div>
                   <Field label="Provinsi">
-                    <select
-                      className={inputClass}
-                      disabled={!canEdit}
+                    <Combobox
                       value={selectedProv}
-                      onChange={(e) => {
-                        setSelectedProv(e.target.value);
+                      disabled={!canEdit}
+                      onChange={(val) => {
+                        setSelectedProv(val as string);
                         setSelectedKab("");
                         setSelectedKec("");
-                        reset({ ...watch(), id_desa: "" });
+                        setValue("id_desa", "");
                       }}
-                    >
-                      <option value="">-- Pilih Provinsi --</option>
-                      {provinsi.map((p) => (
-                        <option key={p.id_provinsi} value={p.id_provinsi}>
-                          {p.nama_provinsi}
-                        </option>
-                      ))}
-                    </select>
+                      onSearch={(term) => {
+                        services.wilayah.getProvinsi(term).then(setProvinsi).catch(() => {});
+                      }}
+                      options={provinsi.map((p) => ({ label: p.nama_provinsi, value: p.id_provinsi }))}
+                    />
                   </Field>
                   <Field label="Kabupaten/Kota">
-                    <select
-                      className={inputClass}
-                      disabled={!canEdit || !selectedProv}
+                    <Combobox
                       value={selectedKab}
-                      onChange={(e) => {
-                        setSelectedKab(e.target.value);
+                      disabled={!canEdit || !selectedProv}
+                      onChange={(val) => {
+                        setSelectedKab(val as string);
                         setSelectedKec("");
-                        reset({ ...watch(), id_desa: "" });
+                        setValue("id_desa", "");
                       }}
-                    >
-                      <option value="">-- Pilih Kab/Kota --</option>
-                      {kabupaten.map((p) => (
-                        <option key={p.id_kabupaten} value={p.id_kabupaten}>
-                          {p.nama_kabupaten}
-                        </option>
-                      ))}
-                    </select>
+                      onSearch={(term) => {
+                        if (selectedProv) services.wilayah.getKabupaten(selectedProv, term).then(setKabupaten).catch(() => {});
+                      }}
+                      options={kabupaten.map((k) => ({ label: k.nama_kabupaten, value: k.id_kabupaten }))}
+                    />
                   </Field>
                   <Field label="Kecamatan">
-                    <select
-                      className={inputClass}
-                      disabled={!canEdit || !selectedKab}
+                    <Combobox
                       value={selectedKec}
-                      onChange={(e) => {
-                        setSelectedKec(e.target.value);
-                        reset({ ...watch(), id_desa: "" });
+                      disabled={!canEdit || !selectedKab}
+                      onChange={(val) => {
+                        setSelectedKec(val as string);
+                        setValue("id_desa", "");
                       }}
-                    >
-                      <option value="">-- Pilih Kecamatan --</option>
-                      {kecamatan.map((p) => (
-                        <option key={p.id_kecamatan} value={p.id_kecamatan}>
-                          {p.nama_kecamatan}
-                        </option>
-                      ))}
-                    </select>
+                      onSearch={(term) => {
+                        if (selectedKab) services.wilayah.getKecamatan(selectedKab, term).then(setKecamatan).catch(() => {});
+                      }}
+                      options={kecamatan.map((k) => ({ label: k.nama_kecamatan, value: k.id_kecamatan }))}
+                    />
                   </Field>
                   <Field label="Desa/Kelurahan" error={errors.id_desa?.message}>
-                    <select
-                      className={inputClass}
+                    <Combobox
+                      value={watch("id_desa")}
                       disabled={!canEdit || !selectedKec}
-                      {...register("id_desa")}
-                    >
-                      <option value="">-- Pilih Desa/Kel --</option>
-                      {desa.map((p) => (
-                        <option key={p.id_desa} value={p.id_desa}>
-                          {p.nama_desa}
-                        </option>
-                      ))}
-                    </select>
+                      error={errors.id_desa?.message}
+                      onChange={(val) => setValue("id_desa", val as string, { shouldValidate: true })}
+                      onSearch={(term) => {
+                        if (selectedKec) services.wilayah.getDesa(selectedKec, term).then(setDesa).catch(() => {});
+                      }}
+                      options={desa.map((d) => ({ label: d.nama_desa, value: d.id_desa }))}
+                    />
                   </Field>
                 </div>
 

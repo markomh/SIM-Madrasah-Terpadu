@@ -39,7 +39,7 @@ class PersuratanService
             ->first();
 
         return DB::transaction(function () use ($surat, $penandatangan, $jabatanAktif) {
-            $surat->update([
+            $surat->forceFill([
                 'status'              => 'Diterbitkan',
                 'tanggal_surat'       => Carbon::now()->toDateString(),
                 // SNAPSHOT — tidak berubah meski data pegawai diedit kemudian
@@ -50,10 +50,11 @@ class PersuratanService
                     'jabatan'     => $jabatanAktif?->jenis_jabatan ?? 'Kepala Madrasah',
                     'tanggal_ttd' => Carbon::now()->toDateString(),
                 ],
-            ]);
+            ])->save();
 
             return $surat->fresh();
         });
+
     }
 
     /**

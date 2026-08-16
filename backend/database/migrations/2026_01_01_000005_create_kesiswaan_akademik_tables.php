@@ -85,8 +85,10 @@ return new class extends Migration
             $table->foreignUuid('diajukan_oleh')->nullable()->constrained('pegawai', 'id_pegawai');
             $table->foreignUuid('disetujui_oleh')->nullable()->constrained('pegawai', 'id_pegawai');
             $table->timestamp('tanggal_persetujuan')->nullable();
+            $table->uuid('id_surat_skp')->nullable();
             $table->timestamps();
         });
+
 
         Schema::create('jadwal_pelajaran', function (Blueprint $table) {
             $table->uuid('id_jadwal')->primary();

@@ -30,6 +30,19 @@ class IzinGuru extends Model
             // Hitung status_rekonsiliasi saat creating
             $m->status_rekonsiliasi = $m->hitungStatusRekonsiliasi();
         });
+
+        // Rekonsiliasi retroaktif: izin guru yang dibuat belakangan mengubah sesi lama dari "Digantikan Mendadak" -> "Digantikan Terjadwal"
+        // @see doc/backend.md Bab 4.4 & Bab 8 Poin 5
+        static::created(function ($m) {
+            $tgl = $m->tanggal_izin instanceof \Carbon\Carbon ? $m->tanggal_izin->toDateString() : (string) $m->tanggal_izin;
+            SesiTatapMuka::whereHas('jadwal', fn ($q) => $q->where('id_pegawai', $m->id_pegawai))
+                ->whereDate('tanggal', $tgl)
+                ->where('status_kehadiran_guru', 'Digantikan Mendadak')
+                ->update([
+                    'id_izin_terkait'       => $m->id_izin,
+                    'status_kehadiran_guru' => 'Digantikan Terjadwal',
+                ]);
+        });
     }
 
     /**

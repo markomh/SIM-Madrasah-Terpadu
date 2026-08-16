@@ -20,7 +20,7 @@ class SiswaController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Siswa::with(['madrasah']);
+        $query = Siswa::with(['madrasah', 'rombelAktif']);
 
         if ($request->has('status_siswa')) {
             $query->where('status_siswa', $request->status_siswa);

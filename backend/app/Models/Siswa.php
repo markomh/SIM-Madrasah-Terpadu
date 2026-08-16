@@ -45,7 +45,7 @@ class Siswa extends Model
         return $this->hasMany(AnggotaRombel::class, 'id_siswa');
     }
 
-    public function rombelAktif(): BelongsTo
+    public function rombelAktif(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         // Rombel aktif via anggota_rombel terbaru dengan status_keanggotaan = Aktif
         return $this->belongsToMany(Rombel::class, 'anggota_rombel', 'id_siswa', 'id_rombel')

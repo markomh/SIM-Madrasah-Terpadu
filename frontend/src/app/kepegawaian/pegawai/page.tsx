@@ -119,8 +119,10 @@ export default function PegawaiPage() {
     toast("Template import pegawai berhasil diunduh", "info");
   };
 
+  const isAdmin = currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList);
+
   if (
-    !(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList)) &&
+    !isAdmin &&
     !(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))
   ) {
     return (
@@ -137,13 +139,15 @@ export default function PegawaiPage() {
         description="Daftar profil Pendidik dan Tenaga Kependidikan (PTK) terdaftar di madrasah."
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="secondary"
-              iconLeft={<Upload size={14} />}
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              Import Pegawai
-            </Button>
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                iconLeft={<Upload size={14} />}
+                onClick={() => setIsImportModalOpen(true)}
+              >
+                Import Pegawai
+              </Button>
+            )}
             <Button
               variant="secondary"
               iconLeft={<Download size={14} />}

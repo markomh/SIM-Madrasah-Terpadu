@@ -66,11 +66,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     } else {
       // LIVE MODE
-      services.auth.getMe().then(meData => {
+      services.auth.getMe().then(async (meData) => {
         if (cancelled) return;
         setCurrentUser(meData as Pegawai);
         setPenugasanList(meData.penugasan_aktif || []);
-        setIsLoading(false);
+
+        try {
+          const [rombel, ekstra, jadwal] = await Promise.all([
+            services.referensi.getRombel().catch(() => []),
+            services.ekstrakurikuler.getAll().catch(() => []),
+            services.jadwal.getAll().catch(() => []),
+          ]);
+          if (!cancelled) {
+            setRombelList(rombel || []);
+            setEkstraList(ekstra || []);
+            setJadwalList(jadwal || []);
+          }
+        } catch {
+          // Ignore secondary fetch error
+        }
+
+        if (!cancelled) setIsLoading(false);
       }).catch(() => {
         if (!cancelled) {
           setCurrentUser(null);

@@ -17,6 +17,7 @@ import {
   Select,
   SurfaceCard,
 } from "@/components/ui/primitives";
+import { Combobox } from "@/components/ui/combobox";
 import { siswaFormSchema, type SiswaFormValues } from "@/lib/schemas";
 import { services } from "@/services";
 import type { MasterProvinsi, MasterKabupaten, MasterKecamatan, MasterDesa } from "@/types/wilayah";
@@ -39,6 +40,8 @@ export default function TambahSiswaPage() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SiswaFormValues>({
     resolver: zodResolver(siswaFormSchema),
@@ -164,41 +167,58 @@ export default function TambahSiswaPage() {
                 {...register("alamat_detail")}
               />
             </div>
-            <Select
+            <Combobox
               label="Provinsi"
               value={selectedProv}
-              onChange={(e) => setSelectedProv(e.target.value)}
-            >
-              <option value="">-- Pilih --</option>
-              {provinsi.map((p: MasterProvinsi) => <option key={p.id_provinsi} value={p.id_provinsi}>{p.nama_provinsi}</option>)}
-            </Select>
-            <Select
+              onChange={(val) => {
+                setSelectedProv(val as string);
+                setSelectedKab(""); // Reset child
+                setSelectedKec("");
+                setValue("id_desa", ""); // react-hook-form
+              }}
+              onSearch={(term) => {
+                services.wilayah.getProvinsi(term).then(setProvinsi).catch(() => {});
+              }}
+              options={provinsi.map((p) => ({ label: p.nama_provinsi, value: p.id_provinsi }))}
+            />
+            <Combobox
               label="Kabupaten/Kota"
               value={selectedKab}
-              onChange={(e) => setSelectedKab(e.target.value)}
               disabled={!selectedProv}
-            >
-              <option value="">-- Pilih --</option>
-              {kabupaten.map((p: MasterKabupaten) => <option key={p.id_kabupaten} value={p.id_kabupaten}>{p.nama_kabupaten}</option>)}
-            </Select>
-            <Select
+              onChange={(val) => {
+                setSelectedKab(val as string);
+                setSelectedKec("");
+                setValue("id_desa", "");
+              }}
+              onSearch={(term) => {
+                if (selectedProv) services.wilayah.getKabupaten(selectedProv, term).then(setKabupaten).catch(() => {});
+              }}
+              options={kabupaten.map((k) => ({ label: k.nama_kabupaten, value: k.id_kabupaten }))}
+            />
+            <Combobox
               label="Kecamatan"
               value={selectedKec}
-              onChange={(e) => setSelectedKec(e.target.value)}
               disabled={!selectedKab}
-            >
-              <option value="">-- Pilih --</option>
-              {kecamatan.map((p: MasterKecamatan) => <option key={p.id_kecamatan} value={p.id_kecamatan}>{p.nama_kecamatan}</option>)}
-            </Select>
-            <Select
+              onChange={(val) => {
+                setSelectedKec(val as string);
+                setValue("id_desa", "");
+              }}
+              onSearch={(term) => {
+                if (selectedKab) services.wilayah.getKecamatan(selectedKab, term).then(setKecamatan).catch(() => {});
+              }}
+              options={kecamatan.map((k) => ({ label: k.nama_kecamatan, value: k.id_kecamatan }))}
+            />
+            <Combobox
               label="Desa/Kelurahan"
-              error={errors.id_desa?.message}
+              value={watch("id_desa")}
               disabled={!selectedKec}
-              {...register("id_desa")}
-            >
-              <option value="">-- Pilih --</option>
-              {desa.map((p: MasterDesa) => <option key={p.id_desa} value={p.id_desa}>{p.nama_desa}</option>)}
-            </Select>
+              error={errors.id_desa?.message}
+              onChange={(val) => setValue("id_desa", val as string, { shouldValidate: true })}
+              onSearch={(term) => {
+                if (selectedKec) services.wilayah.getDesa(selectedKec, term).then(setDesa).catch(() => {});
+              }}
+              options={desa.map((d) => ({ label: d.nama_desa, value: d.id_desa }))}
+            />
           </div>
 
           <Select
