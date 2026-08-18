@@ -162,12 +162,14 @@ export default function BkPage() {
                     <p className="text-sm text-muted">Belum ada riwayat catatan BK untuk siswa ini (yang dapat Anda lihat).</p>
                   ) : (
                     catatan.map(c => (
-                      <div key={c.id_catatan} className={`p-4 rounded border ${c.tingkat_kerahasiaan === "Rahasia" ? "bg-red-50/50 border-red-200" : "bg-surface border-border"}`}>
+                      <div key={c.id_catatan} className={`p-4 rounded border ${c.tingkat_kerahasiaan === "Rahasia" ? "bg-danger-soft border-danger/30" : "bg-surface border-border"}`}>
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex items-center gap-2">
                             <Badge variant="neutral">{c.kategori}</Badge>
                             {c.tingkat_kerahasiaan === "Rahasia" && (
-                              <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full font-medium">Rahasia</span>
+                              <Badge variant="danger" className="flex items-center gap-1 font-semibold">
+                                🔒 Rahasia (RLS Enforced)
+                              </Badge>
                             )}
                           </div>
                           <span className="text-xs text-muted">{c.tanggal}</span>

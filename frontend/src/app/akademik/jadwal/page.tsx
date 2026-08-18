@@ -485,8 +485,8 @@ export default function JadwalPage() {
                   myJtmSummary.statusJtm === "IDEAL"
                     ? "bg-primary-soft text-primary"
                     : myJtmSummary.statusJtm === "UNDERLOAD"
-                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
-                    : "bg-red-500/15 text-red-700 dark:text-red-300"
+                    ? "bg-amber-soft text-amber"
+                    : "bg-danger-soft text-danger"
                 }`}
               >
                 {myJtmSummary.statusJtm === "IDEAL" ? "Memenuhi TPG" : myJtmSummary.statusJtm === "UNDERLOAD" ? "Kurang" : "Overload"}
@@ -1095,11 +1095,11 @@ export default function JadwalPage() {
                               <CheckCircle size={12} /> Memenuhi (24+ JTM)
                             </span>
                           ) : t.statusJtm === "UNDERLOAD" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-soft px-2.5 py-1 text-xs font-bold text-amber">
                               <AlertCircle size={12} /> Kurang ({t.totalJtm} JTM)
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 px-2.5 py-1 text-xs font-bold text-red-700 dark:text-red-300">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2.5 py-1 text-xs font-bold text-danger">
                               <XCircle size={12} /> Overload (&gt; 37.5 JTM)
                             </span>
                           )}

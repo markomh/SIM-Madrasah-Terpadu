@@ -98,6 +98,19 @@ class EkstrakurikulerController extends Controller
         return response()->json(['data' => $keanggotaan->load('siswa')], 201);
     }
 
+    public function destroyAnggota(string $id, string $idAnggota): JsonResponse
+    {
+        $ekstra = Ekstrakurikuler::findOrFail($id);
+
+        $keanggotaan = KeanggotaanEkstra::where('id_ekstra', $ekstra->id_ekstra)
+            ->where('id_keanggotaan', $idAnggota)
+            ->firstOrFail();
+
+        $keanggotaan->delete();
+
+        return response()->json(['message' => 'Anggota ekstrakurikuler berhasil dihapus.']);
+    }
+
     // ============================================================
     // Absensi Kegiatan Ekstrakurikuler
     // ============================================================

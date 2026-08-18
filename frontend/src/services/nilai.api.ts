@@ -24,10 +24,12 @@ export const nilaiApi = {
     return true;
   },
 
-  getNilai: async (idSiswa?: string, idRombel?: string): Promise<NilaiSiswa[]> => {
+  getNilai: async (filter: { id_rombel?: string; semester?: string; id_mapel?: string; id_siswa?: string }): Promise<NilaiSiswa[]> => {
     const params = new URLSearchParams();
-    if (idSiswa) params.append("id_siswa", idSiswa);
-    if (idRombel) params.append("id_rombel", idRombel);
+    if (filter.id_siswa) params.append("id_siswa", filter.id_siswa);
+    if (filter.id_rombel) params.append("id_rombel", filter.id_rombel);
+    if (filter.semester) params.append("semester", filter.semester);
+    if (filter.id_mapel) params.append("id_mapel", filter.id_mapel);
     const query = params.toString() ? `?${params.toString()}` : "";
     return apiClient.get<NilaiSiswa[]>(`/nilai${query}`);
   },

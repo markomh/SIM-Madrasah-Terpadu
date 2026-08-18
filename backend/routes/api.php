@@ -149,6 +149,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/', 'store');
             Route::delete('{id}', 'destroy');
             Route::get('jtm-terjadwal', 'jtmTerjadwal'); // ?id_pegawai= — Kamad+BK exception
+            Route::get('konflik', 'konflik');
         });
 
         // ============================================================
@@ -200,6 +201,7 @@ Route::prefix('v1')->group(function () {
             Route::put('{id}', 'update');
             Route::get('{id}/anggota', 'indexAnggota');
             Route::post('{id}/anggota', 'storeAnggota');
+            Route::delete('{id}/anggota/{id_anggota}', 'destroyAnggota');
             Route::get('{id}/absensi', 'indexAbsensi');
             Route::post('{id}/absensi', 'storeAbsensi');
         });
@@ -232,10 +234,15 @@ Route::prefix('v1')->group(function () {
         });
 
         // ============================================================
-        // PROFIL MADRASAH
+        // PROFIL MADRASAH & PENGATURAN
         // ============================================================
         Route::prefix('profil-madrasah')->controller(\App\Http\Controllers\Api\ProfilMadrasahController::class)->group(function () {
             Route::get('/', 'show');
+            Route::put('/', 'update');
+        });
+
+        Route::prefix('pengaturan')->controller(\App\Http\Controllers\Api\PengaturanController::class)->group(function () {
+            Route::get('/', 'get');
             Route::put('/', 'update');
         });
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import {
   Bell,
   BookOpen,
@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth-context";
 import { useTahunAjaran } from "@/components/app-providers";
+import { CommandPalette } from "@/components/ui/command-palette";
+import { Search } from "lucide-react";
 import { services } from "@/services";
 import type { Pegawai } from "@/types";
 import {
@@ -124,12 +126,53 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const [namaMadrasah, setNamaMadrasah] = useState<string>("MTs Terpadu Nusantara");
 
   useEffect(() => {
-    services.pegawai.getAll().then((data) => setAllPegawai(data));
-    services.persetujuan.getPending().then((items) => setPendingCount(items.length)).catch(() => {});
-    services.madrasah.getCurrent().then((m) => {
-      if (m?.nama_madrasah) setNamaMadrasah(m.nama_madrasah);
-    }).catch(() => {});
+    let isMounted = true;
+    Promise.all([
+      services.pegawai.getAll(),
+      services.persetujuan.getPending().catch(() => []),
+      services.madrasah.getCurrent().catch(() => null),
+    ]).then(([pegawaiData, pendingData, madrasahData]) => {
+      if (!isMounted) return;
+      if (pegawaiData) setAllPegawai(pegawaiData);
+      if (pendingData) setPendingCount(pendingData.length);
+      if (madrasahData?.nama_madrasah) setNamaMadrasah(madrasahData.nama_madrasah);
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [pathname]);
+
+  const personaOptions = useMemo(() => {
+    return allPegawai.map((p) => {
+      const jabatanStruktural = penugasanList
+        .filter((j) => j.id_pegawai === p.id_pegawai && j.status === "Aktif")
+        .map((j) => {
+          if (j.jenis_jabatan === "Kepala Madrasah") return "Kamad";
+          if (j.jenis_jabatan === "Admin Madrasah") return "Admin";
+          if (j.jenis_jabatan === "Operator Kesiswaan") return "Ops";
+          if (j.jenis_jabatan === "Guru BK") return "BK";
+          return j.jenis_jabatan;
+        });
+      const isWK = isWaliKelas(p.id_pegawai, rombelList);
+      const isPembina = isPembinaEkstrakurikuler(p.id_pegawai, ekstraList);
+
+      const parts: string[] = [];
+      if (jabatanStruktural.length > 0) parts.push(...jabatanStruktural);
+      if (isWK) parts.push("WK");
+      if (isPembina) parts.push("Pembina");
+
+      if (parts.length === 0) {
+        parts.push(p.tugas_utama === "Tendik" ? "Tendik" : "Guru Mapel");
+      }
+
+      const cleanName = p.nama_lengkap_gelar.replace(" (Demo Terpadu)", "");
+
+      return {
+        id_pegawai: p.id_pegawai,
+        label: `${cleanName} (${parts.join(", ")})`,
+      };
+    });
+  }, [allPegawai, penugasanList, rombelList, ekstraList]);
 
   const visible = navigation
     .map((g) => ({ ...g, items: g.items.filter((i) => i.visible(authCtx)) }))
@@ -177,160 +220,156 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
 
   return (
     <div className="min-h-screen bg-paper text-ink">
+      <CommandPalette />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-[4px] focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none"
       >
         Skip to main content
       </a>
-      <div className="flex min-h-screen flex-col lg:flex-row">
-        <aside className="hidden w-64 shrink-0 border-r border-border bg-surface px-4 py-5 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col print:hidden">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-primary text-white">
+
+      <div className="min-h-screen">
+        {/* Sidebar Left (Fixed) */}
+        <aside className="hidden lg:flex fixed top-0 left-0 z-40 h-screen w-64 flex-col border-r border-border bg-surface px-4 py-5 print:hidden">
+          <div className="mb-6 flex items-center gap-3 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-primary text-white shadow-sm">
               <School size={18} />
             </div>
-            <div>
-              <p className="text-sm font-semibold text-ink">{namaMadrasah}</p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-ink">{namaMadrasah}</p>
               <p className="text-xs text-muted">SIM Madrasah Terpadu</p>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto pr-1">
             {navContent}
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-border bg-surface print:hidden">
-            <div className="flex flex-col gap-3 px-4 py-3 sm:px-6">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-[4px] border border-border lg:hidden"
-                    onClick={() => setMobileOpen(true)}
-                  >
-                    <Menu size={18} />
-                  </button>
-                  <div>
-                    <p className="text-xs text-muted">{namaMadrasah}</p>
-                    <p className="text-base font-semibold">{title ?? "SIM Madrasah Terpadu"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/persetujuan"
-                    title={pendingCount > 0 ? `${pendingCount} pengajuan menunggu persetujuan` : "Tidak ada notifikasi"}
-                    className="relative flex h-9 w-9 items-center justify-center rounded-[4px] border border-border hover:bg-paper transition text-ink"
-                  >
-                    <Bell size={16} />
-                    {pendingCount > 0 ? (
-                      <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-sm">
-                        {pendingCount}
-                      </span>
-                    ) : (
-                      <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-border" />
-                    )}
-                  </Link>
-                  <div className="hidden items-center gap-3 rounded-[4px] border border-border pl-2 pr-1.5 py-1.5 sm:flex bg-surface hover:bg-paper transition">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-primary-soft text-xs font-bold text-primary">
-                      {currentUser?.nama_lengkap_gelar?.slice(0, 2).toUpperCase() ?? "P"}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold">{currentUser?.nama_lengkap_gelar ?? "Pegawai"}</p>
-                      <p className="text-[10px] text-muted">{currentUser?.tugas_utama}</p>
-                    </div>
-                    <div className="h-6 w-px bg-border mx-1"></div>
-                    <button
-                      onClick={logout}
-                      title="Logout / Keluar"
-                      className="flex h-8 w-8 items-center justify-center rounded-[4px] text-muted hover:bg-danger/10 hover:text-danger transition"
-                    >
-                      <LogOut size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 rounded-[6px] border border-border bg-paper px-3 py-2 text-sm">
-                <label className="flex items-center gap-2">
-                  <span className="text-xs text-muted">Tahun Ajaran</span>
-                  <select
-                    className="rounded-[4px] border border-border bg-surface px-2 py-1 text-sm"
-                    value={selected?.id_tahun ?? ""}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                  >
-                    {tahunList.map((t) => (
-                      <option key={t.id_tahun} value={t.id_tahun}>
-                        {t.nama_tahun}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex items-center gap-2">
-                  <span className="text-xs text-muted">Semester</span>
-                  <select
-                    className="rounded-[4px] border border-border bg-surface px-2 py-1 text-sm"
-                    value={selectedSemester}
-                    onChange={(e) => setSelectedSemester(e.target.value as "Ganjil" | "Genap")}
-                  >
-                    <option value="Ganjil">Ganjil</option>
-                    <option value="Genap">Genap</option>
-                  </select>
-                </label>
-                <label className="ml-auto flex items-center gap-1.5 rounded-[4px] border border-amber/40 bg-amber-soft px-2 py-1 max-w-full sm:max-w-[260px] min-w-0">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-amber shrink-0 whitespace-nowrap">Simulasi Akun</span>
-                  <select
-                    className="bg-transparent text-xs sm:text-sm outline-none truncate w-full min-w-0 cursor-pointer"
-                    value={currentUser?.id_pegawai ?? ""}
-                    onChange={(e) => setCurrentUserId(e.target.value)}
-                  >
-                    {allPegawai.map((p) => {
-                      const jabatanStruktural = penugasanList
-                        .filter((j) => j.id_pegawai === p.id_pegawai && j.status === "Aktif")
-                        .map((j) => {
-                          if (j.jenis_jabatan === "Kepala Madrasah") return "Kamad";
-                          if (j.jenis_jabatan === "Admin Madrasah") return "Admin";
-                          if (j.jenis_jabatan === "Operator Kesiswaan") return "Ops";
-                          if (j.jenis_jabatan === "Guru BK") return "BK";
-                          return j.jenis_jabatan;
-                        });
-                      const isWK = isWaliKelas(p.id_pegawai, rombelList);
-                      const isPembina = isPembinaEkstrakurikuler(p.id_pegawai, ekstraList);
-                      
-                      const parts: string[] = [];
-                      if (jabatanStruktural.length > 0) parts.push(...jabatanStruktural);
-                      if (isWK) parts.push("WK");
-                      if (isPembina) parts.push("Pembina");
-
-                      if (parts.length === 0) {
-                        parts.push(p.tugas_utama === "Tendik" ? "Tendik" : "Guru Mapel");
-                      }
-
-                      const cleanName = p.nama_lengkap_gelar.replace(" (Demo Terpadu)", "");
-                      
-                      return (
-                        <option key={p.id_pegawai} value={p.id_pegawai}>
-                          {cleanName} ({parts.join(", ")})
-                        </option>
-                      );
-                    })}
-                  </select>
-                </label>
-              </div>
+        {/* Topbar (Fixed Height h-16) */}
+        <header className="fixed top-0 left-0 lg:left-64 right-0 z-30 flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-6 print:hidden">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-[4px] border border-border lg:hidden text-ink hover:bg-paper"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Buka Menu"
+            >
+              <Menu size={18} />
+            </button>
+            <div className="min-w-0">
+              <p className="truncate text-[11px] text-muted leading-tight">{namaMadrasah}</p>
+              <h1 className="truncate text-sm sm:text-base font-bold text-ink leading-tight">{title ?? "SIM Madrasah Terpadu"}</h1>
             </div>
-          </header>
+          </div>
 
-          <main id="main-content" className="flex-1 p-4 sm:p-6">
-            <div className="max-w-7xl mx-auto w-full">{children}</div>
-          </main>
-        </div>
+          {/* Quick Command Search Trigger (Ctrl+K) */}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))}
+            className="hidden md:flex items-center gap-2 rounded-[6px] border border-border bg-paper px-2.5 py-1.5 text-xs text-muted hover:border-primary hover:text-ink transition cursor-pointer"
+          >
+            <Search size={14} />
+            <span>Pencarian / Perintah...</span>
+            <kbd className="rounded border border-border bg-surface px-1 py-0.5 text-[10px] font-semibold text-muted">Ctrl K</kbd>
+          </button>
+
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Context Filter Controls */}
+            <div className="hidden md:flex items-center gap-2 rounded-[6px] border border-border bg-paper px-2.5 py-1 text-xs">
+              <label className="flex items-center gap-1.5">
+                <span className="text-muted font-medium">Tahun:</span>
+                <select
+                  className="rounded-[4px] border border-border bg-surface px-1.5 py-0.5 text-xs text-ink outline-none focus:border-primary cursor-pointer font-medium"
+                  value={selected?.id_tahun ?? ""}
+                  onChange={(e) => setSelectedId(e.target.value)}
+                >
+                  {tahunList.map((t) => (
+                    <option key={t.id_tahun} value={t.id_tahun}>
+                      {t.nama_tahun}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-1.5">
+                <span className="text-muted font-medium">Sem:</span>
+                <select
+                  className="rounded-[4px] border border-border bg-surface px-1.5 py-0.5 text-xs text-ink outline-none focus:border-primary cursor-pointer font-medium"
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value as "Ganjil" | "Genap")}
+                >
+                  <option value="Ganjil">Ganjil</option>
+                  <option value="Genap">Genap</option>
+                </select>
+              </label>
+            </div>
+
+            {/* Persona Simulator */}
+            <label className="flex h-9 items-center gap-1.5 rounded-[6px] border border-amber/40 bg-amber-soft px-2 py-1 min-w-[140px] sm:min-w-[220px] max-w-[240px] shrink-0">
+              <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wide text-amber shrink-0">Simulasi:</span>
+              <select
+                className="bg-transparent text-xs outline-none truncate w-full cursor-pointer font-medium text-ink"
+                value={currentUser?.id_pegawai ?? ""}
+                onChange={(e) => setCurrentUserId(e.target.value)}
+              >
+                {personaOptions.map((opt) => (
+                  <option key={opt.id_pegawai} value={opt.id_pegawai}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {/* Notifications Button */}
+            <Link
+              href="/persetujuan"
+              title={pendingCount > 0 ? `${pendingCount} pengajuan menunggu persetujuan` : "Tidak ada notifikasi"}
+              className="relative flex h-9 w-9 items-center justify-center rounded-[6px] border border-border bg-surface hover:bg-paper transition text-ink shrink-0"
+            >
+              <Bell size={16} />
+              {pendingCount > 0 ? (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white shadow-sm">
+                  {pendingCount}
+                </span>
+              ) : (
+                <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-border" />
+              )}
+            </Link>
+
+            {/* User Profile & Logout */}
+            <div className="hidden sm:flex items-center gap-2.5 rounded-[6px] border border-border bg-surface px-2 py-1 hover:bg-paper transition">
+              <div className="flex h-7 w-7 items-center justify-center rounded-[4px] bg-primary-soft text-xs font-bold text-primary shrink-0">
+                {currentUser?.nama_lengkap_gelar?.slice(0, 2).toUpperCase() ?? "P"}
+              </div>
+              <div className="min-w-0 max-w-[120px]">
+                <p className="truncate text-xs font-semibold leading-tight text-ink">{currentUser?.nama_lengkap_gelar ?? "Pegawai"}</p>
+                <p className="truncate text-[10px] text-muted leading-tight">{currentUser?.tugas_utama}</p>
+              </div>
+              <div className="h-5 w-px bg-border mx-0.5"></div>
+              <button
+                onClick={logout}
+                title="Logout / Keluar"
+                className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-danger/10 hover:text-danger transition shrink-0"
+              >
+                <LogOut size={15} />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Canvas Container (Margin left lg:ml-64, margin top mt-16, bg-paper) */}
+        <main id="main-content" className="lg:ml-64 mt-16 min-h-[calc(100vh-4rem)] bg-paper p-4 sm:p-6 text-ink overflow-y-auto">
+          <div className="max-w-7xl mx-auto w-full">{children}</div>
+        </main>
       </div>
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button type="button" className="absolute inset-0 bg-ink/40" onClick={() => setMobileOpen(false)} aria-label="Tutup" />
-          <div className="absolute left-0 top-0 h-full w-72 overflow-y-auto bg-surface p-4 shadow-lg">
-            <p className="mb-4 text-sm font-semibold">Menu</p>
+          <div className="absolute left-0 top-0 h-full w-72 overflow-y-auto bg-surface p-4 shadow-lg border-r border-border">
+            <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+              <p className="text-sm font-bold text-ink">Menu Navigasi</p>
+              <button onClick={() => setMobileOpen(false)} className="text-xs text-muted hover:text-ink font-semibold">Tutup ✕</button>
+            </div>
             {navContent}
           </div>
         </div>

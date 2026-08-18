@@ -31,6 +31,8 @@ class MutasiController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', RiwayatMutasi::class);
+
         $request->validate([
             'id_siswa'         => 'required|exists:siswa,id_siswa',
             'jenis_mutasi'     => 'required|in:Masuk,Keluar',
@@ -58,9 +60,10 @@ class MutasiController extends Controller
 
     public function setujui(string $id): JsonResponse
     {
-        return DB::transaction(function () use ($id) {
-            $mutasi = RiwayatMutasi::findOrFail($id);
+        $mutasi = RiwayatMutasi::findOrFail($id);
+        $this->authorize('approve', $mutasi);
 
+        return DB::transaction(function () use ($mutasi, $id) {
             if ($mutasi->status_persetujuan !== 'Menunggu Persetujuan') {
                 return response()->json(['message' => 'Permohonan mutasi sudah diproses sebelumnya.'], 422);
             }
@@ -83,6 +86,8 @@ class MutasiController extends Controller
     public function tolak(string $id): JsonResponse
     {
         $mutasi = RiwayatMutasi::findOrFail($id);
+        $this->authorize('approve', $mutasi);
+
         $mutasi->update([
             'status_persetujuan' => 'Ditolak',
             'disetujui_oleh'      => auth()->user()->id_pegawai,

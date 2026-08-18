@@ -520,9 +520,9 @@ function PanelInputNilai({
             <CheckCircle2 size={16} />
             <span>{successMsg}</span>
           </div>
-          <button type="button" onClick={() => setSuccessMsg(null)} className="font-bold hover:opacity-75 p-1">
+          <Button variant="ghost" size="sm" onClick={() => setSuccessMsg(null)} className="h-6 w-6 p-0 text-primary hover:bg-primary/10">
             <X size={14} />
-          </button>
+          </Button>
         </div>
       )}
 

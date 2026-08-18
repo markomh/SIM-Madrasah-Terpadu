@@ -41,6 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
     
+    if (pathname === "/auth/login") {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
 
     if (USE_MOCK) {
@@ -68,8 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // LIVE MODE
       services.auth.getMe().then(async (meData) => {
         if (cancelled) return;
-        setCurrentUser(meData as Pegawai);
-        setPenugasanList(meData.penugasan_aktif || []);
+        const pegawai = meData as Pegawai & { penugasan_aktif?: PenugasanJabatan[] };
+        setCurrentUser(pegawai);
+        setPenugasanList(pegawai.penugasan_aktif || []);
 
         try {
           const [rombel, ekstra, jadwal] = await Promise.all([

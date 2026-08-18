@@ -546,29 +546,34 @@ function PresensiSiswaContent() {
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="font-bold text-ink">Kehadiran Siswa:</span>
                         <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-bold text-emerald-700 dark:text-emerald-300">
+                          <span className="rounded-full bg-primary-soft px-2 py-0.5 font-bold text-primary">
                             Hadir: {hadirCount}
                           </span>
-                          <span className="rounded-full bg-blue-500/15 px-2 py-0.5 font-bold text-blue-700 dark:text-blue-300">
+                          <span className="rounded-full bg-primary-soft px-2 py-0.5 font-bold text-primary">
                             Sakit: {sakitCount}
                           </span>
-                          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-bold text-amber-700 dark:text-amber-300">
+                          <span className="rounded-full bg-amber-soft px-2 py-0.5 font-bold text-amber">
                             Izin: {izinCount}
                           </span>
-                          <span className="rounded-full bg-red-500/15 px-2 py-0.5 font-bold text-red-700 dark:text-red-300">
+                          <span className="rounded-full bg-danger-soft px-2 py-0.5 font-bold text-danger">
                             Alpa: {alpaCount}
                           </span>
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={markAllPresent}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-bold text-ink hover:bg-paper transition-all shadow-xs"
-                      >
-                        <CheckCheck size={13} className="text-primary" />
-                        <span>Tandai Semua Hadir</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <span className="hidden sm:inline-block text-[10px] text-muted font-medium bg-surface border border-border px-2 py-0.5 rounded">
+                          💡 Klik kartu / Klik 'Tandai Semua Hadir'
+                        </span>
+                        <button
+                          type="button"
+                          onClick={markAllPresent}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-bold text-ink hover:bg-paper transition-all shadow-xs"
+                        >
+                          <CheckCheck size={13} className="text-primary" />
+                          <span>Tandai Semua Hadir</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Student Grid */}

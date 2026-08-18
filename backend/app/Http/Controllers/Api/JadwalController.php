@@ -129,4 +129,39 @@ class JadwalController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Deteksi bentrok jadwal guru (pasangan jadwal yang tumpang tindih untuk guru yang sama).
+     */
+    public function konflik(): JsonResponse
+    {
+        $allJadwal = JadwalPelajaran::all();
+        $konflikList = [];
+
+        $grouped = $allJadwal->groupBy(function ($j) {
+            return $j->id_pegawai . '_' . $j->hari . '_' . $j->semester;
+        });
+
+        foreach ($grouped as $items) {
+            $count = $items->count();
+            if ($count < 2) continue;
+
+            for ($i = 0; $i < $count; $i++) {
+                for ($j = $i + 1; $j < $count; $j++) {
+                    $a = $items[$i];
+                    $b = $items[$j];
+
+                    if ($a->jam_mulai < $b->jam_selesai && $a->jam_selesai > $b->jam_mulai) {
+                        $konflikList[] = [
+                            'id_pegawai'  => $a->id_pegawai,
+                            'id_jadwal_1' => $a->id_jadwal,
+                            'id_jadwal_2' => $b->id_jadwal,
+                        ];
+                    }
+                }
+            }
+        }
+
+        return response()->json(['data' => $konflikList]);
+    }
 }

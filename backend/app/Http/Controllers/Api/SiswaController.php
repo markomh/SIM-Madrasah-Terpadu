@@ -48,6 +48,8 @@ class SiswaController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $this->authorize('create', Siswa::class);
+
         $request->validate([
             'nama_lengkap'      => 'required|string|max:150',
             'tempat_lahir'      => 'required|string|max:100',
@@ -88,6 +90,7 @@ class SiswaController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $siswa = Siswa::findOrFail($id);
+        $this->authorize('update', $siswa);
 
         $request->validate([
             'nama_lengkap'      => 'required|string|max:150',
@@ -119,6 +122,8 @@ class SiswaController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $siswa = Siswa::findOrFail($id);
+        $this->authorize('delete', $siswa);
+
         $siswa->delete();
 
         return response()->json(['message' => 'Data siswa berhasil dihapus.']);

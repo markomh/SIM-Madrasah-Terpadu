@@ -1,16 +1,20 @@
 /**
- * StatusSurat — aligned with backend DDL enum.
- * @note "Draft" is kept as alias for "Draf" for mock backward compat.
+ * StatusSurat — 5 nilai kanonik resmi (sesuai DDL Backend Enum).
  */
 export type StatusSurat =
   | "Draf"
   | "Menunggu TTD"
   | "Diterbitkan"
   | "Ditolak"
-  | "Diarsipkan"
-  | "Draft"                  // @deprecated alias -> "Draf"
-  | "Menunggu Tanda Tangan"  // @deprecated alias -> "Menunggu TTD"
-  | "Ditandatangani";        // @deprecated alias -> "Diterbitkan"
+  | "Diarsipkan";
+
+/** @deprecated Alias status surat lama untuk backwards-compatibility data mock */
+export type StatusSuratLegacyAlias =
+  | "Draft"                  // alias -> "Draf"
+  | "Menunggu Tanda Tangan"  // alias -> "Menunggu TTD"
+  | "Ditandatangani";        // alias -> "Diterbitkan"
+
+export type StatusSuratWithLegacy = StatusSurat | StatusSuratLegacyAlias;
 
 /**
  * Snapshot penandatangan — diisi SAAT tombol "Tandatangani" diklik.
@@ -44,7 +48,7 @@ export type Surat = {
   isi_surat: string;
   /** @deprecated use isi_surat */
   isi_ringkas?: string;
-  status: StatusSurat;
+  status: StatusSuratWithLegacy;
   /** id_pegawai pembuat surat — padanan FK dibuat_oleh di DDL */
   dibuat_oleh: string;
   /**

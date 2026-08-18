@@ -5,7 +5,7 @@ export interface NilaiService {
   addKomponen(data: Omit<KomponenNilai, "id_komponen">): Promise<KomponenNilai>;
   updateKomponen(id_komponen: string, data: Partial<KomponenNilai>): Promise<KomponenNilai>;
   deleteKomponen(id_komponen: string): Promise<void>;
-  getNilai(filter: { id_rombel: string; semester: string; id_mapel?: string }): Promise<NilaiSiswa[]>;
+  getNilai(filter: { id_rombel?: string; semester?: string; id_mapel?: string; id_siswa?: string }): Promise<NilaiSiswa[]>;
   inputNilai(data: Omit<NilaiSiswa, "id_nilai" | "tanggal_input">): Promise<NilaiSiswa>;
   batchInputNilai(entries: Omit<NilaiSiswa, "id_nilai" | "tanggal_input">[]): Promise<NilaiSiswa[]>;
 }

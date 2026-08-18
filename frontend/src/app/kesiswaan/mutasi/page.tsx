@@ -489,8 +489,8 @@ export default function MutasiPage() {
                       isDraggingMasuk
                         ? "border-primary bg-primary-soft/30 scale-[1.01]"
                         : filesMasuk.length > 0
-                        ? "border-emerald-500 bg-emerald-50/30"
-                        : "border-gray-300 hover:border-primary bg-gray-50/50 hover:bg-primary-soft/10"
+                        ? "border-primary bg-primary-soft/30"
+                        : "border-border hover:border-primary bg-surface hover:bg-primary-soft/10"
                     }`}
                   >
                     <input
@@ -508,7 +508,7 @@ export default function MutasiPage() {
 
                     {filesMasuk.length > 0 ? (
                       <div className="w-full space-y-2 px-1">
-                        <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5 text-xs text-emerald-800 font-bold">
+                        <div className="flex items-center justify-between border-b border-primary/20 pb-1.5 text-xs text-primary font-bold">
                           <span>{filesMasuk.length} Berkas Terpilih</span>
                           <button
                             type="button"
@@ -693,8 +693,8 @@ export default function MutasiPage() {
                       isDraggingKeluar
                         ? "border-primary bg-primary-soft/30 scale-[1.01]"
                         : filesKeluar.length > 0
-                        ? "border-emerald-500 bg-emerald-50/30"
-                        : "border-gray-300 hover:border-primary bg-gray-50/50 hover:bg-primary-soft/10"
+                        ? "border-primary bg-primary-soft/30"
+                        : "border-border hover:border-primary bg-surface hover:bg-primary-soft/10"
                     }`}
                   >
                     <input
@@ -712,7 +712,7 @@ export default function MutasiPage() {
 
                     {filesKeluar.length > 0 ? (
                       <div className="w-full space-y-2 px-1">
-                        <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5 text-xs text-emerald-800 font-bold">
+                        <div className="flex items-center justify-between border-b border-primary/20 pb-1.5 text-xs text-primary font-bold">
                           <span>{filesKeluar.length} Berkas Terpilih</span>
                           <button
                             type="button"
