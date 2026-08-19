@@ -22,18 +22,20 @@ export const jadwalApi = {
     return apiClient.put<JadwalPelajaran>(`/jadwal/${id}`, data);
   },
 
-  remove: async (id: string): Promise<boolean> => {
+  remove: async (id: string): Promise<void> => {
     await apiClient.delete(`/jadwal/${id}`);
-    return true;
   },
 
-  delete: async (id: string): Promise<boolean> => {
+  delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/jadwal/${id}`);
-    return true;
   },
 
-  detectConflicts: async (): Promise<Array<{ id_pegawai: string; id_jadwal_1: string; id_jadwal_2: string }>> => {
-    return apiClient.get<Array<{ id_pegawai: string; id_jadwal_1: string; id_jadwal_2: string }>>("/jadwal/konflik");
+  detectConflicts: async (candidate: Omit<JadwalPelajaran, "id_jadwal">, excludeId?: string): Promise<JadwalPelajaran[]> => {
+    let url = `/jadwal/check-conflict?id_pegawai=${candidate.id_pegawai}&hari=${candidate.hari}&semester=${candidate.semester}&jam_mulai=${candidate.jam_mulai}&jam_selesai=${candidate.jam_selesai}`;
+    if (excludeId) {
+      url += `&exclude_id=${excludeId}`;
+    }
+    return apiClient.get<JadwalPelajaran[]>(url);
   },
 
   getJtmTerjadwal: async (idPegawai: string, semester: "Ganjil" | "Genap"): Promise<number> => {

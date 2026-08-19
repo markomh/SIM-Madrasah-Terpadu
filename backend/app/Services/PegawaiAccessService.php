@@ -123,6 +123,7 @@ class PegawaiAccessService
             'isWaliKelas'              => $this->isWaliKelas($pegawai),
             'isPembinaEkstrakurikuler' => $this->isPembinaEkstrakurikuler($pegawai),
             'isPengajarAktif'          => $this->isPengajarAktif($pegawai),
+            'isPengajar'               => $this->isPengajarAktif($pegawai),
         ];
     }
 }

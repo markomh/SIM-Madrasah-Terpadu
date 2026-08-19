@@ -20,4 +20,9 @@ class AbsensiSiswa extends Model
         parent::boot();
         static::creating(fn ($m) => $m->id_absensi = $m->id_absensi ?: (string) Uuid::uuid4());
     }
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'id_siswa', 'id_siswa');
+    }
 }

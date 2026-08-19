@@ -137,6 +137,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('mutasi')->controller(\App\Http\Controllers\Api\MutasiController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::get('{id}', 'show');
             Route::post('{id}/setujui', 'setujui');
             Route::post('{id}/tolak', 'tolak');
         });
@@ -150,6 +151,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('{id}', 'destroy');
             Route::get('jtm-terjadwal', 'jtmTerjadwal'); // ?id_pegawai= — Kamad+BK exception
             Route::get('konflik', 'konflik');
+            Route::get('check-conflict', 'checkConflict');
         });
 
         // ============================================================
@@ -223,6 +225,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
             Route::get('{id}', 'show');
+            Route::post('{id}/aju-ttd', 'ajuTtd');
             Route::post('{id}/tandatangani', 'tandatangani'); // Kamad only — snapshot meta
             Route::post('{id}/tolak', 'tolak');
         });

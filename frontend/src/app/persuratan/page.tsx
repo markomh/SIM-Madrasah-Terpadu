@@ -132,9 +132,9 @@ export default function PersuratanPage() {
   // ── Resolusi Kamad aktif ──────────────────────────────────────────────────
   useEffect(() => {
     if (!canAccess) return;
-    services.penugasanJabatan.getAll().then(async (daftarPenugasan) => {
+    services.penugasanJabatan.getAll().then(async (daftarPenugasan: any[]) => {
       const aktif = daftarPenugasan.find(
-        (p) => isKepalaMadrasah(p.id_pegawai, daftarPenugasan)
+        (p: any) => isKepalaMadrasah(p.id_pegawai, daftarPenugasan)
       );
       if (!aktif) { setKamadAktif(null); return; }
       const allPegawai = await services.pegawai.getAll();

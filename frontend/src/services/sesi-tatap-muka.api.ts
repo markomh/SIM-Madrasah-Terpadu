@@ -2,14 +2,6 @@ import { SesiTatapMuka } from "@/types/kehadiran-guru";
 import { AbsensiSiswa } from "@/types/absensi";
 import { apiClient } from "./api-client";
 
-export type CatatPresensiPayload = {
-  id_jadwal: string;
-  tanggal: string;
-  id_pegawai_pelaksana: string;
-  absensi_siswa: Array<{ id_siswa: string; status: "Hadir" | "Sakit" | "Izin" | "Alpa" }>;
-  jurnal_materi?: string;
-};
-
 export const sesiTatapMukaApi = {
   getAll: async (): Promise<SesiTatapMuka[]> => {
     return apiClient.get<SesiTatapMuka[]>("/sesi-tatap-muka");
@@ -23,7 +15,26 @@ export const sesiTatapMukaApi = {
     }
   },
 
-  catatPresensi: async (payload: CatatPresensiPayload): Promise<SesiTatapMuka> => {
+  catatPresensi: async (
+    id_sesi: string,
+    id_pegawai_pelaksana: string,
+    absensiSiswa: Array<Omit<AbsensiSiswa, "id_absensi" | "tanggal" | "id_sesi">>,
+    jurnal_materi: string | null
+  ): Promise<SesiTatapMuka> => {
+    const sesi = await sesiTatapMukaApi.getById(id_sesi);
+    if (!sesi) throw new Error("Sesi tidak ditemukan");
+
+    const payload = {
+      id_jadwal: sesi.id_jadwal,
+      tanggal: sesi.tanggal,
+      id_pegawai_pelaksana,
+      absensi_siswa: absensiSiswa.map((a) => ({
+        id_siswa: a.id_siswa,
+        status: a.status,
+      })),
+      jurnal_materi: jurnal_materi ?? undefined,
+    };
+
     return apiClient.post<SesiTatapMuka>("/sesi-tatap-muka", payload);
   },
 
@@ -50,17 +61,7 @@ export const sesiTatapMukaApi = {
   },
 
   getRekapKedisiplinan: async (bulan: string) => {
-    return apiClient.get<Array<{
-      id_pegawai: string;
-      nama: string;
-      tepatWaktu: number;
-      terlambat: number;
-      digantikanTerjadwal: number;
-      digantikanMendadakBulanIni: number;
-      totalSesi: number;
-      realisasiJtmPersen: number;
-      isFlagged: boolean;
-    }>>(`/kedisiplinan/rekap?bulan=${bulan}`);
+    return apiClient.get<any[]>(`/kedisiplinan/rekap?bulan=${bulan}`);
   },
 };
 
@@ -73,7 +74,7 @@ export const absensiApi = {
     return apiClient.get<AbsensiSiswa[]>(`/absensi-siswa?id_sesi=${idSesi}`);
   },
 
-  getRekapHarian: async (tanggal: string): Promise<AbsensiSiswa[]> => {
-    return apiClient.get<AbsensiSiswa[]>(`/absensi-siswa?tanggal=${tanggal}`);
+  getRekapHarian: async (id_rombel: string, tanggal: string): Promise<AbsensiSiswa[]> => {
+    return apiClient.get<AbsensiSiswa[]>(`/absensi-siswa?id_rombel=${id_rombel}&tanggal=${tanggal}`);
   },
 };

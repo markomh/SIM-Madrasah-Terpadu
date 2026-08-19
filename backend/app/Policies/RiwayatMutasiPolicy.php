@@ -12,7 +12,7 @@ use App\Services\PegawaiAccessService;
  * Kebijakan otorisasi terpusat untuk alur mutasi siswa (pengajuan & persetujuan).
  * Hak akses sesuai SRS Bab 12 — Matriks Hak Akses:
  * - Admin Madrasah / Operator Kesiswaan: Pengajuan mutasi
- * - Kepala Madrasah / Admin Madrasah: Persetujuan / Penolakan mutasi
+ * - Kepala Madrasah: Persetujuan / Penolakan mutasi
  *
  * @see doc/SIM_Madrasah_Terpadu_SRS_v2.md Bab 12 — Matriks Hak Akses
  */
@@ -38,10 +38,10 @@ class RiwayatMutasiPolicy
 
     /**
      * Apakah pegawai boleh menyetujui atau menolak permohonan mutasi?
-     * Hanya Kepala Madrasah atau Admin Madrasah.
+     * Hanya Kepala Madrasah.
      */
     public function approve(Pegawai $user, RiwayatMutasi $mutasi): bool
     {
-        return $this->accessService->isAdminOrKamad($user);
+        return $this->accessService->isKepalaMadrasah($user);
     }
 }

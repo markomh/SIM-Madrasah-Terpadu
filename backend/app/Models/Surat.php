@@ -18,7 +18,7 @@ class Surat extends Model
     protected $fillable = [
         'id_madrasah', 'nomor_surat', 'id_template', 'perihal', 'isi_surat',
         'jenis_surat', 'status', 'id_siswa_terkait', 'id_pegawai_terkait',
-        'id_tujuan_surat', 'tanggal_surat', 'dibuat_oleh',
+        'id_tujuan_surat', 'tanggal_surat', 'dibuat_oleh', 'id_penandatangan',
     ];
 
     protected $casts = [
@@ -39,4 +39,5 @@ class Surat extends Model
     public function madrasah() { return $this->belongsTo(Madrasah::class, 'id_madrasah'); }
     public function template() { return $this->belongsTo(TemplateSurat::class, 'id_template'); }
     public function dibuatOleh() { return $this->belongsTo(Pegawai::class, 'dibuat_oleh', 'id_pegawai'); }
+    public function penandatangan() { return $this->belongsTo(Pegawai::class, 'id_penandatangan', 'id_pegawai'); }
 }

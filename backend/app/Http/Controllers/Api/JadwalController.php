@@ -164,4 +164,31 @@ class JadwalController extends Controller
 
         return response()->json(['data' => $konflikList]);
     }
+
+    /**
+     * GET /api/v1/jadwal/check-conflict
+     */
+    public function checkConflict(Request $request): JsonResponse
+    {
+        $request->validate([
+            'id_pegawai'  => 'required|exists:pegawai,id_pegawai',
+            'hari'        => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'semester'    => 'required|in:Ganjil,Genap',
+            'jam_mulai'   => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'exclude_id'  => 'nullable|string',
+        ]);
+
+        $query = JadwalPelajaran::where('id_pegawai', $request->id_pegawai)
+            ->where('hari', $request->hari)
+            ->where('semester', $request->semester)
+            ->where('jam_mulai', '<', $request->jam_selesai)
+            ->where('jam_selesai', '>', $request->jam_mulai);
+
+        if ($request->exclude_id) {
+            $query->where('id_jadwal', '!=', $request->exclude_id);
+        }
+
+        return response()->json(['data' => $query->get()]);
+    }
 }

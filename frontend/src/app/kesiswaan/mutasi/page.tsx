@@ -94,10 +94,10 @@ export default function MutasiPage() {
       services.lembaga.getProfil(),
     ])
       .then(([m, s, r, a, p]) => {
-        const aktifSet = new Set(a.map((x) => x.id_siswa));
+        const aktifSet = new Set(a.map((x: any) => x.id_siswa));
         setMutasi(m);
         setAllSiswaList(s);
-        setSiswa(s.filter((x) => aktifSet.has(x.id_siswa) && x.status_siswa === "Aktif"));
+        setSiswa(s.filter((x: any) => aktifSet.has(x.id_siswa) && x.status_siswa === "Aktif"));
         setRombel(r);
         setAnggotaList(a);
         setProfil(p as ProfilMadrasah);

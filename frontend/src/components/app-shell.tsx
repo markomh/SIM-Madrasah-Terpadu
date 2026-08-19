@@ -140,7 +140,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
     return () => {
       isMounted = false;
     };
-  }, [pathname]);
+  }, []);
 
   const personaOptions = useMemo(() => {
     return allPegawai.map((p) => {

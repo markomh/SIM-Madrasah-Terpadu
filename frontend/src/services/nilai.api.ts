@@ -19,9 +19,8 @@ export const nilaiApi = {
     return apiClient.put<KomponenNilai>(`/nilai/komponen/${id}`, data);
   },
 
-  deleteKomponen: async (id: string): Promise<boolean> => {
+  deleteKomponen: async (id: string): Promise<void> => {
     await apiClient.delete(`/nilai/komponen/${id}`);
-    return true;
   },
 
   getNilai: async (filter: { id_rombel?: string; semester?: string; id_mapel?: string; id_siswa?: string }): Promise<NilaiSiswa[]> => {

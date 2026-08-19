@@ -77,8 +77,8 @@ export default function PersetujuanPage() {
     ])
       .then(([pend, siswa, rombel, aktif, prof]) => {
         setItems(pend);
-        setSiswaMap(Object.fromEntries(siswa.map((s) => [s.id_siswa, s])));
-        setRombelMap(Object.fromEntries(rombel.map((r) => [r.id_rombel, r])));
+        setSiswaMap(Object.fromEntries(siswa.map((s: any) => [s.id_siswa, s])));
+        setRombelMap(Object.fromEntries(rombel.map((r: any) => [r.id_rombel, r])));
         setAnggotaAktif(aktif);
         setProfil(prof as ProfilMadrasah);
         setError(null);

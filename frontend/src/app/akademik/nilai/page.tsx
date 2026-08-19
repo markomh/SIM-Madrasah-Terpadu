@@ -216,23 +216,23 @@ function PanelInputNilai({
     ])
       .then(([allJadwal, allRombel, allMapel, prof]) => {
         setJadwal(allJadwal);
-        setRombelMap(Object.fromEntries(allRombel.map((r) => [r.id_rombel, r])));
-        setMapelMap(Object.fromEntries(allMapel.map((m) => [m.id_mapel, m])));
+        setRombelMap(Object.fromEntries(allRombel.map((r: any) => [r.id_rombel, r])));
+        setMapelMap(Object.fromEntries(allMapel.map((m: any) => [m.id_mapel, m])));
         setProfilMadrasah(prof as ProfilMadrasah);
 
         // Smart Context Default / URL Inheritance
         let targetKey = "";
-        if (initialJadwalKey && allJadwal.some((j) => `${j.id_rombel}_${j.id_mapel}_${j.semester}` === initialJadwalKey)) {
+        if (initialJadwalKey && allJadwal.some((j: any) => `${j.id_rombel}_${j.id_mapel}_${j.semester}` === initialJadwalKey)) {
           targetKey = initialJadwalKey;
         } else if (initialRombel && initialMapel) {
           const match = allJadwal.find(
-            (j) => j.id_rombel === initialRombel && j.id_mapel === initialMapel && j.semester === selectedSemester
+            (j: any) => j.id_rombel === initialRombel && j.id_mapel === initialMapel && j.semester === selectedSemester
           );
           if (match) targetKey = `${match.id_rombel}_${match.id_mapel}_${match.semester}`;
         }
 
         if (!targetKey) {
-          const firstCurrentSemester = allJadwal.find((j) => j.semester === selectedSemester);
+          const firstCurrentSemester = allJadwal.find((j: any) => j.semester === selectedSemester);
           if (firstCurrentSemester) {
             targetKey = `${firstCurrentSemester.id_rombel}_${firstCurrentSemester.id_mapel}_${firstCurrentSemester.semester}`;
           } else if (allJadwal[0]) {

@@ -14,11 +14,21 @@ class AbsensiSiswaController extends Controller
         $query = AbsensiSiswa::with('siswa');
 
         if ($request->has('id_siswa')) {
-            $query->where('id_siswa', $request->id_siswa);
+            $siswa = \App\Models\Siswa::findOrFail($request->id_siswa);
+            $query->where('id_siswa', $siswa->id_siswa);
         }
 
         if ($request->has('id_sesi')) {
             $query->where('id_sesi', $request->id_sesi);
+        }
+
+        if ($request->has('id_rombel')) {
+            $rombel = \App\Models\Rombel::findOrFail($request->id_rombel);
+            $query->where('id_rombel', $rombel->id_rombel);
+        }
+
+        if ($request->has('tanggal')) {
+            $query->whereDate('tanggal', $request->tanggal);
         }
 
         return response()->json(['data' => $query->get()]);

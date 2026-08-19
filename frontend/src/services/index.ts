@@ -45,6 +45,17 @@ import { madrasahApi } from "./madrasah.api";
 
 import { authApi } from "./auth.api";
 
+import { AbsensiService } from "./absensi.service";
+import { JadwalService } from "./jadwal.service";
+import { PersuratanService } from "./persuratan.service";
+import { SesiTatapMukaService } from "./sesi-tatap-muka.service";
+import { IzinGuruService } from "./izin-guru.service";
+import { WilayahService } from "./wilayah.service";
+import { NilaiService } from "./nilai.service";
+import { EkstrakurikulerService } from "./ekstrakurikuler.service";
+import { penugasanJabatanService } from "./penugasan-jabatan.service";
+import { LembagaServiceInterface } from "./lembaga.service";
+
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 /**
@@ -57,21 +68,21 @@ export const services = {
   referensi: USE_MOCK ? referensiMock : referensiApi,
   pegawai: USE_MOCK ? pegawaiMock : pegawaiApi,
   keanggotaan: USE_MOCK ? keanggotaanMock : keanggotaanApi,
-  mutasi: USE_MOCK ? mutasiMock : (mutasiApi as unknown as typeof mutasiMock),
+  mutasi: USE_MOCK ? mutasiMock : mutasiApi,
   persetujuan: USE_MOCK ? persetujuanMock : persetujuanApi,
-  absensi: USE_MOCK ? absensiMock : (absensiApi as unknown as typeof absensiMock),
-  jadwal: USE_MOCK ? jadwalMock : (jadwalApi as unknown as typeof jadwalMock),
-  persuratan: USE_MOCK ? persuratanMock : (persuratanApi as unknown as typeof persuratanMock),
+  absensi: USE_MOCK ? (absensiMock as AbsensiService) : (absensiApi as AbsensiService),
+  jadwal: USE_MOCK ? (jadwalMock as JadwalService) : (jadwalApi as JadwalService),
+  persuratan: USE_MOCK ? (persuratanMock as PersuratanService) : (persuratanApi as PersuratanService),
   wawasan: USE_MOCK ? wawasanMock : wawasanApi,
-  sesiTatapMuka: USE_MOCK ? sesiTatapMukaMock : (sesiTatapMukaApi as unknown as typeof sesiTatapMukaMock),
-  izinGuru: USE_MOCK ? izinGuruMock : (izinGuruApi as unknown as typeof izinGuruMock),
+  sesiTatapMuka: USE_MOCK ? (sesiTatapMukaMock as SesiTatapMukaService) : (sesiTatapMukaApi as SesiTatapMukaService),
+  izinGuru: USE_MOCK ? (izinGuruMock as IzinGuruService) : (izinGuruApi as IzinGuruService),
   pengaturan: USE_MOCK ? pengaturanMock : pengaturanApi,
-  wilayah: USE_MOCK ? mockWilayahService : (wilayahApi as unknown as typeof mockWilayahService),
-  nilai: USE_MOCK ? mockNilaiService : (nilaiApi as unknown as typeof mockNilaiService),
-  ekstrakurikuler: USE_MOCK ? mockEkstrakurikulerService : (ekstrakurikulerApi as unknown as typeof mockEkstrakurikulerService),
-  bk: USE_MOCK ? mockBkService : (bkApi as unknown as typeof mockBkService),
-  penugasanJabatan: USE_MOCK ? mockPenugasanJabatanService : (penugasanJabatanApi as unknown as typeof mockPenugasanJabatanService),
-  lembaga: USE_MOCK ? lembagaMock : (lembagaApi as unknown as typeof lembagaMock),
+  wilayah: USE_MOCK ? (mockWilayahService as WilayahService) : (wilayahApi as WilayahService),
+  nilai: USE_MOCK ? (mockNilaiService as NilaiService) : (nilaiApi as NilaiService),
+  ekstrakurikuler: USE_MOCK ? (mockEkstrakurikulerService as EkstrakurikulerService) : (ekstrakurikulerApi as EkstrakurikulerService),
+  bk: USE_MOCK ? mockBkService : bkApi,
+  penugasanJabatan: USE_MOCK ? (mockPenugasanJabatanService as typeof penugasanJabatanService) : (penugasanJabatanApi as typeof penugasanJabatanService),
+  lembaga: USE_MOCK ? (lembagaMock as LembagaServiceInterface) : (lembagaApi as LembagaServiceInterface),
 };
 
 export function getAuditLog() {
