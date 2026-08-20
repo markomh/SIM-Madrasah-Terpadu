@@ -27,4 +27,9 @@ export type RiwayatMutasi = {
   id_tahun: string;
   id_surat_skp?: string | null;
   berkas_pendukung?: BerkasPendukung[] | null;
+  siswa?: {
+    id_siswa: string;
+    nama_lengkap: string;
+    nisn: string;
+  } | null;
 };

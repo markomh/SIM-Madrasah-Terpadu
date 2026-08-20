@@ -7,6 +7,7 @@ use App\Models\JadwalPelajaran;
 use App\Models\Pegawai;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * JadwalController
@@ -45,9 +46,9 @@ class JadwalController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'id_rombel'   => 'required|exists:rombel,id_rombel',
-            'id_pegawai'  => 'required|exists:pegawai,id_pegawai',
-            'id_mapel'    => 'required|exists:mata_pelajaran,id_mapel',
+            'id_rombel'   => ['required', Rule::exists('rombel', 'id_rombel')->where('id_madrasah', auth()->user()->id_madrasah)],
+            'id_pegawai'  => ['required', Rule::exists('pegawai', 'id_pegawai')->where('id_madrasah', auth()->user()->id_madrasah)],
+            'id_mapel'    => ['required', Rule::exists('mata_pelajaran', 'id_mapel')->where('id_madrasah', auth()->user()->id_madrasah)],
             'semester'    => 'required|in:Ganjil,Genap',
             'hari'        => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
             'jam_mulai'   => 'required|date_format:H:i',
@@ -81,6 +82,49 @@ class JadwalController extends Controller
         ]);
 
         return response()->json(['data' => $jadwal->load(['rombel', 'pegawai', 'mataPelajaran'])], 201);
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $jadwal = JadwalPelajaran::findOrFail($id);
+
+        $request->validate([
+            'id_rombel'   => ['sometimes', 'required', Rule::exists('rombel', 'id_rombel')->where('id_madrasah', auth()->user()->id_madrasah)],
+            'id_pegawai'  => ['sometimes', 'required', Rule::exists('pegawai', 'id_pegawai')->where('id_madrasah', auth()->user()->id_madrasah)],
+            'id_mapel'    => ['sometimes', 'required', Rule::exists('mata_pelajaran', 'id_mapel')->where('id_madrasah', auth()->user()->id_madrasah)],
+            'semester'    => 'sometimes|required|in:Ganjil,Genap',
+            'hari'        => 'sometimes|required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_mulai'   => 'sometimes|required|date_format:H:i',
+            'jam_selesai' => 'sometimes|required|date_format:H:i|after:jam_mulai',
+        ]);
+
+        $newPegawai = $request->id_pegawai ?? $jadwal->id_pegawai;
+        $newHari = $request->hari ?? $jadwal->hari;
+        $newSemester = $request->semester ?? $jadwal->semester;
+        $newJamMulai = $request->jam_mulai ?? $jadwal->jam_mulai;
+        $newJamSelesai = $request->jam_selesai ?? $jadwal->jam_selesai;
+
+        $collision = JadwalPelajaran::where('id_pegawai', $newPegawai)
+            ->where('hari', $newHari)
+            ->where('semester', $newSemester)
+            ->where('id_jadwal', '!=', $id)
+            ->where(function ($q) use ($newJamMulai, $newJamSelesai) {
+                $q->whereBetween('jam_mulai', [$newJamMulai, $newJamSelesai])
+                  ->orWhereBetween('jam_selesai', [$newJamMulai, $newJamSelesai]);
+            })
+            ->exists();
+
+        if ($collision) {
+            return response()->json([
+                'message' => 'Bentrok Jadwal: Guru ini sudah memiliki jadwal mengajar pada jam dan hari tersebut.',
+            ], 422);
+        }
+
+        $jadwal->update($request->only([
+            'id_rombel', 'id_pegawai', 'id_mapel', 'semester', 'hari', 'jam_mulai', 'jam_selesai'
+        ]));
+
+        return response()->json(['data' => $jadwal->load(['rombel', 'pegawai', 'mataPelajaran'])]);
     }
 
     public function destroy(string $id): JsonResponse

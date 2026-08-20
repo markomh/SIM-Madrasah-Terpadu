@@ -44,19 +44,26 @@ export default function IzinGuruPage() {
   useEffect(() => {
     if (!canAccess) return;
     
+    let isMounted = true;
     setLoading(true);
     Promise.all([
       services.izinGuru.getAll(),
       services.pegawai.getAll()
     ]).then(([iz, pg]) => {
+      if (!isMounted) return;
       setIzins(iz);
       setPegawais(pg);
       setError(null);
     }).catch(err => {
+      if (!isMounted) return;
       setError(err.message);
     }).finally(() => {
-      setLoading(false);
+      if (isMounted) setLoading(false);
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, [version, canAccess]);
 
   if (!canAccess) {

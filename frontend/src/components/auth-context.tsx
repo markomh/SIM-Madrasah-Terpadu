@@ -26,9 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [userId, setUserId] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return window.localStorage.getItem(USER_STORAGE_KEY) || "pg_demo_terpadu";
+      return window.localStorage.getItem(USER_STORAGE_KEY) || "019153a0-f8f2-777b-bb66-6b211a7e28a5";
     }
-    return "pg_demo_terpadu";
+    return "019153a0-f8f2-777b-bb66-6b211a7e28a5";
   });
   const [currentUser, setCurrentUser] = useState<Pegawai | null>(null);
   const [penugasanList, setPenugasanList] = useState<PenugasanJabatan[]>([]);
@@ -57,8 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         services.jadwal.getAll().catch(() => []),
       ]).then(async ([user, penugasan, rombel, ekstra, jadwal]) => {
         if (cancelled) return;
-        if (!user && userId !== "pg_demo_terpadu") {
-          const fallbackUser = await services.pegawai.getById("pg_demo_terpadu").catch(() => null);
+        if (!user && userId !== "019153a0-f8f2-777b-bb66-6b211a7e28a5") {
+          const fallbackUser = await services.pegawai.getById("019153a0-f8f2-777b-bb66-6b211a7e28a5").catch(() => null);
           setCurrentUser(fallbackUser);
         } else {
           setCurrentUser(user);
@@ -70,12 +70,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       });
     } else {
-      // LIVE MODE
       services.auth.getMe().then(async (meData) => {
         if (cancelled) return;
-        const pegawai = meData as Pegawai & { penugasan_aktif?: PenugasanJabatan[] };
-        setCurrentUser(pegawai);
-        setPenugasanList(pegawai.penugasan_aktif || []);
+        const loggedInPegawai = meData as Pegawai & { penugasan_aktif?: PenugasanJabatan[] };
+        
+        if (userId && userId !== loggedInPegawai.id_pegawai) {
+          try {
+            const simulated = await services.pegawai.getById(userId);
+            if (simulated && !cancelled) {
+              setCurrentUser(simulated);
+              const penugasans = await services.penugasanJabatan.getAll().catch(() => []);
+              if (!cancelled) {
+                setPenugasanList(penugasans.filter(p => p.id_pegawai === userId && p.status === "Aktif"));
+              }
+            }
+          } catch {
+            if (!cancelled) {
+              setCurrentUser(loggedInPegawai);
+              setPenugasanList(loggedInPegawai.penugasan_aktif || []);
+            }
+          }
+        } else {
+          setCurrentUser(loggedInPegawai);
+          setPenugasanList(loggedInPegawai.penugasan_aktif || []);
+        }
 
         try {
           const [rombel, ekstra, jadwal] = await Promise.all([

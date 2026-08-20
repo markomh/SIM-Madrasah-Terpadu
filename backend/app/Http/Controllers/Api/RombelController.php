@@ -49,6 +49,15 @@ class RombelController extends Controller
             'id_wali_kelas' => 'nullable|exists:pegawai,id_pegawai',
         ]);
 
+        if ($request->id_wali_kelas) {
+            $isDuplicate = Rombel::where('id_tahun', $request->id_tahun)
+                ->where('id_wali_kelas', $request->id_wali_kelas)
+                ->exists();
+            if ($isDuplicate) {
+                return response()->json(['message' => 'Pegawai tersebut sudah menjadi wali kelas di rombel lain pada tahun ajaran ini.'], 422);
+            }
+        }
+
         $rombel = Rombel::create([
             'nama_rombel'   => $request->nama_rombel,
             'id_tingkat'    => $request->id_tingkat,
@@ -68,6 +77,15 @@ class RombelController extends Controller
             'id_tingkat'    => 'required|exists:tingkat_pendidikan,id_tingkat',
             'id_wali_kelas' => 'nullable|exists:pegawai,id_pegawai',
         ]);
+
+        if ($request->id_wali_kelas && $request->id_wali_kelas !== $rombel->id_wali_kelas) {
+            $isDuplicate = Rombel::where('id_tahun', $rombel->id_tahun)
+                ->where('id_wali_kelas', $request->id_wali_kelas)
+                ->exists();
+            if ($isDuplicate) {
+                return response()->json(['message' => 'Pegawai tersebut sudah menjadi wali kelas di rombel lain pada tahun ajaran ini.'], 422);
+            }
+        }
 
         $rombel->update($request->only(['nama_rombel', 'id_tingkat', 'id_wali_kelas']));
 

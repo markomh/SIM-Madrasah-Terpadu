@@ -88,6 +88,15 @@ class EkstrakurikulerController extends Controller
             'tanggal_mulai' => 'required|date',
         ]);
 
+        $exists = KeanggotaanEkstra::where('id_siswa', $request->id_siswa)
+            ->where('id_ekstra', $ekstra->id_ekstra)
+            ->where('status', 'Aktif')
+            ->exists();
+            
+        if ($exists) {
+            return response()->json(['message' => 'Siswa sudah menjadi anggota aktif ekstrakurikuler ini.'], 422);
+        }
+
         $keanggotaan = KeanggotaanEkstra::create([
             'id_siswa'      => $request->id_siswa,
             'id_ekstra'     => $ekstra->id_ekstra,

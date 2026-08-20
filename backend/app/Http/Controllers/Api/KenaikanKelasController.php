@@ -77,14 +77,15 @@ class KenaikanKelasController extends Controller
                         'status_keanggotaan' => $item['status'],
                     ]);
 
-                // Jika Naik Kelas, buat keanggotaan baru di rombel tujuan
-                if ($item['status'] === 'Naik Kelas') {
+                // Jika Naik Kelas atau Tinggal Kelas, buat keanggotaan baru
+                if (in_array($item['status'], ['Naik Kelas', 'Tinggal Kelas'])) {
+                    $isNaik = $item['status'] === 'Naik Kelas';
                     AnggotaRombel::create([
                         'id_siswa'           => $item['id_siswa'],
-                        'id_rombel'          => $request->id_rombel_tujuan,
+                        'id_rombel'          => $isNaik ? $request->id_rombel_tujuan : $request->id_rombel_asal,
                         'tanggal_mulai'      => $now,
                         'status_keanggotaan' => 'Aktif',
-                        'jenis_perpindahan'  => 'Kenaikan Tingkat',
+                        'jenis_perpindahan'  => $isNaik ? 'Kenaikan Tingkat' : 'Tinggal Kelas',
                         'status_persetujuan' => 'Tidak Perlu',
                         'diajukan_oleh'      => $diajukanOleh,
                     ]);

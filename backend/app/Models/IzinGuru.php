@@ -56,4 +56,20 @@ class IzinGuru extends Model
             ? 'Tepat Waktu'
             : 'Terlambat';
     }
+
+    public function pegawai()
+    {
+        return $this->belongsTo(Pegawai::class, 'id_pegawai', 'id_pegawai');
+    }
+
+    public function pegawaiPengganti()
+    {
+        return $this->belongsTo(Pegawai::class, 'id_pegawai_pengganti', 'id_pegawai');
+    }
+
+    public function dicatatOleh()
+    {
+        return $this->belongsTo(Pegawai::class, 'dicatat_oleh', 'id_pegawai');
+    }
 }
+

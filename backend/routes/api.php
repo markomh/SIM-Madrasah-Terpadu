@@ -148,6 +148,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('jadwal')->controller(\App\Http\Controllers\Api\JadwalController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('jtm-terjadwal', 'jtmTerjadwal'); // ?id_pegawai= — Kamad+BK exception
             Route::get('konflik', 'konflik');
@@ -191,6 +192,8 @@ Route::prefix('v1')->group(function () {
             Route::put('{id}', 'update');
             Route::get('komponen', 'indexKomponen');
             Route::post('komponen', 'storeKomponen');
+            Route::put('komponen/{id}', 'updateKomponen');
+            Route::delete('komponen/{id}', 'destroyKomponen');
         });
 
         // ============================================================

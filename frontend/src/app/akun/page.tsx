@@ -179,7 +179,7 @@ export default function AkunPage() {
                   iconLeft={<RotateCcw className="h-4 w-4" />}
                   onClick={() => {
                     resetDemoData();
-                    setCurrentUserId("pg_demo_terpadu");
+                    setCurrentUserId("019153a0-f8f2-777b-bb66-6b211a7e28a5");
                     bump();
                     setLogs(getAuditLog().slice(0, 20));
                     setMsg("Data demo direset ke seed awal.");

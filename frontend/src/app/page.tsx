@@ -141,7 +141,7 @@ export default function DashboardPage() {
               <p className="mt-2 text-3xl font-bold tabular text-primary">
                 {rekapPagi && rekapPagi.terjadwal > 0
                   ? `${Math.round(((rekapPagi.tepatWaktu + rekapPagi.terlambat) / rekapPagi.terjadwal) * 100)}%`
-                  : "96.5%"}
+                  : "—"}
               </p>
               <p className="mt-1 text-xs text-muted">Sesi tatap muka terinput tepat waktu</p>
             </SurfaceCard>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
               <p className="mt-1 text-xs text-muted">Antrean mutasi & pindah rombel</p>
             </SurfaceCard>
 
-            {/* Card 4: Peringatan AI & Anomali Kedisiplinan */}
+            {/* Card 4: Peringatan AI & Anomali Kehadiran */}
             <SurfaceCard className="p-4 sm:p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted">Peringatan AI & Disiplin</span>
@@ -200,6 +200,7 @@ export default function DashboardPage() {
                 {pending.slice(0, 4).map((item) => {
                   const key = "data" in item ? (item.jenis === "mutasi" ? item.data.id_mutasi : item.data.id_anggota) : "";
                   const idSiswa = "data" in item ? item.data.id_siswa : "";
+                  const namaSiswa = "data" in item && "siswa" in item.data && item.data.siswa ? item.data.siswa.nama_lengkap : idSiswa;
                   return (
                     <StatusStrip key={key} tone="amber" className="rounded-[4px] p-3 flex items-center justify-between gap-2">
                       <div className="min-w-0">
@@ -207,7 +208,7 @@ export default function DashboardPage() {
                           {item.jenis === "mutasi" ? `Mutasi ${item.data.jenis_mutasi}` : "Pindah Rombel"}
                         </span>
                         <p className="text-xs font-semibold text-ink truncate tabular">
-                          Siswa: {idSiswa}
+                          Siswa: {namaSiswa}
                         </p>
                       </div>
                       <Link

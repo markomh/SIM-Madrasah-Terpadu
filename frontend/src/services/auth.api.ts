@@ -6,10 +6,10 @@ export const authApi = {
     const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
     if (USE_MOCK) {
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("sim-madrasah-userid", "pg_demo_terpadu");
+        window.localStorage.setItem("sim-madrasah-userid", "019153a0-f8f2-777b-bb66-6b211a7e28a5");
       }
       return {
-        id_pegawai: "pg_demo_terpadu",
+        id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a5",
         nama_lengkap_gelar: "Dra. Siti Aminah, M.Pd",
         tugas_utama: "Guru",
       };
@@ -39,7 +39,7 @@ export const authApi = {
     const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
     if (USE_MOCK) {
       return {
-        id_pegawai: "pg_demo_terpadu",
+        id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a5",
         id_madrasah: "mdr_01",
         nama_madrasah: "MTs Terpadu Nusantara",
         nama_lengkap_gelar: "Dra. Siti Aminah, M.Pd",

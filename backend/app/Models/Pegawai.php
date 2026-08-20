@@ -41,7 +41,6 @@ class Pegawai extends Authenticatable
     ];
 
     protected $hidden = [
-        'nik', // Terenkripsi — tidak dikirim raw ke response kecuali endpoint profil resmi
         'password',
         'remember_token',
     ];

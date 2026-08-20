@@ -22,7 +22,7 @@ class Siswa extends Model
         'status_siswa', 'jalur_masuk', 'alamat_detail', 'id_desa',
     ];
 
-    protected $hidden = ['nik'];
+    protected $hidden = [];
     protected $casts = [
         'nik'          => \App\Casts\EncryptedNik::class,
         'tanggal_lahir' => 'date',

@@ -124,7 +124,14 @@ class ReferensiController extends Controller
 
     public function indexTingkat(): JsonResponse
     {
-        $data = \App\Models\TingkatPendidikan::orderBy('urutan')->get();
+        $currentMadrasahId = app('currentTenant')?->id_madrasah;
+        if ($currentMadrasahId) {
+            $data = \App\Models\TingkatPendidikan::whereHas('rombels', function ($q) use ($currentMadrasahId) {
+                $q->where('id_madrasah', $currentMadrasahId);
+            })->orderBy('urutan')->get();
+        } else {
+            $data = \App\Models\TingkatPendidikan::orderBy('urutan')->get();
+        }
         return response()->json(['data' => $data]);
     }
 

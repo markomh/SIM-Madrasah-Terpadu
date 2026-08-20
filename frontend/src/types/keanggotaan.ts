@@ -30,6 +30,11 @@ export type AnggotaRombel = {
   diajukan_oleh: string | null;
   disetujui_oleh: string | null;
   tanggal_persetujuan: string | null;
+  siswa?: {
+    id_siswa: string;
+    nama_lengkap: string;
+    nisn: string;
+  } | null;
 };
 
 export type PemetaanKenaikan = {

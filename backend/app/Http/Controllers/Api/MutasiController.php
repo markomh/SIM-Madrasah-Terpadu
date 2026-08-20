@@ -87,7 +87,7 @@ class MutasiController extends Controller
                     'nisn'             => $request->nisn,
                     'nik'              => $request->nik,
                     'nik_hash'         => $nikHash,
-                    'status_siswa'     => 'Aktif',
+                    'status_siswa'     => 'Mutasi Masuk',
                     'jalur_masuk'      => 'Mutasi Masuk',
                 ]);
                 $idSiswa = $siswa->id_siswa;

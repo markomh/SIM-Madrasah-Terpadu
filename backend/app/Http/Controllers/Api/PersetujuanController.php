@@ -31,6 +31,7 @@ class PersetujuanController extends Controller
 
         // 1. Pindah Rombel (scoped to current tenant via rombel)
         $pindahRombel = AnggotaRombel::whereHas('rombel')
+            ->with('siswa')
             ->where('status_persetujuan', 'Menunggu Persetujuan')
             ->get();
 
@@ -49,12 +50,18 @@ class PersetujuanController extends Controller
                     'diajukan_oleh'       => $pr->diajukan_oleh,
                     'disetujui_oleh'      => $pr->disetujui_oleh,
                     'tanggal_persetujuan' => $pr->tanggal_persetujuan?->toDateString() ?? $pr->tanggal_persetujuan,
+                    'siswa'               => $pr->siswa ? [
+                        'id_siswa'     => $pr->siswa->id_siswa,
+                        'nama_lengkap' => $pr->siswa->nama_lengkap,
+                        'nisn'         => $pr->siswa->nisn,
+                    ] : null,
                 ]
             ];
         }
 
         // 2. Mutasi (scoped to current tenant via siswa)
         $mutasi = RiwayatMutasi::whereHas('siswa')
+            ->with('siswa')
             ->where('status_persetujuan', 'Menunggu Persetujuan')
             ->get();
 
@@ -76,6 +83,11 @@ class PersetujuanController extends Controller
                     'tanggal_persetujuan' => $m->tanggal_persetujuan?->toDateString() ?? $m->tanggal_persetujuan,
                     'id_tahun'            => $m->id_tahun_ajaran,
                     'id_surat_skp'        => $m->id_surat_skp,
+                    'siswa'               => $m->siswa ? [
+                        'id_siswa'     => $m->siswa->id_siswa,
+                        'nama_lengkap' => $m->siswa->nama_lengkap,
+                        'nisn'         => $m->siswa->nisn,
+                    ] : null,
                 ]
             ];
         }

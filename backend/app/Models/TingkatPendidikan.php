@@ -18,4 +18,10 @@ class TingkatPendidikan extends Model
         parent::boot();
         static::creating(fn ($m) => $m->id_tingkat = $m->id_tingkat ?: (string) Uuid::uuid4());
     }
+
+    public function rombels()
+    {
+        return $this->hasMany(Rombel::class, 'id_tingkat');
+    }
 }
+

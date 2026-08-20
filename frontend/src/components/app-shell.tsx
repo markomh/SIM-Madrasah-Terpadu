@@ -174,6 +174,31 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
     });
   }, [allPegawai, penugasanList, rombelList, ekstraList]);
 
+  const currentUserRoleLabel = useMemo(() => {
+    if (!currentUser) return "Pegawai";
+    const jabatans = penugasanList
+      .filter((j) => j.id_pegawai === currentUser.id_pegawai && j.status === "Aktif")
+      .map((j) => {
+        if (j.jenis_jabatan === "Kepala Madrasah") return "Kamad";
+        if (j.jenis_jabatan === "Admin Madrasah") return "Admin";
+        if (j.jenis_jabatan === "Operator Kesiswaan") return "Ops";
+        if (j.jenis_jabatan === "Guru BK") return "BK";
+        return j.jenis_jabatan;
+      });
+    const isWK = isWaliKelas(currentUser.id_pegawai, rombelList);
+    const isPembina = isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList);
+
+    const parts: string[] = [];
+    if (jabatans.length > 0) parts.push(...jabatans);
+    if (isWK) parts.push("WK");
+    if (isPembina) parts.push("Pembina");
+
+    if (parts.length === 0) {
+      parts.push(currentUser.tugas_utama === "Tendik" ? "Tendik" : "Guru Mapel");
+    }
+    return parts.join(", ");
+  }, [currentUser, penugasanList, rombelList, ekstraList]);
+
   const visible = navigation
     .map((g) => ({ ...g, items: g.items.filter((i) => i.visible(authCtx)) }))
     .filter((g) => g.items.length > 0);
@@ -342,7 +367,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               </div>
               <div className="min-w-0 max-w-[120px]">
                 <p className="truncate text-xs font-semibold leading-tight text-ink">{currentUser?.nama_lengkap_gelar ?? "Pegawai"}</p>
-                <p className="truncate text-[10px] text-muted leading-tight">{currentUser?.tugas_utama}</p>
+                <p className="truncate text-[10px] text-muted leading-tight">{currentUserRoleLabel}</p>
               </div>
               <div className="h-5 w-px bg-border mx-0.5"></div>
               <button

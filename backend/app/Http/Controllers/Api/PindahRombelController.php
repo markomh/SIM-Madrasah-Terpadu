@@ -35,6 +35,14 @@ class PindahRombelController extends Controller
             'id_rombel_tujuan' => 'required|exists:rombel,id_rombel',
         ]);
 
+        $hasPending = AnggotaRombel::where('id_siswa', $request->id_siswa)
+            ->where('status_persetujuan', 'Menunggu Persetujuan')
+            ->exists();
+
+        if ($hasPending) {
+            return response()->json(['message' => 'Siswa masih memiliki permohonan yang belum diproses.'], 422);
+        }
+
         return DB::transaction(function () use ($request) {
             $now = now()->toDateString();
             $user = auth()->user();
