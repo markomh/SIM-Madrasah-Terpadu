@@ -26,6 +26,7 @@ import { useAuth } from "@/components/auth-context";
 import { useTahunAjaran } from "@/components/app-providers";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { Search } from "lucide-react";
+import { useToast } from "@/components/toast-context";
 import { services } from "@/services";
 import type { Pegawai } from "@/types";
 import {
@@ -124,6 +125,21 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [namaMadrasah, setNamaMadrasah] = useState<string>("MTs Terpadu Nusantara");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const handleApiError = (e: Event) => {
+      const customEvent = e as CustomEvent<{ status: number; message: string }>;
+      const { status, message } = customEvent.detail;
+      if (status === 403) {
+        toast(`Akses Ditolak: ${message}`, "error");
+      } else if (status === 422) {
+        toast(`Validasi Gagal: ${message}`, "error");
+      }
+    };
+    window.addEventListener("app-api-error", handleApiError);
+    return () => window.removeEventListener("app-api-error", handleApiError);
+  }, [toast]);
 
   useEffect(() => {
     let isMounted = true;

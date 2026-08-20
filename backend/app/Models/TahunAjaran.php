@@ -21,6 +21,17 @@ class TahunAjaran extends Model
     {
         parent::boot();
         static::creating(fn ($m) => $m->id_tahun = $m->id_tahun ?: (string) Uuid::uuid4());
+        
+        static::deleting(function ($model) {
+            if ($model->rombel()->exists()) {
+                abort(422, 'SSoT Violation: Data tidak dapat dihapus karena masih menampung Anggota Rombel aktif.');
+            }
+        });
+    }
+
+    public function rombel(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Rombel::class, 'id_tahun');
     }
 
     public function madrasah(): BelongsTo

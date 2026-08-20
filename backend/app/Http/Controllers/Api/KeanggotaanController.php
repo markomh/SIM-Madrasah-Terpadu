@@ -12,6 +12,7 @@ class KeanggotaanController extends Controller
     public function aktif(Request $request): JsonResponse
     {
         $query = AnggotaRombel::whereHas('rombel')
+            ->with(['rombel', 'siswa'])
             ->whereNull('tanggal_selesai')
             ->where('status_persetujuan', '!=', 'Menunggu Persetujuan');
 

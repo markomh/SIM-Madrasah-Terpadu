@@ -17,12 +17,12 @@ class AuditObserver
 {
     public function created(Model $model): void
     {
-        $this->log($model, 'Create', null, $model->toArray());
+        $this->log($model, 'Create', null, $model->getAttributes());
     }
 
     public function updated(Model $model): void
     {
-        $before = array_intersect_key($model->getOriginal(), $model->getChanges());
+        $before = array_intersect_key($model->getRawOriginal(), $model->getChanges());
         $after  = $model->getChanges();
 
         $this->log($model, 'Update', $before, $after);
@@ -30,7 +30,7 @@ class AuditObserver
 
     public function deleted(Model $model): void
     {
-        $this->log($model, 'Delete', $model->toArray(), null);
+        $this->log($model, 'Delete', $model->getRawOriginal(), null);
     }
 
     private function log(Model $model, string $aksi, ?array $before, ?array $after): void
@@ -42,8 +42,20 @@ class AuditObserver
             'nama_tabel'   => $model->getTable(),
             'id_record'    => (string) $model->getKey(),
             'aksi'         => $aksi,
-            'data_sebelum' => $before,
-            'data_sesudah' => $after,
+            'data_sebelum' => $this->sanitizePayload($before),
+            'data_sesudah' => $this->sanitizePayload($after),
+        ]);
+    }
+
+    private function sanitizePayload(?array $payload): ?array
+    {
+        if (!$payload) return null;
+        
+        // Remove sensitive keys
+        return \Illuminate\Support\Arr::except($payload, [
+            'password',
+            'remember_token',
+            'nik_hash',
         ]);
     }
 }

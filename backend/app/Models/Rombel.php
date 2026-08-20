@@ -21,6 +21,12 @@ class Rombel extends Model
     {
         parent::boot();
         static::creating(fn ($m) => $m->id_rombel = $m->id_rombel ?: (string) Uuid::uuid4());
+
+        static::deleting(function ($model) {
+            if ($model->anggota()->exists()) {
+                abort(422, 'SSoT Violation: Data tidak dapat dihapus karena masih menampung Anggota Rombel aktif.');
+            }
+        });
     }
 
     public function madrasah(): BelongsTo { return $this->belongsTo(Madrasah::class, 'id_madrasah'); }

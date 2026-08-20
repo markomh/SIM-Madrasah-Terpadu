@@ -107,6 +107,12 @@ export default function MutasiPage() {
       .finally(() => setLoading(false));
   }, [selected?.id_tahun, version, canAccess]);
 
+  useEffect(() => {
+    const handleMutate = () => bump();
+    window.addEventListener("mutate-mutasi", handleMutate);
+    return () => window.removeEventListener("mutate-mutasi", handleMutate);
+  }, [bump]);
+
   const siswaMap = useMemo(() => new Map(allSiswaList.map((s) => [s.id_siswa, s])), [allSiswaList]);
 
   // Auto-Increment No. Surat Pengajuan untuk Mutasi Masuk
@@ -775,7 +781,7 @@ export default function MutasiPage() {
           onSuccess={() => {
             setApprovalDrawerOpen(null);
             setInfo("Mutasi disetujui dan SKP resmi telah diterbitkan.");
-            bump();
+            import("@/lib/event-bus").then(({ mutateEvent }) => mutateEvent("mutasi"));
           }}
         />
       )}

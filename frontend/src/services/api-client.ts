@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 const TOKEN_KEY = "sim-madrasah-token";
 
@@ -16,7 +18,7 @@ export function removeAuthToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(endpoint: string, options: RequestInit = {}, schema?: z.ZodType<T>): Promise<T> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -43,20 +45,46 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     } catch {
       // JSON parse error — keep default message
     }
+
+    if ((response.status === 403 || response.status === 422) && typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("app-api-error", {
+          detail: { status: response.status, message: errorMessage },
+        })
+      );
+    }
+
     throw new Error(errorMessage);
   }
 
   const json = await response.json();
-  return json.data !== undefined ? json.data : json;
+  const rawData = json.data !== undefined ? json.data : json;
+
+  if (schema) {
+    const parsed = schema.safeParse(rawData);
+    if (!parsed.success) {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("app-api-error", {
+            detail: { status: 500, message: "SSoT Violation: Invalid API Response Format" },
+          })
+        );
+      }
+      throw new Error("SSoT Violation: Invalid API Response Format");
+    }
+    return parsed.data;
+  }
+
+  return rawData;
 }
 
 export const apiClient = {
-  get: <T>(endpoint: string) => request<T>(endpoint, { method: "GET" }),
-  post: <T>(endpoint: string, body?: unknown) =>
-    request<T>(endpoint, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
-  put: <T>(endpoint: string, body?: unknown) =>
-    request<T>(endpoint, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
-  patch: <T>(endpoint: string, body?: unknown) =>
-    request<T>(endpoint, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
-  delete: <T>(endpoint: string) => request<T>(endpoint, { method: "DELETE" }),
+  get: <T>(endpoint: string, schema?: z.ZodType<T>) => request<T>(endpoint, { method: "GET" }, schema),
+  post: <T>(endpoint: string, body?: unknown, schema?: z.ZodType<T>) =>
+    request<T>(endpoint, { method: "POST", body: body ? JSON.stringify(body) : undefined }, schema),
+  put: <T>(endpoint: string, body?: unknown, schema?: z.ZodType<T>) =>
+    request<T>(endpoint, { method: "PUT", body: body ? JSON.stringify(body) : undefined }, schema),
+  patch: <T>(endpoint: string, body?: unknown, schema?: z.ZodType<T>) =>
+    request<T>(endpoint, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }, schema),
+  delete: <T>(endpoint: string, schema?: z.ZodType<T>) => request<T>(endpoint, { method: "DELETE" }, schema),
 };
