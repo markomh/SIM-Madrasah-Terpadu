@@ -26,9 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [userId, setUserId] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return window.localStorage.getItem(USER_STORAGE_KEY) || "019153a0-f8f2-777b-bb66-6b211a7e28a5";
+      return window.localStorage.getItem(USER_STORAGE_KEY) || "pg_kepala";
     }
-    return "019153a0-f8f2-777b-bb66-6b211a7e28a5";
+    return "pg_kepala";
   });
   const [currentUser, setCurrentUser] = useState<Pegawai | null>(null);
   const [penugasanList, setPenugasanList] = useState<PenugasanJabatan[]>([]);
@@ -57,13 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         services.jadwal.getAll().catch(() => []),
       ]).then(async ([user, penugasan, rombel, ekstra, jadwal]) => {
         if (cancelled) return;
-        if (!user && userId !== "019153a0-f8f2-777b-bb66-6b211a7e28a5") {
-          const fallbackUser = await services.pegawai.getById("019153a0-f8f2-777b-bb66-6b211a7e28a5").catch(() => null);
-          setCurrentUser(fallbackUser);
-        } else {
-          setCurrentUser(user);
-        }
-        setPenugasanList(penugasan || []);
+        const activeUser = user || (await services.pegawai.getById("pg_kepala").catch(() => null));
+        setCurrentUser(activeUser);
+        const activeId = activeUser?.id_pegawai || userId;
+        setPenugasanList((penugasan || []).filter((p) => p.id_pegawai === activeId && p.status === "Aktif"));
         setRombelList(rombel || []);
         setEkstraList(ekstra || []);
         setJadwalList(jadwal || []);
@@ -74,7 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         const loggedInPegawai = meData as Pegawai & { penugasan_aktif?: PenugasanJabatan[] };
         
-        if (userId && userId !== loggedInPegawai.id_pegawai) {
+        const isUuid = (id: string) => /^[0-9a-fA-F-]{36}$/.test(id);
+        if (userId && userId !== loggedInPegawai.id_pegawai && isUuid(userId)) {
           try {
             const simulated = await services.pegawai.getById(userId);
             if (simulated && !cancelled) {
@@ -93,6 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setCurrentUser(loggedInPegawai);
           setPenugasanList(loggedInPegawai.penugasan_aktif || []);
+          if (typeof window !== "undefined" && loggedInPegawai.id_pegawai) {
+            window.localStorage.setItem(USER_STORAGE_KEY, loggedInPegawai.id_pegawai);
+          }
         }
 
         try {

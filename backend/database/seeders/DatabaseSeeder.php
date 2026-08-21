@@ -248,14 +248,15 @@ class DatabaseSeeder extends Seeder
             'id_desa'            => $idDesa1,
         ]);
 
-        // Multi-role jabatan aditif: Kepala Madrasah + Guru BK
+        // Penugasan transisi Kamad lama (Berakhir) & Guru BK (Aktif)
         PenugasanJabatan::create([
-            'id_penugasan'  => (string) Uuid::uuid4(),
-            'id_pegawai'    => $demoTerpadu->id_pegawai,
-            'jenis_jabatan' => 'Kepala Madrasah',
-            'id_tahun'      => $tahun1->id_tahun,
-            'tanggal_mulai' => '2026-07-01',
-            'status'        => 'Aktif',
+            'id_penugasan'    => (string) Uuid::uuid4(),
+            'id_pegawai'      => $demoTerpadu->id_pegawai,
+            'jenis_jabatan'   => 'Kepala Madrasah',
+            'id_tahun'        => $tahun1->id_tahun,
+            'tanggal_mulai'   => '2024-07-01',
+            'tanggal_selesai' => '2026-06-30',
+            'status'          => 'Berakhir',
         ]);
 
         PenugasanJabatan::create([
