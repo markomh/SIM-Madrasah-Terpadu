@@ -108,6 +108,11 @@ class SuratController extends Controller
             return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menandatangani surat.'], 403);
         }
 
+        // Guard: Only the designated signer can sign
+        if ($surat->id_penandatangan !== $user->id_pegawai) {
+            return response()->json(['message' => 'Akses ditolak: Anda bukan penandatangan yang dituju untuk surat ini.'], 403);
+        }
+
         $suratDitandaTangani = $this->persuratanService->tandatangani($surat, $user->id_pegawai);
 
         return response()->json(['data' => $suratDitandaTangani]);
@@ -116,10 +121,16 @@ class SuratController extends Controller
     public function tolak(string $id): JsonResponse
     {
         $surat = Surat::findOrFail($id);
+        $user = auth()->user();
         
         // Enforce that only Kepala Madrasah can reject TTD requests
-        if (! $this->accessService->isKepalaMadrasah(auth()->user())) {
+        if (! $this->accessService->isKepalaMadrasah($user)) {
             return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menolak tanda tangan surat.'], 403);
+        }
+
+        // Guard: Only the designated signer can reject
+        if ($surat->id_penandatangan !== $user->id_pegawai) {
+            return response()->json(['message' => 'Akses ditolak: Anda bukan penandatangan yang dituju untuk surat ini.'], 403);
         }
 
         $surat->update(['status' => 'Ditolak']);

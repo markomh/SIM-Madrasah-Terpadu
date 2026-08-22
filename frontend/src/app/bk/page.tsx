@@ -22,6 +22,7 @@ export default function BkPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState<{
@@ -63,20 +64,37 @@ export default function BkPage() {
     if (!currentUser || !selectedSiswaId) return;
     setSaving(true);
     try {
-      await services.bk.create({
-        id_siswa: selectedSiswaId,
-        id_pegawai_bk: currentUser.id_pegawai,
-        tanggal: new Date().toISOString().split("T")[0],
-        ...formData
-      });
+      if (editingId) {
+        await services.bk.update(editingId, formData);
+      } else {
+        await services.bk.create({
+          id_siswa: selectedSiswaId,
+          id_pegawai_bk: currentUser.id_pegawai,
+          tanggal: new Date().toISOString().split("T")[0],
+          ...formData
+        });
+      }
       const updated = await services.bk.getBySiswa(selectedSiswaId, currentUser.id_pegawai);
       setCatatan(updated);
       setFormOpen(false);
+      setEditingId(null);
       setFormData({ kategori: "Akademik", catatan: "", tingkat_kerahasiaan: "Umum" });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan catatan BK");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Hapus catatan BK ini?")) return;
+    if (!currentUser || !selectedSiswaId) return;
+    try {
+      await services.bk.delete(id);
+      const updated = await services.bk.getBySiswa(selectedSiswaId, currentUser.id_pegawai);
+      setCatatan(updated);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Gagal menghapus catatan BK");
     }
   };
 
@@ -111,7 +129,11 @@ export default function BkPage() {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">{siswaList.find(s => s.id_siswa === selectedSiswaId)?.nama_lengkap}</h3>
                 {canWrite && !formOpen && (
-                  <Button variant="primary" type="button" onClick={() => setFormOpen(true)}>+ Tambah Catatan</Button>
+                  <Button variant="primary" type="button" onClick={() => {
+                    setEditingId(null);
+                    setFormData({ kategori: "Akademik", catatan: "", tingkat_kerahasiaan: "Umum" });
+                    setFormOpen(true);
+                  }}>+ Tambah Catatan</Button>
                 )}
               </div>
 
@@ -146,7 +168,10 @@ export default function BkPage() {
                     onChange={e => setFormData({ ...formData, catatan: e.target.value })}
                   />
                   <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border mt-3">
-                    <Button variant="secondary" size="sm" type="button" onClick={() => setFormOpen(false)}>
+                    <Button variant="secondary" size="sm" type="button" onClick={() => {
+                      setFormOpen(false);
+                      setEditingId(null);
+                    }}>
                       Batal
                     </Button>
                     <Button variant="primary" size="sm" type="submit" loading={saving}>
@@ -172,7 +197,19 @@ export default function BkPage() {
                               </Badge>
                             )}
                           </div>
-                          <span className="text-xs text-muted">{c.tanggal}</span>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-xs text-muted">{c.tanggal}</span>
+                            {c.id_pegawai_bk === currentUser?.id_pegawai && (
+                              <div className="flex gap-2">
+                                <button type="button" className="text-[10px] font-bold text-primary hover:underline uppercase" onClick={() => {
+                                  setEditingId(c.id_catatan);
+                                  setFormData({ kategori: c.kategori, catatan: c.catatan, tingkat_kerahasiaan: c.tingkat_kerahasiaan });
+                                  setFormOpen(true);
+                                }}>Edit</button>
+                                <button type="button" className="text-[10px] font-bold text-danger hover:underline uppercase" onClick={() => handleDelete(c.id_catatan)}>Hapus</button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <p className="text-sm text-ink">{c.catatan}</p>
                         <p className="text-xs text-muted mt-2 border-t border-border/50 pt-2">Ditulis oleh: {c.id_pegawai_bk}</p>

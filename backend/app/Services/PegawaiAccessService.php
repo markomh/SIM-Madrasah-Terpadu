@@ -21,6 +21,13 @@ class PegawaiAccessService
 
     public function isKepalaMadrasah(Pegawai $pegawai): bool
     {
+        if ($pegawai->relationLoaded('penugasanAktif')) {
+            return $pegawai->penugasanAktif
+                ->where('jenis_jabatan', 'Kepala Madrasah')
+                ->where('status', 'Aktif')
+                ->isNotEmpty();
+        }
+
         return $pegawai->penugasanAktif()
             ->where('jenis_jabatan', 'Kepala Madrasah')
             ->exists();
@@ -28,6 +35,13 @@ class PegawaiAccessService
 
     public function isAdminMadrasah(Pegawai $pegawai): bool
     {
+        if ($pegawai->relationLoaded('penugasanAktif')) {
+            return $pegawai->penugasanAktif
+                ->where('jenis_jabatan', 'Admin Madrasah')
+                ->where('status', 'Aktif')
+                ->isNotEmpty();
+        }
+
         return $pegawai->penugasanAktif()
             ->where('jenis_jabatan', 'Admin Madrasah')
             ->exists();
@@ -35,6 +49,13 @@ class PegawaiAccessService
 
     public function isOperatorKesiswaan(Pegawai $pegawai): bool
     {
+        if ($pegawai->relationLoaded('penugasanAktif')) {
+            return $pegawai->penugasanAktif
+                ->where('jenis_jabatan', 'Operator Kesiswaan')
+                ->where('status', 'Aktif')
+                ->isNotEmpty();
+        }
+
         return $pegawai->penugasanAktif()
             ->where('jenis_jabatan', 'Operator Kesiswaan')
             ->exists();
@@ -42,6 +63,13 @@ class PegawaiAccessService
 
     public function isGuruBk(Pegawai $pegawai): bool
     {
+        if ($pegawai->relationLoaded('penugasanAktif')) {
+            return $pegawai->penugasanAktif
+                ->where('jenis_jabatan', 'Guru BK')
+                ->where('status', 'Aktif')
+                ->isNotEmpty();
+        }
+
         return $pegawai->penugasanAktif()
             ->where('jenis_jabatan', 'Guru BK')
             ->exists();
@@ -53,11 +81,19 @@ class PegawaiAccessService
 
     public function isWaliKelas(Pegawai $pegawai): bool
     {
+        if ($pegawai->relationLoaded('rombelSebagaiWaliKelas')) {
+            return $pegawai->rombelSebagaiWaliKelas->isNotEmpty();
+        }
+
         return $pegawai->rombelSebagaiWaliKelas()->exists();
     }
 
     public function isPembinaEkstrakurikuler(Pegawai $pegawai): bool
     {
+        if ($pegawai->relationLoaded('ekstrakurikulerDibina')) {
+            return $pegawai->ekstrakurikulerDibina->isNotEmpty();
+        }
+
         return $pegawai->ekstrakurikulerDibina()->exists();
     }
 
@@ -75,6 +111,14 @@ class PegawaiAccessService
         string $idMapel,
         string $semester
     ): bool {
+        if ($pegawai->relationLoaded('jadwalMengajar')) {
+            return $pegawai->jadwalMengajar
+                ->where('id_rombel', $idRombel)
+                ->where('id_mapel', $idMapel)
+                ->where('semester', $semester)
+                ->isNotEmpty();
+        }
+
         return $pegawai->jadwalMengajar()
             ->where('id_rombel', $idRombel)
             ->where('id_mapel', $idMapel)
@@ -88,6 +132,10 @@ class PegawaiAccessService
      */
     public function isPengajarAktif(Pegawai $pegawai): bool
     {
+        if ($pegawai->relationLoaded('jadwalMengajar')) {
+            return $pegawai->jadwalMengajar->isNotEmpty();
+        }
+
         return $pegawai->jadwalMengajar()->exists();
     }
 

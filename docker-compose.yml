@@ -1,4 +1,4 @@
-﻿version: "3.9"
+version: "3.9"
 
 services:
   postgres:
@@ -34,6 +34,7 @@ services:
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
+      - ./backend/docker/php/zz-docker.conf:/usr/local/etc/php-fpm.d/zz-docker.conf
     networks:
       - sim_madrasah_net
     depends_on:

@@ -4,17 +4,17 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/a
 const TOKEN_KEY = "sim-madrasah-token";
 
 export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || typeof localStorage === "undefined") return null;
   return localStorage.getItem(TOKEN_KEY);
 }
 
 export function setAuthToken(token: string) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || typeof localStorage === "undefined") return;
   localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function removeAuthToken() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || typeof localStorage === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);
 }
 
@@ -30,10 +30,32 @@ async function request<T>(endpoint: string, options: RequestInit = {}, schema?: 
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      const errorMessage = "Koneksi terputus: Waktu permintaan habis (Network Degradation)";
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("app-api-error", {
+            detail: { status: 408, message: errorMessage },
+          })
+        );
+      }
+      throw new Error(errorMessage);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     let errorMessage = `HTTP Error ${response.status}`;
@@ -46,7 +68,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}, schema?: 
       // JSON parse error — keep default message
     }
 
-    if ((response.status === 403 || response.status === 422) && typeof window !== "undefined") {
+    if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("app-api-error", {
           detail: { status: response.status, message: errorMessage },
@@ -63,14 +85,19 @@ async function request<T>(endpoint: string, options: RequestInit = {}, schema?: 
   if (schema) {
     const parsed = schema.safeParse(rawData);
     if (!parsed.success) {
+      const issueDetails = parsed.error.issues
+        .map((issue) => `${issue.path.join(".") || "payload"}: ${issue.message}`)
+        .join("; ");
+      const errorMessage = `SSoT Violation: Invalid API Response Format (${issueDetails})`;
+
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent("app-api-error", {
-            detail: { status: 500, message: "SSoT Violation: Invalid API Response Format" },
+            detail: { status: 500, message: errorMessage },
           })
         );
       }
-      throw new Error("SSoT Violation: Invalid API Response Format");
+      throw new Error(errorMessage);
     }
     return parsed.data;
   }

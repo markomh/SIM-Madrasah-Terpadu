@@ -259,6 +259,17 @@ class DatabaseSeeder extends Seeder
             'status'          => 'Berakhir',
         ]);
 
+        // Penugasan Kamad periode baru (Aktif) — persona demo memiliki multi-role
+        // sesuai SRS Bab 12 "contoh konkret" (Kamad + BK + Pembina + Pengajar bersamaan)
+        PenugasanJabatan::create([
+            'id_penugasan'  => (string) Uuid::uuid4(),
+            'id_pegawai'    => $demoTerpadu->id_pegawai,
+            'jenis_jabatan' => 'Kepala Madrasah',
+            'id_tahun'      => $tahun1->id_tahun,
+            'tanggal_mulai' => '2026-07-01',
+            'status'        => 'Aktif',
+        ]);
+
         PenugasanJabatan::create([
             'id_penugasan'  => (string) Uuid::uuid4(),
             'id_pegawai'    => $demoTerpadu->id_pegawai,

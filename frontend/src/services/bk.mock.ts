@@ -25,5 +25,28 @@ export const mockBkService: BkService = {
       s.catatanBk.push(newCatatan);
     });
     return { ...newCatatan };
+  },
+
+  update: async (id, data) => {
+    await simulateLatency();
+    maybeThrowSimulatedError();
+    let updatedCatatan: CatatanBk | null = null;
+    mutateStore(s => {
+      const idx = s.catatanBk.findIndex(c => c.id_catatan === id);
+      if (idx !== -1) {
+        s.catatanBk[idx] = { ...s.catatanBk[idx], ...data };
+        updatedCatatan = s.catatanBk[idx];
+      }
+    });
+    if (!updatedCatatan) throw new Error("Catatan BK not found");
+    return updatedCatatan as CatatanBk;
+  },
+
+  delete: async (id) => {
+    await simulateLatency();
+    maybeThrowSimulatedError();
+    mutateStore(s => {
+      s.catatanBk = s.catatanBk.filter(c => c.id_catatan !== id);
+    });
   }
 };

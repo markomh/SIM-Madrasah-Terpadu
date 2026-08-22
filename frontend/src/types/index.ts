@@ -17,3 +17,31 @@ export type * from "./bk";
 export type * from "./penugasan-jabatan";
 export type * from "./lembaga";
 export type * from "./orang-tua";
+
+// FE-04 Strict Union Types RBAC
+export type AppRole =
+  | "Admin Madrasah"
+  | "Kepala Madrasah"
+  | "Operator Kesiswaan"
+  | "Guru BK"
+  | "Wali Kelas"
+  | "Pembina Ekstrakurikuler"
+  | "Pengajar";
+
+export type Capabilities = {
+  isAdminMadrasah: boolean;
+  isKepalaMadrasah: boolean;
+  isOperatorKesiswaan: boolean;
+  isGuruBk: boolean;
+  isWaliKelas: boolean;
+  isPembinaEkstrakurikuler: boolean;
+  isPengajarAktif: boolean;
+};
+
+import { Pegawai } from "./pegawai";
+import { PenugasanJabatan } from "./penugasan-jabatan";
+
+export type AuthUser = Pegawai & {
+  capabilities?: Capabilities;
+  penugasan_aktif?: PenugasanJabatan[];
+};

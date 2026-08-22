@@ -42,20 +42,35 @@ class AuditObserver
             'nama_tabel'   => $model->getTable(),
             'id_record'    => (string) $model->getKey(),
             'aksi'         => $aksi,
-            'data_sebelum' => $this->sanitizePayload($before),
-            'data_sesudah' => $this->sanitizePayload($after),
+            'data_sebelum' => $this->sanitizePayload($before, $model),
+            'data_sesudah' => $this->sanitizePayload($after, $model),
         ]);
     }
 
-    private function sanitizePayload(?array $payload): ?array
+    private function sanitizePayload(?array $payload, Model $model): ?array
     {
         if (!$payload) return null;
         
-        // Remove sensitive keys
-        return \Illuminate\Support\Arr::except($payload, [
+        // Remove sensitive keys (credentials & PII)
+        $sanitized = \Illuminate\Support\Arr::except($payload, [
             'password',
             'remember_token',
+            'nik',
             'nik_hash',
+            'token',
+            'secret',
         ]);
+
+        // Redact confidential BK notes
+        if ($model->getTable() === 'catatan_bk' && array_key_exists('catatan', $sanitized)) {
+            $isRahasia = ($model->tingkat_kerahasiaan ?? null) === 'Rahasia' ||
+                         ($payload['tingkat_kerahasiaan'] ?? null) === 'Rahasia';
+
+            if ($isRahasia) {
+                $sanitized['catatan'] = '[REDACTED]';
+            }
+        }
+
+        return $sanitized;
     }
 }

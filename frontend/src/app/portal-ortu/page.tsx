@@ -38,10 +38,10 @@ export default function PortalOrtuPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if ((currentUser?.tugas_utama !== "Tendik") && !(currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList))) {
+  if (currentUser) {
     return (
       <AppShell title="Portal Orang Tua">
-        <ErrorBlock message="Portal read-only untuk peran Orang Tua/Wali (fase lanjutan)." />
+        <ErrorBlock message="Portal read-only untuk peran Orang Tua/Wali (fase lanjutan). Akses dari domain Pegawai ditolak." />
       </AppShell>
     );
   }

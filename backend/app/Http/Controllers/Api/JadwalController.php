@@ -59,10 +59,8 @@ class JadwalController extends Controller
         $collision = JadwalPelajaran::where('id_pegawai', $request->id_pegawai)
             ->where('hari', $request->hari)
             ->where('semester', $request->semester)
-            ->where(function ($q) use ($request) {
-                $q->whereBetween('jam_mulai', [$request->jam_mulai, $request->jam_selesai])
-                  ->orWhereBetween('jam_selesai', [$request->jam_mulai, $request->jam_selesai]);
-            })
+            ->where('jam_mulai', '<', $request->jam_selesai)
+            ->where('jam_selesai', '>', $request->jam_mulai)
             ->exists();
 
         if ($collision) {
@@ -108,10 +106,8 @@ class JadwalController extends Controller
             ->where('hari', $newHari)
             ->where('semester', $newSemester)
             ->where('id_jadwal', '!=', $id)
-            ->where(function ($q) use ($newJamMulai, $newJamSelesai) {
-                $q->whereBetween('jam_mulai', [$newJamMulai, $newJamSelesai])
-                  ->orWhereBetween('jam_selesai', [$newJamMulai, $newJamSelesai]);
-            })
+            ->where('jam_mulai', '<', $newJamSelesai)
+            ->where('jam_selesai', '>', $newJamMulai)
             ->exists();
 
         if ($collision) {

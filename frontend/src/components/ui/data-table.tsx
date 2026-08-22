@@ -45,9 +45,16 @@ export function DataTable<T>({
   emptyAction?: ReactNode;
 }) {
   const [page, setPage] = useState(0);
+  const [prevData, setPrevData] = useState(data);
 
-  // Reset ke halaman 0 saat data berubah (misal filter)
+  // Reset ke halaman 0 saat data berubah (misal filter / ganti dataset)
+  if (data !== prevData) {
+    setPrevData(data);
+    setPage(0);
+  }
+
   const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+  // Penggunaan safePage untuk mencegah index di luar batas
   const safePage = Math.min(page, totalPages - 1);
 
   const slice = useMemo(() => {

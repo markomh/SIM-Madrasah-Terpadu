@@ -32,6 +32,7 @@ class KeanggotaanController extends Controller
     public function pending(Request $request): JsonResponse
     {
         $data = AnggotaRombel::whereHas('rombel')
+            ->with(['rombel', 'siswa']) // Mencegah N+1 dan memuat relasi ke JSON response
             ->where('status_persetujuan', 'Menunggu Persetujuan')
             ->get();
 

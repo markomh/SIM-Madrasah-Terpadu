@@ -2,11 +2,11 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import type { Pegawai, PenugasanJabatan, Rombel, Ekstrakurikuler, JadwalPelajaran } from "@/types";
+import type { Pegawai, PenugasanJabatan, Rombel, Ekstrakurikuler, JadwalPelajaran, AuthUser } from "@/types";
 import { services } from "@/services";
 
 type AuthContextValue = {
-  currentUser: Pegawai | null;
+  currentUser: AuthUser | null;
   setCurrentUserId: (id: string) => void;
   // Arrays for role checks
   penugasanList: PenugasanJabatan[];
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return "pg_kepala";
   });
-  const [currentUser, setCurrentUser] = useState<Pegawai | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [penugasanList, setPenugasanList] = useState<PenugasanJabatan[]>([]);
   const [rombelList, setRombelList] = useState<Rombel[]>([]);
   const [ekstraList, setEkstraList] = useState<Ekstrakurikuler[]>([]);
@@ -96,6 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
+        // Selesaikan auth loading dulu SEBELUM fetch data sekunder.
+        // Ini mencegah dashboard menembak 5+ request paralel berbarengan
+        // dengan auth context, yang menyebabkan backend saturasi.
+        if (!cancelled) setIsLoading(false);
+
+        // Fetch data sekunder (non-blocking, tidak mempengaruhi auth state)
         try {
           const [rombel, ekstra, jadwal] = await Promise.all([
             services.referensi.getRombel().catch(() => []),
@@ -110,8 +116,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           // Ignore secondary fetch error
         }
-
-        if (!cancelled) setIsLoading(false);
       }).catch(() => {
         if (!cancelled) {
           setCurrentUser(null);

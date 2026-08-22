@@ -10,6 +10,7 @@ services:
     working_dir: /var/www
     volumes:
       - .:/var/www
+      - ./docker/php/zz-docker.conf:/usr/local/etc/php-fpm.d/zz-docker.conf
     networks:
       - sim_madrasah_net
     depends_on:

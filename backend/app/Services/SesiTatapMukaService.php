@@ -189,6 +189,13 @@ class SesiTatapMukaService
             ->whereHas('jadwalMengajar')
             ->get();
 
+        // Bulk load semua sesi tatap muka untuk bulan ini dalam 1 query saja (eliminasi N+1)
+        $allSesiBulanIni = SesiTatapMuka::with('jadwal')
+            ->whereYear('tanggal', $year)
+            ->whereMonth('tanggal', $month)
+            ->get()
+            ->groupBy(fn ($s) => $s->jadwal?->id_pegawai);
+
         $rekap = [];
         foreach ($pegawaiList as $pegawai) {
             // Pengecualian: Kepala Madrasah
@@ -208,11 +215,8 @@ class SesiTatapMukaService
                 continue;
             }
 
-            // Hitung sesi
-            $sesiBulanIni = SesiTatapMuka::whereHas('jadwal', fn ($q) => $q->where('id_pegawai', $pegawai->id_pegawai))
-                ->whereYear('tanggal', $year)
-                ->whereMonth('tanggal', $month)
-                ->get();
+            // Ambil sesi bulan ini dari koleksi in-memory
+            $sesiBulanIni = $allSesiBulanIni->get($pegawai->id_pegawai, collect());
 
             $totalSesi = $sesiBulanIni->count();
             $tepatWaktu = $sesiBulanIni->where('status_kehadiran_guru', 'Tepat Waktu')->count();

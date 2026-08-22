@@ -7,16 +7,30 @@ trait TenantAwareJob
     /**
      * ID Madrasah penyewa yang sedang aktif saat job di-dispatch.
      */
-    protected string $tenantId;
+    protected string $tenantId = '';
 
     /**
-     * Mempersiapkan job dengan tenant context dari instance yang sedang aktif.
+     * Set tenant context dari instance Madrasah, string ID, atau container app('currentTenant').
      */
-    public function __construct()
+    public function setTenantContext(\App\Models\Madrasah|string|null $tenant = null): void
     {
-        // Menyimpan context tenant saat ini ke dalam properties job
-        // sehingga ketika di-unserialize oleh worker, ia tahu madrasah mana.
-        $this->tenantId = app('currentTenant')?->id_madrasah ?? '';
+        if ($tenant instanceof \App\Models\Madrasah) {
+            $this->tenantId = $tenant->id_madrasah;
+        } elseif (is_string($tenant) && !empty($tenant)) {
+            $this->tenantId = $tenant;
+        } elseif (app()->bound('currentTenant') && ($current = app('currentTenant'))) {
+            $this->tenantId = $current->id_madrasah ?? '';
+        } else {
+            $this->tenantId = '';
+        }
+    }
+
+    /**
+     * Return tenant ID.
+     */
+    public function getTenantId(): string
+    {
+        return $this->tenantId;
     }
 
     /**
@@ -25,13 +39,19 @@ trait TenantAwareJob
      */
     protected function setupTenantContext(): void
     {
-        if (!empty($this->tenantId)) {
-            // Rekonstruksi instance currentTenant agar Eloquent Global Scopes
-            // seperti BelongsToTenant dapat berfungsi normal saat memfilter kueri.
-            $madrasah = \App\Models\Madrasah::find($this->tenantId);
-            if ($madrasah) {
-                app()->instance('currentTenant', $madrasah);
-            }
+        if (empty($this->tenantId) && app()->bound('currentTenant') && ($current = app('currentTenant'))) {
+            $this->tenantId = $current->id_madrasah ?? '';
         }
+
+        if (empty($this->tenantId)) {
+            throw new \InvalidArgumentException('Tenant context is missing for tenant-aware job.');
+        }
+
+        $madrasah = \App\Models\Madrasah::find($this->tenantId);
+        if (!$madrasah) {
+            throw new \InvalidArgumentException("Madrasah tenant with ID '{$this->tenantId}' not found.");
+        }
+
+        app()->instance('currentTenant', $madrasah);
     }
 }

@@ -58,28 +58,29 @@ export function PermissionGuard({
   check,
 }: PermissionGuardProps) {
   const authCtx = useAuth();
-  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = authCtx;
+  const { currentUser, penugasanList } = authCtx;
 
   if (!currentUser) return <>{fallback}</>;
 
-  const id = currentUser.id_pegawai;
+  const caps = currentUser.capabilities;
 
   // Evaluasi custom function jika diberikan
   if (check && !check(authCtx)) {
     return <>{fallback}</>;
   }
 
-  // Evaluasi spesifik jabatan makro
-  if (requireAdmin && !isAdminMadrasah(id, penugasanList)) return <>{fallback}</>;
-  if (requireKamad && !isKepalaMadrasah(id, penugasanList)) return <>{fallback}</>;
-  if (requireOperator && !isOperatorKesiswaan(id, penugasanList)) return <>{fallback}</>;
-  if (requireGuruBk && !isGuruBk(id, penugasanList)) return <>{fallback}</>;
-  if (requireJabatan && !hasJabatan(id, requireJabatan, penugasanList)) return <>{fallback}</>;
+  // Evaluasi spesifik jabatan makro dan status turunan berdasarkan SSoT backend (True DOM Removal Security)
+  if (requireAdmin && !caps?.isAdminMadrasah) return <>{fallback}</>;
+  if (requireKamad && !caps?.isKepalaMadrasah) return <>{fallback}</>;
+  if (requireOperator && !caps?.isOperatorKesiswaan) return <>{fallback}</>;
+  if (requireGuruBk && !caps?.isGuruBk) return <>{fallback}</>;
+  
+  if (requireWaliKelas && !caps?.isWaliKelas) return <>{fallback}</>;
+  if (requirePembinaEkstra && !caps?.isPembinaEkstrakurikuler) return <>{fallback}</>;
+  if (reqPengajar && !caps?.isPengajarAktif) return <>{fallback}</>;
 
-  // Evaluasi status relasional / tugas turunan
-  if (requireWaliKelas && !isWaliKelas(id, rombelList)) return <>{fallback}</>;
-  if (requirePembinaEkstra && !isPembinaEkstrakurikuler(id, ekstraList)) return <>{fallback}</>;
-  if (reqPengajar && !isPengajarAktif(id, jadwalList)) return <>{fallback}</>;
+  // Evaluasi jabatan dinamis (fallback ke client-list jika dibutuhkan)
+  if (requireJabatan && !hasJabatan(currentUser.id_pegawai, requireJabatan, penugasanList)) return <>{fallback}</>;
 
   return <>{children}</>;
 }

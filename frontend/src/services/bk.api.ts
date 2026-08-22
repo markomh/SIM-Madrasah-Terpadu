@@ -10,4 +10,12 @@ export const bkApi: BkService = {
   create: async (data: Omit<CatatanBk, "id_catatan" | "id_madrasah"> & { id_madrasah?: string }): Promise<CatatanBk> => {
     return apiClient.post<CatatanBk>("/bk/catatan", { id_madrasah: "md_1", ...data });
   },
+
+  update: async (id: string, data: Partial<CatatanBk>): Promise<CatatanBk> => {
+    return apiClient.put<CatatanBk>(`/bk/catatan/${id}`, data);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    return apiClient.delete<void>(`/bk/catatan/${id}`);
+  },
 };

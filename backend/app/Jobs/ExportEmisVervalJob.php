@@ -17,10 +17,9 @@ class ExportEmisVervalJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(\App\Models\Madrasah|string|null $tenant = null)
     {
-        // Panggil konstruktor trait TenantAwareJob untuk menyimpan $tenantId
-        $this->tenantId = app('currentTenant')?->id_madrasah ?? '';
+        $this->setTenantContext($tenant);
     }
 
     /**
@@ -35,6 +34,9 @@ class ExportEmisVervalJob implements ShouldQueue
         Log::info("Memulai proses Export EMIS Verval untuk madrasah: {$this->tenantId}");
         
         // Cth: $siswa = \App\Models\Siswa::all(); // Ini sudah terfilter oleh BelongsToTenant scope
+        
+        // Simpan file terisolasi berdasarkan tenantId
+        \Illuminate\Support\Facades\Storage::disk('local')->put("exports/{$this->tenantId}/emis_verval.csv", 'data,emis,verval,dummy');
         
         Log::info("Proses Export EMIS Verval selesai.");
     }

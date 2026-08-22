@@ -17,10 +17,9 @@ class HitungRekapKedisiplinanJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(\App\Models\Madrasah|string|null $tenant = null)
     {
-        // Panggil konstruktor trait TenantAwareJob untuk menyimpan $tenantId
-        $this->tenantId = app('currentTenant')?->id_madrasah ?? '';
+        $this->setTenantContext($tenant);
     }
 
     /**

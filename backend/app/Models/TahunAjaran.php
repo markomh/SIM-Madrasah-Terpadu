@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Ramsey\Uuid\Uuid;
 
 class TahunAjaran extends Model
@@ -23,15 +24,47 @@ class TahunAjaran extends Model
         static::creating(fn ($m) => $m->id_tahun = $m->id_tahun ?: (string) Uuid::uuid4());
         
         static::deleting(function ($model) {
-            if ($model->rombel()->exists()) {
-                abort(422, 'SSoT Violation: Data tidak dapat dihapus karena masih menampung Anggota Rombel aktif.');
+            if (
+                $model->rombel()->exists() ||
+                $model->ekstrakurikuler()->exists() ||
+                $model->penugasanJabatan()->exists() ||
+                $model->nilaiSiswa()->exists() ||
+                $model->riwayatMutasi()->exists() ||
+                $model->pemetaanKenaikan()->exists()
+            ) {
+                abort(422, 'SSoT Violation: Data Tahun Ajaran tidak dapat dihapus karena masih menampung data terkait.');
             }
         });
     }
 
-    public function rombel(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function rombel(): HasMany
     {
         return $this->hasMany(Rombel::class, 'id_tahun');
+    }
+
+    public function ekstrakurikuler(): HasMany
+    {
+        return $this->hasMany(Ekstrakurikuler::class, 'id_tahun');
+    }
+
+    public function penugasanJabatan(): HasMany
+    {
+        return $this->hasMany(PenugasanJabatan::class, 'id_tahun');
+    }
+
+    public function nilaiSiswa(): HasMany
+    {
+        return $this->hasMany(NilaiSiswa::class, 'id_tahun');
+    }
+
+    public function riwayatMutasi(): HasMany
+    {
+        return $this->hasMany(RiwayatMutasi::class, 'id_tahun_ajaran');
+    }
+
+    public function pemetaanKenaikan(): HasMany
+    {
+        return $this->hasMany(PemetaanKenaikan::class, 'id_tahun');
     }
 
     public function madrasah(): BelongsTo

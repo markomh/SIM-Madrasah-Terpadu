@@ -135,6 +135,10 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         toast(`Akses Ditolak: ${message}`, "error");
       } else if (status === 422) {
         toast(`Validasi Gagal: ${message}`, "error");
+      } else if (status >= 500) {
+        toast(`SSoT / System Error: ${message}`, "error");
+      } else {
+        toast(`Error (${status}): ${message}`, "error");
       }
     };
     window.addEventListener("app-api-error", handleApiError);
@@ -142,9 +146,10 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   }, [toast]);
 
   useEffect(() => {
+    if (authCtx.isLoading) return; // Prevent concurrent fetch with auth getMe()
     let isMounted = true;
     Promise.all([
-      services.pegawai.getAll(),
+      services.pegawai.getAll().catch(() => []),
       services.persetujuan.getPending().catch(() => []),
       services.madrasah.getCurrent().catch(() => null),
     ]).then(([pegawaiData, pendingData, madrasahData]) => {
@@ -156,7 +161,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [authCtx.isLoading]);
 
   const personaOptions = useMemo(() => {
     return allPegawai.map((p) => {

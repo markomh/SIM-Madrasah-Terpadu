@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList, isLoading: authLoading } = useAuth();
   const { version } = useDataVersion();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +48,10 @@ export default function DashboardPage() {
   const [flaggedCount, setFlaggedCount] = useState(0);
 
   useEffect(() => {
+    // Tunggu sampai AuthContext selesai resolve sebelum menembak API dashboard.
+    // Ini mencegah 9+ request paralel yang menyebabkan backend saturasi & timeout.
+    if (authLoading || !currentUser) return;
+
     let cancelled = false;
     setLoading(true);
     Promise.all([
@@ -86,7 +90,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [version]);
+  }, [version, authLoading, currentUser]);
 
   if (loading) {
     return (

@@ -37,7 +37,13 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $pegawai = Auth::user();
+        $pegawai = Auth::user()->load([
+            'madrasah',
+            'penugasanAktif',
+            'rombelSebagaiWaliKelas',
+            'ekstrakurikulerDibina',
+            'jadwalMengajar',
+        ]);
         $token   = $pegawai->createToken('sim-madrasah-token')->plainTextToken;
 
         return response()->json([
@@ -70,7 +76,13 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        $pegawai = $request->user()->load(['madrasah', 'penugasanAktif']);
+        $pegawai = $request->user()->load([
+            'madrasah',
+            'penugasanAktif',
+            'rombelSebagaiWaliKelas',
+            'ekstrakurikulerDibina',
+            'jadwalMengajar',
+        ]);
 
         return response()->json([
             'data' => $this->buildMeResponse($pegawai),
