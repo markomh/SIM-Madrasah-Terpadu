@@ -1,4 +1,4 @@
-﻿FROM php:8.3-fpm-alpine
+FROM php:8.3-fpm-alpine
 
 # Install official PHP extension installer helper
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
@@ -7,7 +7,7 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 RUN apk add --no-cache git curl zip unzip supervisor
 
 # Install required PHP extensions (including Redis & PostgreSQL) seamlessly
-RUN install-php-extensions pdo_pgsql pgsql mbstring xml bcmath pcntl redis
+RUN install-php-extensions pdo_pgsql pgsql mbstring xml bcmath pcntl redis pcov
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

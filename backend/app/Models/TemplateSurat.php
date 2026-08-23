@@ -13,7 +13,7 @@ class TemplateSurat extends Model
     protected $primaryKey = 'id_template';
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $fillable = ['id_madrasah', 'kode_template', 'nama_template', 'isi_template', 'jenis_surat'];
+    protected $fillable = ['id_template', 'id_madrasah', 'kode_template', 'nama_template', 'isi_template', 'jenis_surat'];
 
     protected static function boot(): void
     {

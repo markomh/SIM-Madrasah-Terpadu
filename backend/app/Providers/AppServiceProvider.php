@@ -11,7 +11,9 @@ use App\Models\Siswa;
 use App\Models\Surat;
 use App\Observers\AuditObserver;
 use App\Policies\KedisiplinanPolicy;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +25,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // ============================================================
+        // Optimasi Enterprise & Testing
+        // ============================================================
+        Model::preventLazyLoading(! app()->isProduction());
+        Model::preventSilentlyDiscardingAttributes(! app()->isProduction());
+
+        if (app()->environment('testing')) {
+            Hash::setRounds(4);
+        }
+
         // ============================================================
         // Gate Definitions — Otorisasi terpusat untuk aksi tanpa model
         // ============================================================

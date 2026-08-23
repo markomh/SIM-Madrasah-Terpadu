@@ -364,13 +364,14 @@ class PersetujuanController extends Controller
      */
     public function previewMutasiSkp(Request $request, string $id): JsonResponse
     {
-        $mutasi = RiwayatMutasi::findOrFail($id);
+        $mutasi = RiwayatMutasi::with(['siswa.madrasah'])->findOrFail($id);
         if ($mutasi->jenis_mutasi !== 'Keluar') {
             return response()->json(['message' => 'Hanya mutasi keluar yang dapat menerbitkan SKP.'], 422);
         }
 
         $siswa = $mutasi->siswa;
-        $aktif = AnggotaRombel::where('id_siswa', $mutasi->id_siswa)
+        $aktif = AnggotaRombel::with('rombel')
+            ->where('id_siswa', $mutasi->id_siswa)
             ->whereNull('tanggal_selesai')
             ->first();
         $rombel = $aktif ? $aktif->rombel : null;
@@ -427,7 +428,7 @@ class PersetujuanController extends Controller
             return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menyetujui mutasi.'], 403);
         }
 
-        $mutasi = RiwayatMutasi::findOrFail($id);
+        $mutasi = RiwayatMutasi::with(['siswa.madrasah'])->findOrFail($id);
         if ($mutasi->status_persetujuan !== 'Menunggu Persetujuan') {
             return response()->json(['message' => 'Mutasi sudah diproses sebelumnya.'], 422);
         }
@@ -436,7 +437,8 @@ class PersetujuanController extends Controller
 
         return DB::transaction(function () use ($mutasi, $idPenandatangan) {
             $siswa = $mutasi->siswa;
-            $aktif = AnggotaRombel::where('id_siswa', $mutasi->id_siswa)
+            $aktif = AnggotaRombel::with('rombel')
+                ->where('id_siswa', $mutasi->id_siswa)
                 ->whereNull('tanggal_selesai')
                 ->first();
             $rombel = $aktif ? $aktif->rombel : null;
