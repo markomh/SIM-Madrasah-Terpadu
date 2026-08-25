@@ -32,7 +32,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}, schema?: 
 
   let response: Response;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
 
   try {
     response = await fetch(`${API_BASE_URL}${endpoint}`, {

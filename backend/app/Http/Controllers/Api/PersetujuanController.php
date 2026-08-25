@@ -8,12 +8,15 @@ use App\Models\RiwayatMutasi;
 use App\Models\Surat;
 use App\Services\PegawaiAccessService;
 use App\Services\PersuratanService;
+use App\Support\Concerns\MakerCheckerActions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PersetujuanController extends Controller
 {
+    use MakerCheckerActions;
+
     public function __construct(
         private PersuratanService $persuratanService,
         private PegawaiAccessService $accessService
@@ -92,6 +95,16 @@ class PersetujuanController extends Controller
             ];
         }
 
+        // 3. Surat Dinas (scoped to current tenant via BelongsToTenant)
+        $suratPending = Surat::where('status', 'Menunggu TTD')->get();
+
+        foreach ($suratPending as $s) {
+            $items[] = [
+                'jenis' => 'surat_dinas',
+                'data'  => $s
+            ];
+        }
+
         return response()->json([
             'data'  => $items,
             'count' => count($items),
@@ -103,14 +116,15 @@ class PersetujuanController extends Controller
      */
     public function approvePindahRombel(Request $request, string $id): JsonResponse
     {
-        if (! $this->accessService->isKepalaMadrasah(auth()->user())) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menyetujui pengajuan.'], 403);
-        }
+        $actor = auth()->user();
+        $isKamad = $this->accessService->isKepalaMadrasah($actor);
 
-        return DB::transaction(function () use ($request, $id) {
+        return DB::transaction(function () use ($actor, $isKamad, $id) {
             $target = AnggotaRombel::findOrFail($id);
             $now = now()->toDateString();
-            $approver = $request->input('disetujui_oleh', auth()->user()->id_pegawai);
+            
+            // Invoke the MakerChecker trait
+            $this->approve($target, $actor, $isKamad);
 
             AnggotaRombel::where('id_siswa', $target->id_siswa)
                 ->where('id_anggota', '!=', $id)
@@ -121,12 +135,7 @@ class PersetujuanController extends Controller
                     'status_keanggotaan' => 'Pindah Rombel',
                 ]);
 
-            $target->update([
-                'status_keanggotaan'  => 'Aktif',
-                'status_persetujuan'  => 'Disetujui',
-                'disetujui_oleh'       => $approver,
-                'tanggal_persetujuan' => now(),
-            ]);
+            $target->update(['status_keanggotaan'  => 'Aktif']);
 
             return response()->json(['data' => $target]);
         });
@@ -137,18 +146,11 @@ class PersetujuanController extends Controller
      */
     public function rejectPindahRombel(Request $request, string $id): JsonResponse
     {
-        if (! $this->accessService->isKepalaMadrasah(auth()->user())) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menolak pengajuan.'], 403);
-        }
-
+        $actor = auth()->user();
+        $isKamad = $this->accessService->isKepalaMadrasah($actor);
         $target = AnggotaRombel::findOrFail($id);
-        $approver = $request->input('disetujui_oleh', auth()->user()->id_pegawai);
 
-        $target->update([
-            'status_persetujuan'  => 'Ditolak',
-            'disetujui_oleh'       => $approver,
-            'tanggal_persetujuan' => now(),
-        ]);
+        $this->reject($target, $actor, $isKamad);
 
         return response()->json(['data' => $target]);
     }
@@ -158,19 +160,12 @@ class PersetujuanController extends Controller
      */
     public function approveMutasi(Request $request, string $id): JsonResponse
     {
-        if (! $this->accessService->isKepalaMadrasah(auth()->user())) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menyetujui mutasi.'], 403);
-        }
-
+        $actor = auth()->user();
+        $isKamad = $this->accessService->isKepalaMadrasah($actor);
         $mutasi = RiwayatMutasi::findOrFail($id);
-        $approver = $request->input('disetujui_oleh', auth()->user()->id_pegawai);
 
-        return DB::transaction(function () use ($mutasi, $approver) {
-            $mutasi->update([
-                'status_persetujuan'  => 'Disetujui',
-                'disetujui_oleh'       => $approver,
-                'tanggal_persetujuan' => now(),
-            ]);
+        return DB::transaction(function () use ($mutasi, $actor, $isKamad) {
+            $this->approve($mutasi, $actor, $isKamad);
 
             if ($mutasi->jenis_mutasi === 'Keluar') {
                 $mutasi->siswa()->update(['status_siswa' => 'Mutasi Keluar']);
@@ -188,11 +183,10 @@ class PersetujuanController extends Controller
                 AnggotaRombel::where('id_siswa', $mutasi->id_siswa)
                     ->where('jenis_perpindahan', 'Mutasi Masuk')
                     ->where('status_persetujuan', 'Menunggu Persetujuan')
-                    ->update([
-                        'status_persetujuan'  => 'Disetujui',
-                        'disetujui_oleh'       => $approver,
-                        'tanggal_persetujuan' => now(),
-                    ]);
+                    ->get()
+                    ->each(function ($anggota) use ($actor, $isKamad) {
+                        $this->approve($anggota, $actor, $isKamad);
+                    });
             }
 
             return response()->json(['data' => $mutasi]);
@@ -204,29 +198,21 @@ class PersetujuanController extends Controller
      */
     public function rejectMutasi(Request $request, string $id): JsonResponse
     {
-        if (! $this->accessService->isKepalaMadrasah(auth()->user())) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menolak mutasi.'], 403);
-        }
-
+        $actor = auth()->user();
+        $isKamad = $this->accessService->isKepalaMadrasah($actor);
         $mutasi = RiwayatMutasi::findOrFail($id);
-        $approver = $request->input('disetujui_oleh', auth()->user()->id_pegawai);
 
-        return DB::transaction(function () use ($mutasi, $approver) {
-            $mutasi->update([
-                'status_persetujuan'  => 'Ditolak',
-                'disetujui_oleh'       => $approver,
-                'tanggal_persetujuan' => now(),
-            ]);
+        return DB::transaction(function () use ($mutasi, $actor, $isKamad) {
+            $this->reject($mutasi, $actor, $isKamad);
 
             if ($mutasi->jenis_mutasi === 'Masuk') {
                 AnggotaRombel::where('id_siswa', $mutasi->id_siswa)
                     ->where('jenis_perpindahan', 'Mutasi Masuk')
                     ->where('status_persetujuan', 'Menunggu Persetujuan')
-                    ->update([
-                        'status_persetujuan'  => 'Ditolak',
-                        'disetujui_oleh'       => $approver,
-                        'tanggal_persetujuan' => now(),
-                    ]);
+                    ->get()
+                    ->each(function ($anggota) use ($actor, $isKamad) {
+                        $this->reject($anggota, $actor, $isKamad);
+                    });
             }
 
             return response()->json(['data' => $mutasi]);
@@ -238,44 +224,38 @@ class PersetujuanController extends Controller
      */
     public function batchApprove(Request $request): JsonResponse
     {
-        if (! $this->accessService->isKepalaMadrasah(auth()->user())) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak melakukan persetujuan massal.'], 403);
-        }
-        $approver = $request->input('disetujui_oleh', auth()->user()->id_pegawai);
+        $actor = auth()->user();
+        $isKamad = $this->accessService->isKepalaMadrasah($actor);
+        
+        abort_unless($isKamad, 403, 'Akses ditolak: Hanya Kepala Madrasah yang berhak melakukan persetujuan massal.');
+
         $idAnggotaList = $request->input('id_anggota_list', []);
         $idMutasiList = $request->input('id_mutasi_list', []);
         $now = now()->toDateString();
 
-        return DB::transaction(function () use ($approver, $idAnggotaList, $idMutasiList, $now) {
+        return DB::transaction(function () use ($actor, $isKamad, $idAnggotaList, $idMutasiList, $now) {
             foreach ($idAnggotaList as $idAnggota) {
                 $target = AnggotaRombel::find($idAnggota);
                 if ($target) {
+                    $this->approve($target, $actor, $isKamad);
+                    
                     AnggotaRombel::where('id_siswa', $target->id_siswa)
                         ->where('id_anggota', '!=', $idAnggota)
                         ->where('status_keanggotaan', 'Aktif')
                         ->whereNull('tanggal_selesai')
                         ->update(['tanggal_selesai' => $now, 'status_keanggotaan' => 'Pindah Rombel']);
-
-                    $target->update([
-                        'status_keanggotaan'  => 'Aktif',
-                        'status_persetujuan'  => 'Disetujui',
-                        'disetujui_oleh'       => $approver,
-                        'tanggal_persetujuan' => now(),
-                    ]);
+                    
+                    $target->update(['status_keanggotaan'  => 'Aktif']);
                 }
             }
 
             foreach ($idMutasiList as $idMutasi) {
                 $mutasi = RiwayatMutasi::find($idMutasi);
                 if ($mutasi) {
-                    $mutasi->update([
-                        'status_persetujuan'  => 'Disetujui',
-                        'disetujui_oleh'       => $approver,
-                        'tanggal_persetujuan' => now(),
-                    ]);
+                    $this->approve($mutasi, $actor, $isKamad);
+                    
                     if ($mutasi->jenis_mutasi === 'Keluar') {
                         $mutasi->siswa()->update(['status_siswa' => 'Mutasi Keluar']);
-                        // Non-aktifkan keanggotaan rombel lama
                         AnggotaRombel::where('id_siswa', $mutasi->id_siswa)
                             ->where('status_keanggotaan', 'Aktif')
                             ->whereNull('tanggal_selesai')
@@ -285,15 +265,13 @@ class PersetujuanController extends Controller
                             ]);
                     } elseif ($mutasi->jenis_mutasi === 'Masuk') {
                         $mutasi->siswa()->update(['status_siswa' => 'Aktif']);
-                        // Aktifkan keanggotaan rombel baru
                         AnggotaRombel::where('id_siswa', $mutasi->id_siswa)
                             ->where('jenis_perpindahan', 'Mutasi Masuk')
                             ->where('status_persetujuan', 'Menunggu Persetujuan')
-                            ->update([
-                                'status_persetujuan'  => 'Disetujui',
-                                'disetujui_oleh'       => $approver,
-                                'tanggal_persetujuan' => now(),
-                            ]);
+                            ->get()
+                            ->each(function ($anggota) use ($actor, $isKamad) {
+                                $this->approve($anggota, $actor, $isKamad);
+                            });
                     }
                 }
             }
@@ -313,38 +291,35 @@ class PersetujuanController extends Controller
      */
     public function batchReject(Request $request): JsonResponse
     {
-        if (! $this->accessService->isKepalaMadrasah(auth()->user())) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak melakukan penolakan massal.'], 403);
-        }
+        $actor = auth()->user();
+        $isKamad = $this->accessService->isKepalaMadrasah($actor);
+        
+        abort_unless($isKamad, 403, 'Akses ditolak: Hanya Kepala Madrasah yang berhak melakukan penolakan massal.');
 
-        $approver = $request->input('disetujui_oleh', auth()->user()->id_pegawai);
         $idAnggotaList = $request->input('id_anggota_list', []);
         $idMutasiList = $request->input('id_mutasi_list', []);
 
-        return DB::transaction(function () use ($approver, $idAnggotaList, $idMutasiList) {
-            AnggotaRombel::whereIn('id_anggota', $idAnggotaList)->update([
-                'status_persetujuan'  => 'Ditolak',
-                'disetujui_oleh'       => $approver,
-                'tanggal_persetujuan' => now(),
-            ]);
+        return DB::transaction(function () use ($actor, $isKamad, $idAnggotaList, $idMutasiList) {
+            foreach ($idAnggotaList as $idAnggota) {
+                $target = AnggotaRombel::find($idAnggota);
+                if ($target) {
+                    $this->reject($target, $actor, $isKamad);
+                }
+            }
 
             foreach ($idMutasiList as $idMutasi) {
                 $mutasi = RiwayatMutasi::find($idMutasi);
                 if ($mutasi) {
-                    $mutasi->update([
-                        'status_persetujuan'  => 'Ditolak',
-                        'disetujui_oleh'       => $approver,
-                        'tanggal_persetujuan' => now(),
-                    ]);
+                    $this->reject($mutasi, $actor, $isKamad);
+                    
                     if ($mutasi->jenis_mutasi === 'Masuk') {
                         AnggotaRombel::where('id_siswa', $mutasi->id_siswa)
                             ->where('jenis_perpindahan', 'Mutasi Masuk')
                             ->where('status_persetujuan', 'Menunggu Persetujuan')
-                            ->update([
-                                'status_persetujuan'  => 'Ditolak',
-                                'disetujui_oleh'       => $approver,
-                                'tanggal_persetujuan' => now(),
-                            ]);
+                            ->get()
+                            ->each(function ($anggota) use ($actor, $isKamad) {
+                                $this->reject($anggota, $actor, $isKamad);
+                            });
                     }
                 }
             }

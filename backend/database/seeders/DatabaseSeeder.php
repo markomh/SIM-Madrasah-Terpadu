@@ -612,6 +612,58 @@ class DatabaseSeeder extends Seeder
             'status_persetujuan' => 'Tidak Perlu',
         ]);
 
-        $this->command->info('Seed berhasil: 3 madrasah (MTs, MA, MI), wilayah, profil madrasah, akun demo Admin MI, pegawai demo terpadu (lengkap multi-role), rombel, jadwal, ekstra, data persetujuan pending, dan pegawai overlap.');
+        // ============================================================
+        // Template Surat Standar per Madrasah
+        // ============================================================
+        foreach ([$madrasah1, $madrasah2, $madrasah3] as $m) {
+            \App\Models\TemplateSurat::create([
+                'id_template'   => (string) Uuid::uuid4(),
+                'id_madrasah'   => $m->id_madrasah,
+                'kode_template' => 'SK-AKTIF',
+                'nama_template' => 'Surat Keterangan Aktif Siswa',
+                'jenis_surat'   => 'Keterangan',
+                'isi_template'  => '<p>Yang bertanda tangan di bawah ini, Kepala {{NAMA_MADRASAH}}, menerangkan bahwa:</p>
+<table>
+  <tr><td>Nama</td><td>:</td><td>{{NAMA_SISWA}}</td></tr>
+  <tr><td>NISN</td><td>:</td><td>{{NISN}}</td></tr>
+  <tr><td>Kelas</td><td>:</td><td>{{NAMA_KELAS}}</td></tr>
+</table>
+<p>Adalah benar-benar siswa aktif di {{NAMA_MADRASAH}} pada Tahun Ajaran {{TAHUN_AJARAN}}.</p>
+<p>Surat keterangan ini dibuat untuk {{KEPERLUAN}}.</p>',
+            ]);
+
+            \App\Models\TemplateSurat::create([
+                'id_template'   => (string) Uuid::uuid4(),
+                'id_madrasah'   => $m->id_madrasah,
+                'kode_template' => 'ST-TUGAS',
+                'nama_template' => 'Surat Tugas Mengajar / Pengawas',
+                'jenis_surat'   => 'Tugas',
+                'isi_template'  => '<p>Yang bertanda tangan di bawah ini menugaskan:</p>
+<table>
+  <tr><td>Nama</td><td>:</td><td>{{NAMA_PEGAWAI}}</td></tr>
+  <tr><td>NIP/NPK</td><td>:</td><td>{{NIP_NPK}}</td></tr>
+  <tr><td>Jabatan</td><td>:</td><td>{{JABATAN}}</td></tr>
+</table>
+<p>Untuk melaksanakan tugas {{DESKRIPSI_TUGAS}} pada tanggal {{TANGGAL_TUGAS}}.</p>',
+            ]);
+
+            \App\Models\TemplateSurat::create([
+                'id_template'   => (string) Uuid::uuid4(),
+                'id_madrasah'   => $m->id_madrasah,
+                'kode_template' => 'SKP-MUTASI',
+                'nama_template' => 'Surat Keterangan Pindah (SKP)',
+                'jenis_surat'   => 'Keterangan',
+                'isi_template'  => '<p>Yang bertanda tangan di bawah ini, Kepala {{NAMA_MADRASAH}}, menerangkan bahwa:</p>
+<table>
+  <tr><td>Nama</td><td>:</td><td>{{NAMA_SISWA}}</td></tr>
+  <tr><td>NISN</td><td>:</td><td>{{NISN}}</td></tr>
+  <tr><td>Kelas</td><td>:</td><td>{{NAMA_KELAS}}</td></tr>
+</table>
+<p>Telah mengajukan pindah ke sekolah {{SEKOLAH_TUJUAN}} dengan alasan {{ALASAN_PINDAH}}.</p>
+<p>Demikian surat keterangan pindah ini dibuat agar dapat dipergunakan sebagaimana mestinya.</p>',
+            ]);
+        }
+
+        $this->command->info('Seed berhasil: 3 madrasah (MTs, MA, MI), wilayah, profil madrasah, akun demo Admin MI, pegawai demo terpadu (lengkap multi-role), rombel, jadwal, ekstra, data persetujuan pending, pegawai overlap, dan template surat standar.');
     }
 }

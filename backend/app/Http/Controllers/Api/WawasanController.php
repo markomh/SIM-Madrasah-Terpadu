@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 /**
  * WawasanController
  * 
@@ -14,8 +16,29 @@ use Illuminate\Http\Request;
  */
 class WawasanController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function siswaBerisiko(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        
+        if (! $this->accessService->isAdminOrKamad($user)) {
+            if (! $this->accessService->isWaliKelas($user)) {
+                abort(403, 'Akses ditolak: Hanya Admin, Kepala Madrasah, atau Wali Kelas yang berhak melihat data siswa berisiko.');
+            }
+            $idRombel = $request->query('id_rombel');
+            if (!$idRombel) {
+                // Return empty if no rombel is requested and they are just a Wali Kelas (cannot see all)
+                return response()->json(['data' => []]);
+            }
+            
+            // Verifikasi bahwa user benar Wali Kelas untuk $idRombel ini
+            $isWaliRombelIni = $user->rombelSebagaiWaliKelas()->where('id_rombel', $idRombel)->exists();
+            if (!$isWaliRombelIni) {
+                abort(403, 'Akses ditolak: Anda hanya dapat melihat data siswa berisiko untuk rombel binaan Anda sendiri.');
+            }
+        }
+
         // Static mock data for Siswa Berisiko as defined in frontend/src/services/wawasan.mock.ts
         $minScore = $request->query('min_score', 50);
         
@@ -48,6 +71,11 @@ class WawasanController extends Controller
 
     public function rekomendasiJadwal(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user)) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang berhak melihat rekomendasi jadwal AI.');
+        }
+
         // Static mock data for Rekomendasi Jadwal
         return response()->json([
             'data' => [

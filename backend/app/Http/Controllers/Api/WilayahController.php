@@ -23,7 +23,7 @@ class WilayahController extends Controller
             ->select('id_provinsi', 'kode_provinsi', 'nama_provinsi');
 
         if ($request->has('search')) {
-            $query->where('nama_provinsi', 'ilike', '%' . $request->search . '%');
+            $query->whereRaw('LOWER(nama_provinsi) LIKE ?', ['%' . strtolower($request->search) . '%']);
         }
 
         $data = $query->orderBy('nama_provinsi')->limit(50)->get();
@@ -41,7 +41,7 @@ class WilayahController extends Controller
         }
 
         if ($request->has('search')) {
-            $query->where('nama_kabupaten', 'ilike', '%' . $request->search . '%');
+            $query->whereRaw('LOWER(nama_kabupaten) LIKE ?', ['%' . strtolower($request->search) . '%']);
         }
 
         return response()->json(['data' => $query->orderBy('nama_kabupaten')->limit(50)->get()]);
@@ -57,7 +57,7 @@ class WilayahController extends Controller
         }
 
         if ($request->has('search')) {
-            $query->where('nama_kecamatan', 'ilike', '%' . $request->search . '%');
+            $query->whereRaw('LOWER(nama_kecamatan) LIKE ?', ['%' . strtolower($request->search) . '%']);
         }
 
         return response()->json(['data' => $query->orderBy('nama_kecamatan')->limit(50)->get()]);
@@ -73,7 +73,7 @@ class WilayahController extends Controller
         }
 
         if ($request->has('search')) {
-            $query->where('nama_desa', 'ilike', '%' . $request->search . '%');
+            $query->whereRaw('LOWER(nama_desa) LIKE ?', ['%' . strtolower($request->search) . '%']);
         }
 
         return response()->json(['data' => $query->orderBy('nama_desa')->limit(50)->get()]);

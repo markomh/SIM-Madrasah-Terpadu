@@ -23,7 +23,7 @@ const mockWindow = {
 async function runTests() {
   console.log("Running api-client gatekeeper tests...");
 
-  const { apiClient } = await import("../api-client.ts");
+  const { apiClient } = await import("../api-client");
   const originalFetch = globalThis.fetch;
 
   try {
@@ -43,7 +43,7 @@ async function runTests() {
 
     const TestSchema = z.object({
       nama: z.string(),
-      email: z.string({ required_error: "Email wajib" }).email(),
+      email: z.string().email(),
     });
 
     let threw = false;

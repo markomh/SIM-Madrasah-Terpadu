@@ -63,6 +63,12 @@ class TenantIsolationTest extends TestCase
             'email'              => 'admin2@test.com',
             'password'           => bcrypt('password'),
         ]);
+
+        $tahun1 = \App\Models\TahunAjaran::create(['id_madrasah' => $this->madrasah1->id_madrasah, 'nama_tahun' => '2026/2027']);
+        $tahun2 = \App\Models\TahunAjaran::create(['id_madrasah' => $this->madrasah2->id_madrasah, 'nama_tahun' => '2026/2027']);
+
+        \App\Models\PenugasanJabatan::create(['id_pegawai' => $this->pegawai1->id_pegawai, 'jenis_jabatan' => 'Admin Madrasah', 'status' => 'Aktif', 'tanggal_mulai' => now(), 'id_tahun' => $tahun1->id_tahun]);
+        \App\Models\PenugasanJabatan::create(['id_pegawai' => $this->pegawai2->id_pegawai, 'jenis_jabatan' => 'Admin Madrasah', 'status' => 'Aktif', 'tanggal_mulai' => now(), 'id_tahun' => $tahun2->id_tahun]);
     }
 
     /** @test */

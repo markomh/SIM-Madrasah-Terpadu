@@ -29,6 +29,8 @@ return new class extends Migration
             // Field cadangan bila id_kepala_madrasah kosong atau non-pegawai terdaftar
             $table->string('nama_kepala_madrasah_cadangan')->nullable();
             $table->string('logo_url')->nullable();
+            $table->integer('ambang_toleransi_terlambat_menit')->default(15);
+            $table->integer('ambang_flag_digantikan_mendadak')->default(3);
             $table->timestamps();
         });
 

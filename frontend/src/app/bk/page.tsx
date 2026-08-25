@@ -4,16 +4,19 @@ import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWal
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
-import { PageHeader, SurfaceCard, LoadingBlock, ErrorBlock, Button, Select, Textarea, Badge } from "@/components/ui/primitives";
+import { PageHeader, SurfaceCard, LoadingBlock, ErrorBlock, Button, Select, Textarea, Badge, ActionButton } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
 import type { CatatanBk } from "@/types/bk";
 import type { Siswa } from "@/types";
 
+import { ActionGuard } from "@/components/action-guard";
+import { usePermission } from "@/hooks/usePermission";
+
 export default function BkPage() {
-  const { currentUser, penugasanList, rombelList } = useAuth();
+  const { currentUser, penugasanList } = useAuth();
   const canAccess = (currentUser && isGuruBk(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
-  const canWrite = (currentUser && isGuruBk(currentUser.id_pegawai, penugasanList));
+  const canWrite = usePermission("bk.crud_catatan_bk");
 
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
   const [selectedSiswaId, setSelectedSiswaId] = useState<string>("");
@@ -128,12 +131,14 @@ export default function BkPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">{siswaList.find(s => s.id_siswa === selectedSiswaId)?.nama_lengkap}</h3>
-                {canWrite && !formOpen && (
-                  <Button variant="primary" type="button" onClick={() => {
-                    setEditingId(null);
-                    setFormData({ kategori: "Akademik", catatan: "", tingkat_kerahasiaan: "Umum" });
-                    setFormOpen(true);
-                  }}>+ Tambah Catatan</Button>
+                {!formOpen && (
+                  <ActionGuard can={canWrite}>
+                    <Button variant="primary" type="button" onClick={() => {
+                      setEditingId(null);
+                      setFormData({ kategori: "Akademik", catatan: "", tingkat_kerahasiaan: "Umum" });
+                      setFormOpen(true);
+                    }}>+ Tambah Catatan</Button>
+                  </ActionGuard>
                 )}
               </div>
 
@@ -199,16 +204,18 @@ export default function BkPage() {
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             <span className="text-xs text-muted">{c.tanggal}</span>
-                            {c.id_pegawai_bk === currentUser?.id_pegawai && (
-                              <div className="flex gap-2">
-                                <button type="button" className="text-[10px] font-bold text-primary hover:underline uppercase" onClick={() => {
+                            <div className="flex gap-2">
+                              <ActionGuard can={c.id_pegawai_bk === currentUser?.id_pegawai && canWrite}>
+                                <Button type="button" variant="ghost" className="text-[10px] h-auto p-0 font-bold text-primary hover:bg-transparent hover:underline uppercase" onClick={() => {
                                   setEditingId(c.id_catatan);
                                   setFormData({ kategori: c.kategori, catatan: c.catatan, tingkat_kerahasiaan: c.tingkat_kerahasiaan });
                                   setFormOpen(true);
-                                }}>Edit</button>
-                                <button type="button" className="text-[10px] font-bold text-danger hover:underline uppercase" onClick={() => handleDelete(c.id_catatan)}>Hapus</button>
-                              </div>
-                            )}
+                                }}>Edit</Button>
+                              </ActionGuard>
+                              <ActionGuard can={c.id_pegawai_bk === currentUser?.id_pegawai && canWrite}>
+                                <Button type="button" variant="ghost" className="text-[10px] h-auto p-0 font-bold text-danger hover:bg-transparent hover:underline uppercase" onClick={() => handleDelete(c.id_catatan)}>Hapus</Button>
+                              </ActionGuard>
+                            </div>
                           </div>
                         </div>
                         <p className="text-sm text-ink">{c.catatan}</p>

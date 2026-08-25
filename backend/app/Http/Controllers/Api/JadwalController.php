@@ -9,6 +9,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+use App\Services\PegawaiAccessService;
+
 /**
  * JadwalController
  *
@@ -20,6 +22,8 @@ use Illuminate\Validation\Rule;
  */
 class JadwalController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function index(Request $request): JsonResponse
     {
         $query = JadwalPelajaran::whereHas('rombel')->with(['rombel.tingkat', 'pegawai', 'mataPelajaran']);
@@ -45,6 +49,11 @@ class JadwalController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user)) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang dapat mengelola jadwal pelajaran.');
+        }
+
         $request->validate([
             'id_rombel'   => ['required', Rule::exists('rombel', 'id_rombel')->where('id_madrasah', auth()->user()->id_madrasah)],
             'id_pegawai'  => ['required', Rule::exists('pegawai', 'id_pegawai')->where('id_madrasah', auth()->user()->id_madrasah)],
@@ -84,6 +93,11 @@ class JadwalController extends Controller
 
     public function update(Request $request, string $id): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user)) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang dapat mengelola jadwal pelajaran.');
+        }
+
         $jadwal = JadwalPelajaran::findOrFail($id);
 
         $request->validate([
@@ -125,6 +139,11 @@ class JadwalController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user)) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang dapat mengelola jadwal pelajaran.');
+        }
+
         $jadwal = JadwalPelajaran::findOrFail($id);
         $jadwal->delete();
 

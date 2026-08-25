@@ -1,6 +1,7 @@
 "use client";
 
-import { isPengajarAktif, isWaliKelas } from "@/lib/access";
+import { isPengajarAktif, isWaliKelas, isKepalaMadrasah } from "@/lib/access";
+import { RouteGuard } from "@/components/route-guard";
 import { useEffect, useState, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -29,6 +30,7 @@ import {
   inputClass,
   StatusBadge,
   LoadingBlock,
+  ActionButton,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import type {
@@ -150,9 +152,14 @@ function ActiveTeachingDashboard({
       </div>
 
       <div className="pt-2 flex flex-wrap gap-2 justify-center">
-        <PrimaryButton type="button" onClick={onEdit} className="text-xs">
-          Edit Presensi / Jurnal Sesi
-        </PrimaryButton>
+        <ActionButton 
+          capability={true} // everyone can click edit to view details
+          type="button" 
+          onClick={onEdit} 
+          className="text-xs"
+        >
+          Lihat / Edit Presensi & Jurnal
+        </ActionButton>
       </div>
     </SurfaceCard>
   );
@@ -323,10 +330,12 @@ function PresensiSiswaContent() {
   };
 
   const markAllPresent = () => {
+    if (!canAccess) return;
     setStudents((prev) => prev.map((s) => ({ ...s, status: "Hadir" })));
   };
 
   const toggleStudentStatus = (idx: number) => {
+    if (!canAccess) return;
     const s = students[idx];
     let nextStatus: AbsensiSiswa["status"] = "Hadir";
     if (s.status === "Hadir") nextStatus = "Sakit";
@@ -341,6 +350,7 @@ function PresensiSiswaContent() {
   const promptCatatan = (idx: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!canAccess) return;
     const s = students[idx];
     const cat = prompt(`Catatan khusus untuk ${s.nama}:`, s.catatan);
     if (cat !== null) {
@@ -360,20 +370,22 @@ function PresensiSiswaContent() {
   const izinCount = students.filter((s) => s.status === "Izin").length;
   const alpaCount = students.filter((s) => s.status === "Alpa").length;
 
-  if (!canAccess) {
-    return (
-      <AppShell title="Presensi Siswa (Sesi)">
-        <ErrorBlock message="Halaman ini khusus untuk Wali Kelas dan Guru Mapel." />
-      </AppShell>
-    );
-  }
-
   return (
     <AppShell title="Presensi Siswa per Sesi">
       <PageHeader
         title="Input Presensi Sesi Tatap Muka"
         description="Presensi operasional per sesi KBM (Moodle/ManageBac style) dengan pewarisan konteks jadwal dan pencatatan kehadiran guru otomatis."
       />
+
+      {!canAccess && (
+        <div className="mb-4 rounded-[6px] border border-amber/30 bg-amber-soft p-4 text-sm text-amber flex items-start gap-3">
+          <BookOpen className="shrink-0 mt-0.5" size={18} />
+          <div>
+            <p className="font-bold">Supervisory View (Read-Only)</p>
+            <p className="mt-1">Anda dapat memantau data presensi ini, namun hak modifikasi data hanya dimiliki oleh Guru Pengajar atau Wali Kelas yang bersangkutan.</p>
+          </div>
+        </div>
+      )}
 
       {/* Context Inheritance Banner when a session is active */}
       {selectedRombelObj && selectedMapel && selectedJadwal && (
@@ -562,17 +574,21 @@ function PresensiSiswaContent() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="hidden sm:inline-block text-[10px] text-muted font-medium bg-surface border border-border px-2 py-0.5 rounded">
-                          💡 Klik kartu / Klik 'Tandai Semua Hadir'
-                        </span>
-                        <button
+                        {canAccess && (
+                          <span className="hidden sm:inline-block text-[10px] text-muted font-medium bg-surface border border-border px-2 py-0.5 rounded">
+                            💡 Klik kartu / Klik 'Tandai Semua Hadir'
+                          </span>
+                        )}
+                        <ActionButton
+                          capability={canAccess}
+                          unauthorizedReason="Akses ditolak"
                           type="button"
                           onClick={markAllPresent}
                           className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-bold text-ink hover:bg-paper transition-all shadow-xs"
                         >
                           <CheckCheck size={13} className="text-primary" />
                           <span>Tandai Semua Hadir</span>
-                        </button>
+                        </ActionButton>
                       </div>
                     </div>
 
@@ -597,7 +613,7 @@ function PresensiSiswaContent() {
                           <div
                             key={s.id_siswa}
                             onClick={() => toggleStudentStatus(idx)}
-                            className={`relative cursor-pointer rounded-lg border p-3 flex flex-col justify-between transition-all hover:shadow-md hover:scale-[1.01] active:scale-95 select-none h-24 ${badgeBg}`}
+                            className={`relative ${canAccess ? "cursor-pointer hover:shadow-md hover:scale-[1.01] active:scale-95" : "cursor-default opacity-80"} rounded-lg border p-3 flex flex-col justify-between transition-all select-none h-24 ${badgeBg}`}
                           >
                             <div className="flex items-start justify-between gap-1">
                               <span className="font-bold text-xs line-clamp-1">{s.nama}</span>
@@ -626,9 +642,10 @@ function PresensiSiswaContent() {
                     {/* Jurnal Materi Sesi */}
                     <Field label="Jurnal & Materi Pembelajaran (Tercatat Otomatis)">
                       <textarea
-                        className={`${inputClass} min-h-[75px] py-2 text-xs`}
+                        className={`${inputClass} min-h-[75px] py-2 text-xs ${!canAccess ? "bg-paper/80 cursor-not-allowed text-muted" : ""}`}
                         placeholder="Deskripsikan secara ringkas topik pembahasan, materi, atau tugas yang diberikan pada sesi KBM ini..."
                         value={materiJurnal}
+                        readOnly={!canAccess}
                         onChange={(e) => setMateriJurnal(e.target.value)}
                       />
                     </Field>
@@ -637,14 +654,16 @@ function PresensiSiswaContent() {
                       <span className="text-xs text-muted">
                         Total Siswa: <strong className="text-ink">{students.length}</strong>
                       </span>
-                      <PrimaryButton
+                      <ActionButton
+                        capability={canAccess}
+                        unauthorizedReason="Hanya Guru Pengajar atau Wali Kelas yang berhak menyimpan presensi."
                         type="submit"
                         disabled={loading || students.length === 0}
                         className="flex items-center gap-1.5 text-xs font-bold"
                       >
                         <ClipboardCheck size={14} />
                         <span>{loading ? "Menyimpan Presensi..." : "Simpan Presensi Sesi"}</span>
-                      </PrimaryButton>
+                      </ActionButton>
                     </div>
                   </form>
                 </SurfaceCard>
@@ -659,8 +678,19 @@ function PresensiSiswaContent() {
 
 export default function PresensiSiswaPage() {
   return (
-    <Suspense fallback={<div>Memuat Halaman Presensi...</div>}>
-      <PresensiSiswaContent />
-    </Suspense>
+    <RouteGuard
+      allowedRoles={(ctx) => {
+        const id = ctx.currentUser?.id_pegawai ?? "";
+        return (
+          isKepalaMadrasah(id, ctx.penugasanList) ||
+          isWaliKelas(id, ctx.rombelList) ||
+          isPengajarAktif(id, ctx.jadwalList)
+        );
+      }}
+    >
+      <Suspense fallback={<div>Memuat Halaman Presensi...</div>}>
+        <PresensiSiswaContent />
+      </Suspense>
+    </RouteGuard>
   );
 }

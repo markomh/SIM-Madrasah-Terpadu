@@ -208,7 +208,7 @@ class KesiswaanWorkflowTest extends TestCase
 
         // 3. Setujui pindah rombel
         $this->actingAs($this->kamad, 'sanctum')
-            ->postJson("/api/v1/pindah-rombel/{$idPindah}/setujui")
+            ->postJson("/api/v1/persetujuan/pindah-rombel/{$idPindah}/setujui")
             ->assertOk();
 
         // 4. Setelah disetujui, baris lama sekarang tertutup
@@ -312,8 +312,7 @@ class KesiswaanWorkflowTest extends TestCase
             'status_persetujuan' => 'Tidak Perlu',
         ]);
 
-        // 3. Pindahkan kedua siswa secara massal ke rombel 8-A (same grade = 7-A & 8-A? Wait, no! 7-A is grade 7 (urutan 1), 8-A is grade 8 (urutan 2), so different grade levels!)
-        // Let's create rombel 7-B (same level) for same-level transfer test, and 8-A for promotion test.
+        // 3. Pindahkan kedua siswa ke rombel 7-B via request individu + persetujuan (massal telah dihapus)
         $rombel7B = Rombel::create([
             'id_madrasah'   => $this->madrasah->id_madrasah,
             'nama_rombel'   => '7-B',
@@ -322,15 +321,28 @@ class KesiswaanWorkflowTest extends TestCase
             'id_tahun'      => $this->tahun->id_tahun,
         ]);
 
-        $responseMassal = $this->actingAs($this->kamad, 'sanctum')
-            ->postJson('/api/v1/pindah-rombel/massal', [
-                'id_siswa_list'    => [$this->siswa->id_siswa, $siswa2->id_siswa],
+        $res1 = $this->actingAs($this->kamad, 'sanctum')
+            ->postJson('/api/v1/pindah-rombel', [
+                'id_siswa'         => $this->siswa->id_siswa,
                 'id_rombel_tujuan' => $rombel7B->id_rombel,
-                'tanggal_efektif'  => '2026-08-16',
             ]);
 
-        $responseMassal->assertOk()
-            ->assertJsonPath('data.processed', 2);
+        $res2 = $this->actingAs($this->kamad, 'sanctum')
+            ->postJson('/api/v1/pindah-rombel', [
+                'id_siswa'         => $siswa2->id_siswa,
+                'id_rombel_tujuan' => $rombel7B->id_rombel,
+            ]);
+
+        $res1->assertCreated();
+        $res2->assertCreated();
+
+        $this->actingAs($this->kamad, 'sanctum')
+            ->postJson('/api/v1/persetujuan/pindah-rombel/' . $res1->json('data.id_anggota') . '/setujui')
+            ->assertOk();
+
+        $this->actingAs($this->kamad, 'sanctum')
+            ->postJson('/api/v1/persetujuan/pindah-rombel/' . $res2->json('data.id_anggota') . '/setujui')
+            ->assertOk();
 
         // Verifikasi siswa2 sudah aktif di rombel 7-B
         $aktif7B = AnggotaRombel::where('id_siswa', $siswa2->id_siswa)

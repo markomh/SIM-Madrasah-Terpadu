@@ -7,6 +7,8 @@ use App\Models\Pegawai;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 /**
  * PegawaiController
  *
@@ -17,8 +19,14 @@ use Illuminate\Http\Request;
  */
 class PegawaiController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function index(Request $request): JsonResponse
     {
+        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang dapat melihat data pegawai.');
+        }
+
         $query = Pegawai::with(['penugasanAktif', 'madrasah']);
 
         if ($request->has('tugas_utama')) {
@@ -41,6 +49,11 @@ class PegawaiController extends Controller
 
     public function show(string $id): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user) && $user->id_pegawai !== $id) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah, Kepala Madrasah, atau pegawai yang bersangkutan yang dapat melihat detail pegawai.');
+        }
+
         $pegawai = Pegawai::with(['penugasanJabatan.tahunAjaran', 'madrasah'])->findOrFail($id);
 
         return response()->json(['data' => $pegawai]);
@@ -48,6 +61,10 @@ class PegawaiController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if (! $this->accessService->isAdminMadrasah(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola data pegawai.');
+        }
+
         $request->validate([
             'nik'                => 'required|string|size:16',
             'nip'                => 'nullable|string|max:30',
@@ -85,6 +102,10 @@ class PegawaiController extends Controller
 
     public function update(Request $request, string $id): JsonResponse
     {
+        if (! $this->accessService->isAdminMadrasah(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola data pegawai.');
+        }
+
         $pegawai = Pegawai::findOrFail($id);
 
         $request->validate([
@@ -115,6 +136,10 @@ class PegawaiController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
+        if (! $this->accessService->isAdminMadrasah(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola data pegawai.');
+        }
+
         $pegawai = Pegawai::findOrFail($id);
         $pegawai->delete();
 

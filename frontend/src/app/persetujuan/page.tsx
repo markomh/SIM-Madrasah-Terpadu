@@ -44,7 +44,7 @@ export default function PersetujuanPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [batchAlert, setBatchAlert] = useState<BatchSummaryAlert | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"all" | "pindah_rombel" | "mutasi">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "pindah_rombel" | "mutasi" | "surat_dinas">("all");
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState<RiwayatMutasi | null>(null);
 
   // Enterprise Feature 2: Batch Selection State
@@ -95,13 +95,18 @@ export default function PersetujuanPage() {
 
   const pindahCount = useMemo(() => items.filter((i) => i.jenis === "pindah_rombel").length, [items]);
   const mutasiCount = useMemo(() => items.filter((i) => i.jenis === "mutasi").length, [items]);
+  const suratCount = useMemo(() => items.filter((i) => i.jenis === "surat_dinas").length, [items]);
 
   const toggleSelectAll = () => {
     if (selectedKeys.size === filteredItems.length && filteredItems.length > 0) {
       setSelectedKeys(new Set());
     } else {
       const allKeys = new Set(
-        filteredItems.map((item) => (item.jenis === "mutasi" ? item.data.id_mutasi : item.data.id_anggota))
+        filteredItems.map((item) => {
+          if (item.jenis === "mutasi") return item.data.id_mutasi;
+          if (item.jenis === "pindah_rombel") return item.data.id_anggota;
+          return item.data.id_surat;
+        })
       );
       setSelectedKeys(allKeys);
     }
@@ -128,10 +133,15 @@ export default function PersetujuanPage() {
       const mutasiList: string[] = [];
 
       filteredItems.forEach((item) => {
-        const k = item.jenis === "mutasi" ? item.data.id_mutasi : item.data.id_anggota;
+        const k =
+          item.jenis === "mutasi"
+            ? item.data.id_mutasi
+            : item.jenis === "pindah_rombel"
+            ? item.data.id_anggota
+            : item.data.id_surat;
         if (selectedKeys.has(k)) {
           if (item.jenis === "pindah_rombel") pindahList.push(item.data.id_anggota);
-          else mutasiList.push(item.data.id_mutasi);
+          else if (item.jenis === "mutasi") mutasiList.push(item.data.id_mutasi);
         }
       });
 
@@ -150,7 +160,7 @@ export default function PersetujuanPage() {
               ? it.jenis === "pindah_rombel" && it.data.id_anggota === g.id
               : it.jenis === "mutasi" && it.data.id_mutasi === g.id
           );
-          const nama = item ? siswaMap[item.data.id_siswa]?.nama_lengkap ?? "Siswa" : g.id;
+          const nama = item && item.jenis !== "surat_dinas" ? siswaMap[item.data.id_siswa]?.nama_lengkap ?? "Siswa" : g.id;
           return { id: g.id, name: nama, reason: g.alasan };
         });
 
@@ -188,10 +198,15 @@ export default function PersetujuanPage() {
       const mutasiList: string[] = [];
 
       filteredItems.forEach((item) => {
-        const k = item.jenis === "mutasi" ? item.data.id_mutasi : item.data.id_anggota;
+        const k =
+          item.jenis === "mutasi"
+            ? item.data.id_mutasi
+            : item.jenis === "pindah_rombel"
+            ? item.data.id_anggota
+            : item.data.id_surat;
         if (selectedKeys.has(k)) {
           if (item.jenis === "pindah_rombel") pindahList.push(item.data.id_anggota);
-          else mutasiList.push(item.data.id_mutasi);
+          else if (item.jenis === "mutasi") mutasiList.push(item.data.id_mutasi);
         }
       });
 
@@ -211,7 +226,7 @@ export default function PersetujuanPage() {
               ? it.jenis === "pindah_rombel" && it.data.id_anggota === g.id
               : it.jenis === "mutasi" && it.data.id_mutasi === g.id
           );
-          const nama = item ? siswaMap[item.data.id_siswa]?.nama_lengkap ?? "Siswa" : g.id;
+          const nama = item && item.jenis !== "surat_dinas" ? siswaMap[item.data.id_siswa]?.nama_lengkap ?? "Siswa" : g.id;
           return { id: g.id, name: nama, reason: g.alasan };
         });
 
@@ -223,13 +238,13 @@ export default function PersetujuanPage() {
           failures: failureDetails,
         });
       } else {
-        setInfo(`Batch penolakan berhasil: ${res.rejected_pindah} pindah rombel & ${res.rejected_mutasi} mutasi ditolak.`);
+        setInfo(`Batch penolakan berhasil: ${res.rejected_pindah} pindah rombel & ${res.rejected_mutasi} ditolak.`);
       }
 
       setSelectedKeys(new Set());
       bump();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal memproses batch reject");
+      setError(e instanceof Error ? e.message : "Gagal memproses batch rejection");
     } finally {
       setIsBatchProcessing(false);
     }
@@ -290,6 +305,19 @@ export default function PersetujuanPage() {
             <Shield size={13} />
             <span>Mutasi Masuk / Keluar</span>
             <span className="rounded-full bg-black/15 px-1.5 py-0.2 text-[10px]">{mutasiCount}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("surat_dinas")}
+            className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
+              activeTab === "surat_dinas"
+                ? "bg-primary text-white shadow-sm"
+                : "border border-border bg-surface text-ink hover:bg-paper"
+            }`}
+          >
+            <FileText size={13} />
+            <span>Surat Dinas</span>
+            <span className="rounded-full bg-black/15 px-1.5 py-0.2 text-[10px]">{suratCount}</span>
           </button>
         </div>
 
@@ -410,12 +438,17 @@ export default function PersetujuanPage() {
           ) : null}
 
           {filteredItems.map((item) => {
-            const key = item.jenis === "mutasi" ? item.data.id_mutasi : item.data.id_anggota;
+            const key =
+              item.jenis === "mutasi"
+                ? item.data.id_mutasi
+                : item.jenis === "pindah_rombel"
+                ? item.data.id_anggota
+                : item.data.id_surat;
             const isSelected = selectedKeys.has(key);
-            const idSiswa = item.data.id_siswa;
-            const s = siswaMap[idSiswa];
 
             if (item.jenis === "pindah_rombel") {
+              const idSiswa = item.data.id_siswa;
+              const s = siswaMap[idSiswa];
               const rTujuan = rombelMap[item.data.id_rombel];
               const rAsalId = anggotaAktif.find((a) => a.id_siswa === idSiswa && a.tanggal_selesai === null)?.id_rombel;
               const rAsal = rAsalId ? rombelMap[rAsalId] : null;
@@ -565,95 +598,228 @@ export default function PersetujuanPage() {
                   </SurfaceCard>
                 </StatusStrip>
               );
-            }
+            } else if (item.jenis === "mutasi") {
+              const idSiswa = item.data.id_siswa;
+              const s = siswaMap[idSiswa];
 
-            // Case: Mutasi Masuk / Keluar
-            return (
-              <StatusStrip key={key} tone="amber" className={`rounded-lg shadow-sm transition-all ${isSelected ? "ring-2 ring-primary bg-primary-soft/10" : ""}`}>
-                <SurfaceCard className="border-0 shadow-none p-4">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex items-start gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleItemSelect(key)}
-                        className="mt-1 text-muted hover:text-primary transition-colors"
-                      >
-                        {isSelected ? (
-                          <CheckSquare size={18} className="text-primary" />
-                        ) : (
-                          <Square size={18} className="text-muted" />
-                        )}
-                      </button>
+              return (
+                <StatusStrip key={key} tone="amber" className={`rounded-lg shadow-sm transition-all ${isSelected ? "ring-2 ring-primary bg-primary-soft/10" : ""}`}>
+                  <SurfaceCard className="border-0 shadow-none p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex items-start gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleItemSelect(key)}
+                          className="mt-1 text-muted hover:text-primary transition-colors"
+                        >
+                          {isSelected ? (
+                            <CheckSquare size={18} className="text-primary" />
+                          ) : (
+                            <Square size={18} className="text-muted" />
+                          )}
+                        </button>
 
-                      <div className="space-y-2 max-w-xl">
-                        <div className="flex items-center gap-2">
-                          <span className="rounded bg-primary-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                            Mutasi {item.data.jenis_mutasi}
-                          </span>
-                          <StatusBadge status={item.data.status_persetujuan} />
-                          <span className="text-[10px] text-muted">
-                            No. Pengajuan: <span className="font-mono">{item.data.no_surat_mutasi || "-"}</span>
-                          </span>
-                        </div>
-
-                        <div>
-                          <h3 className="text-sm font-bold text-ink flex items-center gap-2">
-                            <User size={15} className="text-primary" />
-                            {s?.nama_lengkap ?? idSiswa}
-                            <span className="font-mono text-xs font-normal text-muted">
-                              (NISN: {s?.nisn ?? "-"})
+                        <div className="space-y-2 max-w-xl">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded bg-primary-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                              Mutasi {item.data.jenis_mutasi}
                             </span>
-                          </h3>
-                        </div>
-
-                        <div className="rounded-md bg-paper p-2.5 text-xs space-y-1">
-                          <p className="font-semibold text-gray-800">
-                            {item.data.jenis_mutasi === "Keluar"
-                              ? `Sekolah Tujuan: ${item.data.sekolah_tujuan ?? "-"}`
-                              : `Sekolah Asal: ${item.data.sekolah_asal ?? "-"}`}
-                          </p>
-                          <p className="text-muted">
-                            Alasan: <span className="text-ink font-medium">{item.data.alasan}</span>
-                          </p>
-                        </div>
-
-                        {/* Attached Files Chips */}
-                        {item.data.berkas_pendukung && item.data.berkas_pendukung.length > 0 && (
-                          <div className="flex items-center gap-2 pt-1">
-                            <span className="text-[11px] text-muted flex items-center gap-1">
-                              <Paperclip size={12} />
-                              <span>Berkas:</span>
+                            <StatusBadge status={item.data.status_persetujuan} />
+                            <span className="text-[10px] text-muted">
+                              No. Pengajuan: <span className="font-mono">{item.data.no_surat_mutasi || "-"}</span>
                             </span>
-                            <div className="flex flex-wrap gap-1">
-                              {item.data.berkas_pendukung.map((b) => (
-                                <span
-                                  key={b.id_berkas}
-                                  className="inline-flex items-center gap-1 rounded bg-surface-muted px-2 py-0.5 text-[10px] font-mono text-ink border border-border"
-                                >
-                                  <span>{b.nama_file}</span>
-                                  <span className="text-muted">({b.ukuran_kb} KB)</span>
-                                </span>
-                              ))}
-                            </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Actions for Mutasi */}
-                    <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
-                      <div className="flex gap-2">
-                        {item.data.jenis_mutasi === "Keluar" ? (
-                          <PrimaryButton
+                          <div>
+                            <h3 className="text-sm font-bold text-ink flex items-center gap-2">
+                              <User size={15} className="text-primary" />
+                              {s?.nama_lengkap ?? idSiswa}
+                              <span className="font-mono text-xs font-normal text-muted">
+                                (NISN: {s?.nisn ?? "-"})
+                              </span>
+                            </h3>
+                          </div>
+
+                          <div className="rounded-md bg-paper p-2.5 text-xs space-y-1">
+                            <p className="font-semibold text-gray-800">
+                              {item.data.jenis_mutasi === "Keluar"
+                                ? `Sekolah Tujuan: ${item.data.sekolah_tujuan ?? "-"}`
+                                : `Sekolah Asal: ${item.data.sekolah_asal ?? "-"}`}
+                            </p>
+                            <p className="text-muted">
+                              Alasan: <span className="text-ink font-medium">{item.data.alasan}</span>
+                            </p>
+                          </div>
+
+                          {/* Attached Files Chips */}
+                          {item.data.berkas_pendukung && item.data.berkas_pendukung.length > 0 && (
+                            <div className="flex items-center gap-2 pt-1">
+                              <span className="text-[11px] text-muted flex items-center gap-1">
+                                <Paperclip size={12} />
+                                <span>Berkas:</span>
+                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {item.data.berkas_pendukung.map((b) => (
+                                  <span
+                                    key={b.id_berkas}
+                                    className="inline-flex items-center gap-1 rounded bg-surface-muted px-2 py-0.5 text-[10px] font-mono text-ink border border-border"
+                                  >
+                                    <span>{b.nama_file}</span>
+                                    <span className="text-muted">({b.ukuran_kb} KB)</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions for Mutasi */}
+                      <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
+                        <div className="flex gap-2">
+                          {item.data.jenis_mutasi === "Keluar" ? (
+                            <PrimaryButton
+                              type="button"
+                              disabled={busy === key}
+                              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-hover shadow-sm"
+                              onClick={() => setApprovalDrawerOpen(item.data)}
+                            >
+                              <Eye size={15} />
+                              <span>Tinjau & Sahkan SKP (e-Sign)</span>
+                            </PrimaryButton>
+                          ) : (
+                            <PrimaryButton
+                              type="button"
+                              disabled={busy === key}
+                              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold"
+                              onClick={async () => {
+                                setBusy(key);
+                                setInfo(null);
+                                try {
+                                  await services.persetujuan.approveMutasi(item.data.id_mutasi, currentUser.id_pegawai);
+                                  setInfo(`Mutasi masuk untuk ${s?.nama_lengkap ?? "siswa"} berhasil disetujui.`);
+                                  bump();
+                                } catch (e) {
+                                  setError(e instanceof Error ? e.message : "Gagal menyetujui");
+                                } finally {
+                                  setBusy(null);
+                                }
+                              }}
+                            >
+                              <CheckCircle2 size={15} />
+                              <span>{busy === key ? "Memproses..." : "Setujui Mutasi Masuk"}</span>
+                            </PrimaryButton>
+                          )}
+
+                          <SecondaryButton
                             type="button"
                             disabled={busy === key}
-                            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-primary hover:bg-primary-hover shadow-sm"
-                            onClick={() => setApprovalDrawerOpen(item.data)}
+                            className="flex items-center gap-1.5 border-danger/30 text-danger hover:bg-danger-soft px-3 py-2 text-xs font-bold"
+                            onClick={async () => {
+                              const reason = prompt(`Alasan penolakan mutasi untuk ${s?.nama_lengkap ?? "siswa"}:`);
+                              if (reason === null) return;
+                              setBusy(key);
+                              setInfo(null);
+                              try {
+                                await services.persetujuan.rejectMutasi(
+                                  item.data.id_mutasi,
+                                  currentUser.id_pegawai,
+                                  reason || "Ditolak oleh Kepala Madrasah"
+                                );
+                                setInfo(`Pengajuan mutasi ditolak.`);
+                                bump();
+                              } catch (e) {
+                                setError(e instanceof Error ? e.message : "Gagal menolak");
+                              } finally {
+                                setBusy(null);
+                              }
+                            }}
                           >
-                            <Eye size={15} />
-                            <span>Tinjau & Sahkan SKP (e-Sign)</span>
-                          </PrimaryButton>
-                        ) : (
+                            <XCircle size={15} />
+                            <span>Tolak</span>
+                          </SecondaryButton>
+                        </div>
+
+                        <div className="flex items-center gap-3 mt-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTimelineTarget({
+                                recordId: item.data.id_mutasi,
+                                recordType: "riwayat_mutasi",
+                                title: `Timeline Mutasi: ${s?.nama_lengkap ?? idSiswa}`,
+                                metadata: {
+                                  nama_siswa: s?.nama_lengkap,
+                                  nisn: s?.nisn,
+                                  asal: item.data.sekolah_asal ?? undefined,
+                                  tujuan: item.data.sekolah_tujuan ?? undefined,
+                                  no_surat: item.data.no_surat_mutasi,
+                                  status_terkini: item.data.status_persetujuan,
+                                },
+                              })
+                            }
+                            className="text-[11px] font-semibold text-muted hover:text-primary flex items-center gap-1"
+                          >
+                            <Clock size={13} />
+                            <span>Timeline Audit</span>
+                          </button>
+
+                          <Link
+                            href="/kesiswaan/mutasi"
+                            className="text-[11px] font-semibold text-primary hover:underline"
+                          >
+                            Lihat di Mutasi ➜
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </SurfaceCard>
+                </StatusStrip>
+              );
+            } else {
+              // Case: Surat Dinas
+              return (
+                <StatusStrip key={key} tone="primary" className={`rounded-lg shadow-sm transition-all ${isSelected ? "ring-2 ring-primary bg-primary-soft/10" : ""}`}>
+                  <SurfaceCard className="border-0 shadow-none p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex items-start gap-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleItemSelect(key)}
+                          className="mt-1 text-muted hover:text-primary transition-colors"
+                        >
+                          {isSelected ? (
+                            <CheckSquare size={18} className="text-primary" />
+                          ) : (
+                            <Square size={18} className="text-muted" />
+                          )}
+                        </button>
+
+                        <div className="space-y-2 max-w-xl">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded bg-sky-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky">
+                              Surat Dinas - {item.data.jenis_surat}
+                            </span>
+                            <StatusBadge status={item.data.status} />
+                            <span className="text-[10px] text-muted">
+                              Diajukan: {item.data.tanggal_surat || "Hari ini"}
+                            </span>
+                          </div>
+
+                          <div>
+                            <h3 className="text-sm font-bold text-ink flex items-center gap-2">
+                              <FileText size={15} className="text-primary" />
+                              {item.data.perihal}
+                            </h3>
+                            <p className="text-xs text-muted mt-1">
+                              Tujuan: <span className="font-semibold text-ink">{item.data.tujuan_surat}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end">
+                        <div className="flex gap-2">
                           <PrimaryButton
                             type="button"
                             disabled={busy === key}
@@ -662,86 +828,48 @@ export default function PersetujuanPage() {
                               setBusy(key);
                               setInfo(null);
                               try {
-                                await services.persetujuan.approveMutasi(item.data.id_mutasi, currentUser.id_pegawai);
-                                setInfo(`Mutasi masuk untuk ${s?.nama_lengkap ?? "siswa"} berhasil disetujui.`);
+                                await services.persuratan.sign(item.data.id_surat, currentUser.id_pegawai);
+                                setInfo(`Surat "${item.data.perihal}" berhasil ditandatangani.`);
                                 bump();
                               } catch (e) {
-                                setError(e instanceof Error ? e.message : "Gagal menyetujui");
+                                setError(e instanceof Error ? e.message : "Gagal menandatangani");
                               } finally {
                                 setBusy(null);
                               }
                             }}
                           >
                             <CheckCircle2 size={15} />
-                            <span>{busy === key ? "Memproses..." : "Setujui Mutasi Masuk"}</span>
+                            <span>{busy === key ? "Memproses..." : "Tandatangani Surat"}</span>
                           </PrimaryButton>
-                        )}
 
-                        <SecondaryButton
-                          type="button"
-                          disabled={busy === key}
-                          className="flex items-center gap-1.5 border-danger/30 text-danger hover:bg-danger-soft px-3 py-2 text-xs font-bold"
-                          onClick={async () => {
-                            const reason = prompt(`Alasan penolakan mutasi untuk ${s?.nama_lengkap ?? "siswa"}:`);
-                            if (reason === null) return;
-                            setBusy(key);
-                            setInfo(null);
-                            try {
-                              await services.persetujuan.rejectMutasi(
-                                item.data.id_mutasi,
-                                currentUser.id_pegawai,
-                                reason || "Ditolak oleh Kepala Madrasah"
-                              );
-                              setInfo(`Pengajuan mutasi ditolak.`);
-                              bump();
-                            } catch (e) {
-                              setError(e instanceof Error ? e.message : "Gagal menolak");
-                            } finally {
-                              setBusy(null);
-                            }
-                          }}
-                        >
-                          <XCircle size={15} />
-                          <span>Tolak</span>
-                        </SecondaryButton>
-                      </div>
-
-                      <div className="flex items-center gap-3 mt-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setTimelineTarget({
-                              recordId: item.data.id_mutasi,
-                              recordType: "riwayat_mutasi",
-                              title: `Timeline Mutasi: ${s?.nama_lengkap ?? idSiswa}`,
-                              metadata: {
-                                nama_siswa: s?.nama_lengkap,
-                                nisn: s?.nisn,
-                                asal: item.data.sekolah_asal ?? undefined,
-                                tujuan: item.data.sekolah_tujuan ?? undefined,
-                                no_surat: item.data.no_surat_mutasi,
-                                status_terkini: item.data.status_persetujuan,
-                              },
-                            })
-                          }
-                          className="text-[11px] font-semibold text-muted hover:text-primary flex items-center gap-1"
-                        >
-                          <Clock size={13} />
-                          <span>Timeline Audit</span>
-                        </button>
-
-                        <Link
-                          href="/kesiswaan/mutasi"
-                          className="text-[11px] font-semibold text-primary hover:underline"
-                        >
-                          Lihat di Mutasi ➜
-                        </Link>
+                          <SecondaryButton
+                            type="button"
+                            disabled={busy === key}
+                            className="flex items-center gap-1.5 border-danger/30 text-danger hover:bg-danger-soft px-3 py-2 text-xs font-bold"
+                            onClick={async () => {
+                              setBusy(key);
+                              setInfo(null);
+                              try {
+                                await services.persuratan.reject(item.data.id_surat);
+                                setInfo(`Surat "${item.data.perihal}" ditolak.`);
+                                bump();
+                              } catch (e) {
+                                setError(e instanceof Error ? e.message : "Gagal menolak");
+                              } finally {
+                                setBusy(null);
+                              }
+                            }}
+                          >
+                            <XCircle size={15} />
+                            <span>Tolak</span>
+                          </SecondaryButton>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </SurfaceCard>
-              </StatusStrip>
-            );
+                  </SurfaceCard>
+                </StatusStrip>
+              );
+            }
           })}
         </div>
       ) : null}

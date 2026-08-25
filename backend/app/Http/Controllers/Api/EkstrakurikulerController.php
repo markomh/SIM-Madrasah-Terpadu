@@ -9,6 +9,8 @@ use App\Models\KeanggotaanEkstra;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 /**
  * EkstrakurikulerController
  *
@@ -18,6 +20,8 @@ use Illuminate\Http\Request;
  */
 class EkstrakurikulerController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function index(): JsonResponse
     {
         $data = Ekstrakurikuler::with(['pembina', 'tahunAjaran'])->get();
@@ -27,6 +31,11 @@ class EkstrakurikulerController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminMadrasah($user)) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat membuat ekstrakurikuler baru.');
+        }
+
         $request->validate([
             'nama_ekstra' => 'required|string|max:100',
             'id_pembina'  => 'nullable|exists:pegawai,id_pegawai',
@@ -52,6 +61,7 @@ class EkstrakurikulerController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
+        $this->authorizePembina($ekstra);
 
         $request->validate([
             'nama_ekstra' => 'sometimes|required|string|max:100',
@@ -82,6 +92,7 @@ class EkstrakurikulerController extends Controller
     public function storeAnggota(Request $request, string $id): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
+        $this->authorizePembina($ekstra);
 
         $request->validate([
             'id_siswa'      => 'required|exists:siswa,id_siswa',
@@ -110,6 +121,7 @@ class EkstrakurikulerController extends Controller
     public function destroyAnggota(string $id, string $idAnggota): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
+        $this->authorizePembina($ekstra);
 
         $keanggotaan = KeanggotaanEkstra::where('id_ekstra', $ekstra->id_ekstra)
             ->where('id_keanggotaan', $idAnggota)
@@ -139,6 +151,7 @@ class EkstrakurikulerController extends Controller
     public function storeAbsensi(Request $request, string $id): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
+        $this->authorizePembina($ekstra);
 
         $request->validate([
             'tanggal'              => 'required|date',
@@ -161,6 +174,20 @@ class EkstrakurikulerController extends Controller
         }
 
         return response()->json(['data' => $results], 201);
+    }
+
+    private function authorizePembina(Ekstrakurikuler $ekstra): void
+    {
+        $user = auth()->user();
+        if ($this->accessService->isAdminOrKamad($user)) {
+            return; // Admin/Kamad bisa kelola semua
+        }
+
+        if ($this->accessService->isPembinaEkstrakurikuler($user) && $ekstra->id_pembina === $user->id_pegawai) {
+            return; // Pembina hanya bisa kelola ekskulnya sendiri
+        }
+
+        abort(403, 'Akses ditolak: Anda hanya dapat mengelola ekstrakurikuler yang Anda bina.');
     }
 }
 

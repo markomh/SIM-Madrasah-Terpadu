@@ -1,0 +1,65 @@
+==============================================================================
+APPLICATION CONTRACT GRAPH — VALIDATION RUN
+==============================================================================
+Rows evaluated : 26
+  PASS          : 10
+  VIOLATION     : 9
+  CONTRACT GAP  : 7
+
+Mechanical findings from rule engine: 17
+------------------------------------------------------------------------------
+[CONTRACT GAP] R6       M05   /kesiswaan/kenaikan-kelas        list kenaikan-kelas data
+               Layout guard admits ['Guru BK', 'Wali Kelas'] who are never shown the menu entry -> reachable only via direct URL/deep-link; verify this is intentional.
+
+[VIOLATION   ] R2/R7    M05   /kesiswaan/kenaikan-kelas        list kenaikan-kelas data
+               Frontend restricts this action to ['Admin', 'Guru BK', 'Kamad', 'Operator', 'Wali Kelas'], but backend endpoint(s) 'GET /api/v1/kenaikan-kelas' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[CONTRACT GAP] R6       M06   /kesiswaan/kenaikan-kelas        process/execute kenaikan kelas
+               Layout guard admits ['Guru BK', 'Wali Kelas'] who are never shown the menu entry -> reachable only via direct URL/deep-link; verify this is intentional.
+
+[CONTRACT GAP] R6       M07   /kesiswaan/pindah-rombel         submit pindah-rombel request
+               Layout guard admits ['Guru BK', 'Wali Kelas'] who are never shown the menu entry -> reachable only via direct URL/deep-link; verify this is intentional.
+
+[VIOLATION   ] R2/R7    M07   /kesiswaan/pindah-rombel         submit pindah-rombel request
+               Frontend restricts this action to ['Admin', 'Guru BK', 'Kamad', 'Operator', 'Wali Kelas'], but backend endpoint(s) 'POST /api/v1/pindah-rombel' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[VIOLATION   ] R2/R7    M08   /persetujuan (intended UI path)  approve/reject pindah-rombel (DUPLICATE/SHADOW endpoint)
+               Frontend restricts this action to ['Kepala Madrasah'], but backend endpoint(s) 'POST /api/v1/pindah-rombel/{id}/setujui, /tolak, /massal' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[VIOLATION   ] R9       M08   /persetujuan (intended UI path)  approve/reject pindah-rombel (DUPLICATE/SHADOW endpoint)
+               Shadow/duplicate endpoint detected -- same state mutation reachable via two contracts with different enforcement. Closure broken: outcome depends on which path the actor (or an attacker) uses, not on their authorization.
+
+[CONTRACT GAP] R6       M09   /kesiswaan/mutasi                submit mutasi
+               Layout guard admits ['Guru BK', 'Wali Kelas'] who are never shown the menu entry -> reachable only via direct URL/deep-link; verify this is intentional.
+
+[VIOLATION   ] R1/R6    M11   /akademik/jadwal                 view/CRUD jadwal
+               Menu shows this destination to ['tugas_utama_Guru'] but the route's own layout guard does not admit them -> visible action leads to a dead end (redirect home) for those actors.
+
+[CONTRACT GAP] R6       M11   /akademik/jadwal                 view/CRUD jadwal
+               Layout guard admits ['Wali Kelas', 'is_pengajar_aktif'] who are never shown the menu entry -> reachable only via direct URL/deep-link; verify this is intentional.
+
+[VIOLATION   ] R2/R7    M11   /akademik/jadwal                 view/CRUD jadwal
+               Frontend restricts this action to ['Admin', 'Kamad', 'Wali Kelas', 'is_pengajar_aktif'], but backend endpoint(s) 'GET/POST/PUT/DELETE /api/v1/jadwal' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[VIOLATION   ] R2/R7    M12   /akademik/presensi-siswa         submit batch attendance
+               Frontend restricts this action to ['Admin', 'Kamad', 'Wali Kelas', 'is_pengajar_aktif'], but backend endpoint(s) 'POST /api/v1/absensi-siswa/batch' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[VIOLATION   ] R2/R7    M14   /kepegawaian/pegawai             CRUD pegawai (HR/NIK data)
+               Frontend restricts this action to ['Admin', 'Kamad'], but backend endpoint(s) 'GET/POST/PUT/DELETE /api/v1/pegawai' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[VIOLATION   ] R2/R7    M21   /persuratan (sub-feature)        create surat template
+               Frontend restricts this action to ['Admin', 'Kamad', 'Operator'], but backend endpoint(s) 'POST /api/v1/template-surat' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[VIOLATION   ] R2/R7    M22   /wawasan                         view AI insights
+               Frontend restricts this action to ['Admin', 'Kamad', 'Wali Kelas'], but backend endpoint(s) 'GET /api/v1/wawasan/*' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[VIOLATION   ] R2/R7    M23   /referensi                       CRUD tahun ajaran, mata pelajaran, tingkat, hari libur; activate tahun ajaran
+               Frontend restricts this action to ['Admin'], but backend endpoint(s) 'POST/PUT/DELETE /api/v1/referensi/*, incl. PATCH tahun-ajaran/{id}/aktifkan' enforce no role check at all -> reachable and exploitable by ANY authenticated tenant actor via direct API call.
+
+[CONTRACT GAP] R5/R8    M26   /portal-ortu                     view child data
+               No backend contract/destination exists for this visible action yet.
+
+==============================================================================
+CLOSURE PRINCIPLE: NOT YET SATISFIED
+  (9 VIOLATION rows, 7 CONTRACT GAP rows must reach 0 before every visible action can be proven to resolve to a valid, authorized, renderable, behaviorally correct destination for every actor/tenant/state.)
+==============================================================================

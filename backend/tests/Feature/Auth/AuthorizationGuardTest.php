@@ -132,4 +132,114 @@ class AuthorizationGuardTest extends TestCase
             ])
             ->assertForbidden();
     }
+
+    // ==========================================
+    // Tambahan Uji Negatif untuk 9 Controller Patch
+    // ==========================================
+
+    /** @test */
+    public function guru_biasa_dilarang_mengajukan_pindah_rombel(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->postJson('/api/v1/pindah-rombel', [
+                'id_siswa'         => 'dummy-id',
+                'id_rombel_tujuan' => 'dummy-id',
+            ])
+            ->assertForbidden(); // M08/M07 fix (store)
+    }
+
+    /** @test */
+    public function guru_biasa_dilarang_mengubah_referensi(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->postJson('/api/v1/referensi/tahun-ajaran', [
+                'nama_tahun' => '2026/2027',
+            ])
+            ->assertForbidden(); // M23 fix
+    }
+
+    /** @test */
+    public function guru_biasa_dilarang_melihat_list_pegawai(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->getJson('/api/v1/pegawai')
+            ->assertForbidden(); // M14 fix (index)
+    }
+
+    /** @test */
+    public function guru_biasa_dilarang_membuat_jadwal(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->postJson('/api/v1/jadwal', [
+                'id_rombel' => 'dummy',
+                'id_pegawai' => 'dummy',
+                'id_mapel' => 'dummy',
+                'semester' => 'Ganjil',
+                'hari' => 'Senin',
+                'jam_mulai' => '07:00',
+                'jam_selesai' => '08:00',
+            ])
+            ->assertForbidden(); // M11 fix
+    }
+
+    /** @test */
+    public function guru_biasa_dilarang_membuat_ekstrakurikuler(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->postJson('/api/v1/ekstrakurikuler', [
+                'nama_ekstra' => 'Pramuka',
+                'id_tahun' => 'dummy'
+            ])
+            ->assertForbidden(); // M17 fix
+    }
+
+    /** @test */
+    public function guru_biasa_dilarang_menginput_batch_absensi_bukan_sesinya(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->postJson('/api/v1/absensi-siswa/batch', [
+                'id_sesi'   => 'dummy-sesi-id',
+                'id_rombel' => 'dummy-rombel-id',
+                'tanggal'   => '2026-08-20',
+                'items'     => [],
+            ])
+            ->assertForbidden(); // M12 fix
+    }
+
+    /** @test */
+    public function guru_biasa_dilarang_membuat_template_surat(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->postJson('/api/v1/template-surat', [
+                'kode_template' => 'TPL-01',
+                'nama_template' => 'Template Baru',
+                'isi_template' => '<html></html>',
+                'jenis_surat' => 'Umum'
+            ])
+            ->assertForbidden(); // M21 fix
+    }
+
+    /** @test */
+    public function guru_biasa_dilarang_melihat_rekomendasi_jadwal_ai(): void
+    {
+        $guru = Pegawai::where('email', 'guru@mts-terpadu.sch.id')->firstOrFail();
+        
+        $this->actingAs($guru, 'sanctum')
+            ->getJson('/api/v1/wawasan/rekomendasi-jadwal')
+            ->assertForbidden(); // M22 fix
+    }
 }

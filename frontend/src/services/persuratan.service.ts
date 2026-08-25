@@ -5,6 +5,7 @@ export interface PersuratanService {
   create(data: Omit<Surat, "id_surat" | "status" | "id_penandatangan" | "tanggal_surat" | "meta_penandatangan">): Promise<Surat>;
   requestSign(id_surat: string, id_penandatangan: string): Promise<Surat>;
   sign(id_surat: string, id_penandatangan: string): Promise<Surat>;
+  reject(id_surat: string): Promise<Surat>;
   generateAiDraft(instruksi: string, dibuat_oleh: string): Promise<Surat>;
 
   /** Membangun draft Surat dari template + placeholder, TANPA menyimpan ke store.

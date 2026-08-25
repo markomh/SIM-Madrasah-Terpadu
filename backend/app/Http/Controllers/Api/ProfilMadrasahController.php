@@ -7,8 +7,12 @@ use App\Models\ProfilMadrasah;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 class ProfilMadrasahController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function show(): JsonResponse
     {
         $tenantId = app('currentTenant')?->id_madrasah;
@@ -19,6 +23,10 @@ class ProfilMadrasahController extends Controller
 
     public function update(Request $request): JsonResponse
     {
+        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang berhak mengubah profil madrasah.');
+        }
+
         $request->validate([
             'nama_madrasah' => 'required|string|max:150',
             'kode_instansi' => 'required|string|max:50',

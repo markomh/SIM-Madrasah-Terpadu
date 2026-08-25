@@ -49,6 +49,7 @@ import {
   SecondaryButton,
   StatusBadge,
   ConfirmDialog,
+  ActionButton,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import {
@@ -200,6 +201,7 @@ function PanelInputNilai({
   }, [jadwal]);
 
   const selectedJadwal = jadwalGroupMap.get(selectedJadwalKey) ?? null;
+  const isPengajarMatrix = selectedJadwal?.id_pegawai === currentUser.id_pegawai;
 
   // Load initial data
   useEffect(() => {
@@ -482,14 +484,16 @@ function PanelInputNilai({
                 Buka Presensi Sesi
               </Button>
 
-              <Button
+              <ActionButton
+                capability={isPengajarMatrix}
+                unauthorizedReason="Hanya Guru Pengajar yang berhak menambahkan aktivitas penilaian."
                 variant="secondary"
                 size="sm"
                 iconLeft={<Plus className="h-4 w-4" />}
                 onClick={() => setShowAddActivityModal(true)}
               >
                 Tambah Aktivitas
-              </Button>
+              </ActionButton>
 
               <Button
                 variant="secondary"
@@ -530,6 +534,15 @@ function PanelInputNilai({
 
       {!loadingDetail && selectedJadwal && (
         <>
+          {!isPengajarMatrix && (
+            <div className="mb-4 rounded-[6px] border border-amber/30 bg-amber-soft p-4 text-sm text-amber flex items-start gap-3">
+              <BookOpen className="shrink-0 mt-0.5" size={18} />
+              <div>
+                <p className="font-bold">Supervisory View (Read-Only)</p>
+                <p className="mt-1">Anda dapat memantau gradebook rombel ini, namun hak modifikasi data nilai hanya dimiliki oleh Guru Pengajar yang bersangkutan.</p>
+              </div>
+            </div>
+          )}
           {/* Summary Metric Cards */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs">
@@ -571,7 +584,9 @@ function PanelInputNilai({
               </div>
 
               <div className="flex items-center gap-2">
-                <PrimaryButton
+                <ActionButton
+                  capability={isPengajarMatrix}
+                  unauthorizedReason="Hanya Guru Pengajar yang berhak menyimpan nilai operasional."
                   type="button"
                   disabled={saving}
                   onClick={handleSaveAll}
@@ -579,7 +594,7 @@ function PanelInputNilai({
                 >
                   <CheckCircle2 size={14} />
                   <span>{saving ? "Menyimpan..." : "Simpan Semua Nilai"}</span>
-                </PrimaryButton>
+                </ActionButton>
               </div>
             </div>
 
@@ -632,8 +647,9 @@ function PanelInputNilai({
                                 max={100}
                                 step={1}
                                 placeholder="—"
-                                className="w-16 rounded border border-border bg-surface px-2 py-1 text-center font-bold text-ink text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                className={`w-16 rounded border border-border bg-surface px-2 py-1 text-center font-bold text-ink text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ${!isPengajarMatrix ? "bg-paper/80 cursor-not-allowed text-muted" : ""}`}
                                 value={currentVal !== null && currentVal !== undefined ? currentVal : ""}
+                                readOnly={!isPengajarMatrix}
                                 onChange={(e) => handleScoreChange(row.siswa.id_siswa, k.id_komponen, e.target.value)}
                               />
                             </td>

@@ -7,6 +7,8 @@ use App\Models\ProfilMadrasah;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 /**
  * PengaturanController
  *
@@ -14,6 +16,8 @@ use Illuminate\Http\Request;
  */
 class PengaturanController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function get(): JsonResponse
     {
         $tenantId = app('currentTenant')?->id_madrasah;
@@ -29,6 +33,10 @@ class PengaturanController extends Controller
 
     public function update(Request $request): JsonResponse
     {
+        if (! $this->accessService->isAdminMadrasah(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang berhak mengedit pengaturan.');
+        }
+
         $request->validate([
             'ambangToleransiTerlambatMenit' => 'sometimes|integer|min:0',
             'ambangFlagDigantikanMendadak' => 'sometimes|integer|min:0',
@@ -38,10 +46,10 @@ class PengaturanController extends Controller
         $profil = ProfilMadrasah::where('id_madrasah', $tenantId)->first();
 
         if ($profil) {
-            $profil->update($request->only([
-                'ambang_toleransi_terlambat_menit',
-                'ambang_flag_digantikan_mendadak',
-            ]));
+            $profil->update([
+                'ambang_toleransi_terlambat_menit' => $request->input('ambangToleransiTerlambatMenit', $profil->ambang_toleransi_terlambat_menit),
+                'ambang_flag_digantikan_mendadak' => $request->input('ambangFlagDigantikanMendadak', $profil->ambang_flag_digantikan_mendadak),
+            ]);
         }
 
         $pengaturan = [

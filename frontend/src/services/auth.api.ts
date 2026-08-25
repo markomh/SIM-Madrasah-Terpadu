@@ -5,13 +5,19 @@ export const authApi = {
   login: async (email: string, password: string) => {
     const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
     if (USE_MOCK) {
+      let mockUserId = "pg_kepala";
+      if (email.includes("admin")) mockUserId = "pg_admin";
+      else if (email.includes("bk")) mockUserId = "pg_bk";
+      else if (email.includes("guru")) mockUserId = "pg_guru_1";
+      else if (email.includes("walikelas")) mockUserId = "pg_walikelas";
+
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("sim-madrasah-userid", "pg_kepala");
+        window.localStorage.setItem("sim-madrasah-userid", mockUserId);
       }
       return {
-        id_pegawai: "pg_kepala",
-        nama_lengkap_gelar: "Drs. H. Ahmad Dahlan, M.Pd.",
-        tugas_utama: "Guru",
+        id_pegawai: mockUserId,
+        nama_lengkap_gelar: "Mock User",
+        tugas_utama: mockUserId === "pg_admin" ? "Tendik" : "Guru",
       };
     }
 
@@ -42,21 +48,32 @@ export const authApi = {
     const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
     if (USE_MOCK) {
       const activeId = (typeof window !== "undefined" && window.localStorage.getItem("sim-madrasah-userid")) || "pg_kepala";
-      const isAdmin = activeId === "pg_admin";
+      
+      const isKepalaMadrasah = activeId === "pg_kepala";
+      const isAdminMadrasah = activeId === "pg_admin";
+      const isOperatorKesiswaan = false;
+      const isGuruBk = activeId === "pg_bk";
+      const isWaliKelas = activeId === "pg_walikelas";
+      const isPembinaEkstrakurikuler = false;
+      const isPengajarAktif = activeId === "pg_guru_1" || activeId === "pg_walikelas";
+
+      const tugasUtama = isAdminMadrasah ? "Tendik" : "Guru";
+      const jenisJabatan = isKepalaMadrasah ? "Kepala Madrasah" : (isAdminMadrasah ? "Admin Madrasah" : (isGuruBk ? "Guru BK" : "Guru"));
+
       return {
-        id_pegawai: isAdmin ? "pg_admin" : "pg_kepala",
+        id_pegawai: activeId,
         id_madrasah: "md_1",
         nama_madrasah: "MTs Terpadu Nusantara",
-        nama_lengkap_gelar: isAdmin ? "Rizky Pratama, S.Kom." : "Drs. H. Ahmad Dahlan, M.Pd.",
-        nip: isAdmin ? "199002022015011002" : "197501012000031001",
+        nama_lengkap_gelar: "Mock " + activeId,
+        nip: "199002022015011002",
         npk: null,
-        tugas_utama: isAdmin ? "Tendik" : "Guru",
+        tugas_utama: tugasUtama,
         status_kepegawaian: "PNS",
         penugasan_aktif: [
           {
-            id_penugasan: isAdmin ? "pj_2" : "pj_1",
-            id_pegawai: isAdmin ? "pg_admin" : "pg_kepala",
-            jenis_jabatan: isAdmin ? "Admin Madrasah" : "Kepala Madrasah",
+            id_penugasan: "pj_1",
+            id_pegawai: activeId,
+            jenis_jabatan: jenisJabatan,
             id_tahun: "ta_2627",
             tanggal_mulai: "2026-07-01",
             tanggal_selesai: null,
@@ -64,13 +81,13 @@ export const authApi = {
           },
         ],
         capabilities: {
-          isKepalaMadrasah: !isAdmin,
-          isAdminMadrasah: isAdmin,
-          isOperatorKesiswaan: false,
-          isGuruBk: false,
-          isWaliKelas: false,
-          isPembinaEkstrakurikuler: false,
-          isPengajarAktif: false,
+          isKepalaMadrasah,
+          isAdminMadrasah,
+          isOperatorKesiswaan,
+          isGuruBk,
+          isWaliKelas,
+          isPembinaEkstrakurikuler,
+          isPengajarAktif,
         },
       };
     }

@@ -18,6 +18,8 @@ import {
   PrimaryButton,
   SecondaryButton,
   StatusBadge,
+  Badge,
+  statusToTone,
   StatusStrip,
   SurfaceCard,
   inputClass,
@@ -287,7 +289,11 @@ export default function PindahRombelPage() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
-                      <StatusBadge status={p.status_persetujuan} />
+                      <Badge variant={statusToTone(p.status_persetujuan)}>
+                        {p.status_persetujuan === "Menunggu Persetujuan" 
+                          ? "Menunggu Persetujuan Kepala Madrasah" 
+                          : p.status_persetujuan}
+                      </Badge>
                       <button
                         type="button"
                         onClick={() =>

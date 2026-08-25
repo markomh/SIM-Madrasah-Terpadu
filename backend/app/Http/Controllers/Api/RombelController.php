@@ -8,6 +8,8 @@ use App\Models\Rombel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 /**
  * RombelController
  *
@@ -17,6 +19,8 @@ use Illuminate\Http\Request;
  */
 class RombelController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function index(Request $request): JsonResponse
     {
         $query = Rombel::with(['tingkat', 'waliKelas', 'tahunAjaran'])
@@ -42,6 +46,10 @@ class RombelController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if (! $this->accessService->isAdminMadrasah(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola rombel.');
+        }
+
         $request->validate([
             'nama_rombel'   => 'required|string|max:50',
             'id_tingkat'    => 'required|exists:tingkat_pendidikan,id_tingkat',
@@ -70,6 +78,10 @@ class RombelController extends Controller
 
     public function update(Request $request, string $id): JsonResponse
     {
+        if (! $this->accessService->isAdminMadrasah(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola rombel.');
+        }
+
         $rombel = Rombel::findOrFail($id);
 
         $request->validate([

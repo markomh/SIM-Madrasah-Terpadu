@@ -67,7 +67,7 @@ class BkController extends Controller
     public function storeCatatan(Request $request): JsonResponse
     {
         if (! $this->accessService->isGuruBk(auth()->user())) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Guru BK yang berhak mencatat bimbingan konseling.'], 403);
+            abort(403, 'Akses ditolak: Hanya Guru BK yang berhak mencatat bimbingan konseling.');
         }
 
         $validated = $request->validate([
@@ -136,10 +136,8 @@ class BkController extends Controller
         $user = auth()->user();
 
         // Hanya Guru BK pembuat yang berhak mengubah
-        if ($catatan->id_pegawai_bk !== $user->id_pegawai) {
-            return response()->json([
-                'message' => 'Akses ditolak: Hanya Guru BK yang membuat catatan ini yang berhak mengubahnya.',
-            ], 403);
+        if (! $this->accessService->isGuruBk($user) || $catatan->id_pegawai_bk !== $user->id_pegawai) {
+            abort(403, 'Akses ditolak: Hanya Guru BK yang membuat catatan ini yang berhak mengubahnya.');
         }
 
         $validated = $request->validate([

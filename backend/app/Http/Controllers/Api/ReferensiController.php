@@ -9,6 +9,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+use App\Services\PegawaiAccessService;
+
 /**
  * ReferensiController
  *
@@ -21,6 +23,8 @@ use Illuminate\Support\Facades\DB;
  */
 class ReferensiController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     // ============================================================
     // Tahun Ajaran
     // ============================================================
@@ -35,6 +39,10 @@ class ReferensiController extends Controller
 
     public function storeTahunAjaran(Request $request): JsonResponse
     {
+        if (! $this->accessService->canManageReferensi(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola referensi.');
+        }
+
         $request->validate([
             'nama_tahun' => 'required|string|max:20',
         ]);
@@ -49,6 +57,10 @@ class ReferensiController extends Controller
 
     public function aktifkanTahunAjaran(string $id): JsonResponse
     {
+        if (! $this->accessService->canManageReferensi(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola referensi.');
+        }
+
         return DB::transaction(function () use ($id) {
             $currentTenantId = app('currentTenant')?->id_madrasah;
 
@@ -77,6 +89,10 @@ class ReferensiController extends Controller
 
     public function storeMataPelajaran(Request $request): JsonResponse
     {
+        if (! $this->accessService->canManageReferensi(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola referensi.');
+        }
+
         $tenantId = app('currentTenant')?->id_madrasah;
 
         $request->validate([
@@ -96,6 +112,10 @@ class ReferensiController extends Controller
 
     public function updateMataPelajaran(Request $request, string $id): JsonResponse
     {
+        if (! $this->accessService->canManageReferensi(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola referensi.');
+        }
+
         $tenantId = app('currentTenant')?->id_madrasah;
         $mapel = MataPelajaran::findOrFail($id);
 
@@ -112,6 +132,10 @@ class ReferensiController extends Controller
 
     public function destroyMataPelajaran(string $id): JsonResponse
     {
+        if (! $this->accessService->canManageReferensi(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola referensi.');
+        }
+
         $mapel = MataPelajaran::findOrFail($id);
         $mapel->delete();
 
@@ -137,6 +161,10 @@ class ReferensiController extends Controller
 
     public function storeTingkat(Request $request): JsonResponse
     {
+        if (! $this->accessService->canManageReferensi(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola referensi.');
+        }
+
         $request->validate([
             'nama_tingkat' => 'required|string|max:50',
             'urutan'       => 'required|integer',
@@ -162,6 +190,10 @@ class ReferensiController extends Controller
 
     public function storeHariLibur(Request $request): JsonResponse
     {
+        if (! $this->accessService->canManageReferensi(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah yang dapat mengelola referensi.');
+        }
+
         $request->validate([
             'tanggal'    => 'required|date',
             'keterangan' => 'required|string|max:255',

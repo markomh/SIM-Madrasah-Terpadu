@@ -128,9 +128,6 @@ Route::prefix('v1')->group(function () {
         Route::prefix('pindah-rombel')->controller(\App\Http\Controllers\Api\PindahRombelController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
-            Route::post('massal', 'massal');
-            Route::post('{id}/setujui', 'setujui');
-            Route::post('{id}/tolak', 'tolak');
         });
 
 
@@ -138,8 +135,6 @@ Route::prefix('v1')->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
             Route::get('{id}', 'show');
-            Route::post('{id}/setujui', 'setujui');
-            Route::post('{id}/tolak', 'tolak');
         });
 
         // ============================================================
@@ -236,7 +231,9 @@ Route::prefix('v1')->group(function () {
         Route::prefix('template-surat')->controller(\App\Http\Controllers\Api\TemplateSuratController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::get('{id}', 'show');
             Route::put('{id}', 'update');
+            Route::delete('{id}', 'destroy');
         });
 
         // ============================================================

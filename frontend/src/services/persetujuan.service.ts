@@ -2,7 +2,8 @@ import type { AnggotaRombel, RiwayatMutasi, Surat } from "@/types";
 
 export type PersetujuanItem =
   | { jenis: "pindah_rombel"; data: AnggotaRombel }
-  | { jenis: "mutasi"; data: RiwayatMutasi };
+  | { jenis: "mutasi"; data: RiwayatMutasi }
+  | { jenis: "surat_dinas"; data: Surat };
 
 export type BatchGagalDetail = {
   id: string;

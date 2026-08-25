@@ -103,6 +103,24 @@ export const persuratanMock: PersuratanService = {
     return updated;
   },
 
+  async reject(id_surat) {
+    await simulateLatency();
+    maybeThrowSimulatedError();
+
+    let updated: Surat | null = null;
+    mutateStore((store) => {
+      const idx = store.surat.findIndex((s) => s.id_surat === id_surat);
+      if (idx < 0) throw new Error("Surat tidak ditemukan");
+      store.surat[idx] = {
+        ...store.surat[idx],
+        status: "Ditolak",
+      };
+      updated = store.surat[idx];
+    });
+    if (!updated) throw new Error("Surat tidak ditemukan");
+    return updated;
+  },
+
   async generateAiDraft(instruksi, dibuat_oleh) {
     await simulateLatency();
     maybeThrowSimulatedError();

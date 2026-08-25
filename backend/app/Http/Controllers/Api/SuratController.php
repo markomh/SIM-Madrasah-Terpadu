@@ -35,6 +35,11 @@ class SuratController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user) && ! $this->accessService->isOperatorKesiswaan($user)) {
+            abort(403, 'Akses ditolak: Hanya Admin, Operator, atau Kepala Madrasah yang berhak membuat surat.');
+        }
+
         $request->validate([
             'id_template'        => 'nullable|exists:template_surat,id_template',
             'perihal'            => 'required|string|max:200',
@@ -70,10 +75,10 @@ class SuratController extends Controller
 
         $surat = Surat::findOrFail($id);
 
-        // Security role check: Only Admin or Operator can request signature
+        // Security role check: Admin, Kamad, Operator, or letter creator can request signature
         $currentUser = auth()->user();
-        if (! $this->accessService->isAdminMadrasah($currentUser) && ! $this->accessService->isOperatorKesiswaan($currentUser)) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Admin atau Operator yang berhak mengajukan tanda tangan.'], 403);
+        if (! $this->accessService->isAdminOrKamad($currentUser) && ! $this->accessService->isOperatorKesiswaan($currentUser) && $surat->dibuat_oleh !== $currentUser->id_pegawai) {
+            abort(403, 'Akses ditolak: Anda tidak berhak mengajukan tanda tangan surat ini.');
         }
 
         // Tenant boundary check: Pegawai has BelongsToTenant.
@@ -103,14 +108,13 @@ class SuratController extends Controller
         $surat = Surat::findOrFail($id);
         $user = auth()->user();
 
-        // Enforce that only Kepala Madrasah can sign
-        if (! $this->accessService->isKepalaMadrasah($user)) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menandatangani surat.'], 403);
+        // Enforce that only designated penandatangan or Kepala Madrasah can sign
+        if (! $this->accessService->isKepalaMadrasah($user) && $surat->id_penandatangan !== $user->id_pegawai) {
+            abort(403, 'Akses ditolak: Hanya Kepala Madrasah atau penandatangan yang dituju yang berhak menandatangani surat.');
         }
 
-        // Guard: Only the designated signer can sign
-        if ($surat->id_penandatangan !== $user->id_pegawai) {
-            return response()->json(['message' => 'Akses ditolak: Anda bukan penandatangan yang dituju untuk surat ini.'], 403);
+        if ($surat->id_penandatangan && $surat->id_penandatangan !== $user->id_pegawai) {
+            abort(403, 'Akses ditolak: Anda bukan penandatangan yang dituju untuk surat ini.');
         }
 
         $suratDitandaTangani = $this->persuratanService->tandatangani($surat, $user->id_pegawai);
@@ -122,19 +126,64 @@ class SuratController extends Controller
     {
         $surat = Surat::findOrFail($id);
         $user = auth()->user();
-        
-        // Enforce that only Kepala Madrasah can reject TTD requests
-        if (! $this->accessService->isKepalaMadrasah($user)) {
-            return response()->json(['message' => 'Akses ditolak: Hanya Kepala Madrasah yang berhak menolak tanda tangan surat.'], 403);
+
+        // Enforce that only designated penandatangan or Kepala Madrasah can reject
+        if (! $this->accessService->isKepalaMadrasah($user) && $surat->id_penandatangan !== $user->id_pegawai) {
+            abort(403, 'Akses ditolak: Hanya Kepala Madrasah atau penandatangan yang dituju yang berhak menolak tanda tangan surat.');
         }
 
-        // Guard: Only the designated signer can reject
-        if ($surat->id_penandatangan !== $user->id_pegawai) {
-            return response()->json(['message' => 'Akses ditolak: Anda bukan penandatangan yang dituju untuk surat ini.'], 403);
+        if ($surat->id_penandatangan && $surat->id_penandatangan !== $user->id_pegawai) {
+            abort(403, 'Akses ditolak: Anda bukan penandatangan yang dituju untuk surat ini.');
         }
 
         $surat->update(['status' => 'Ditolak']);
 
         return response()->json(['data' => $surat]);
+    }
+
+    public function downloadPdf(string $id)
+    {
+        $surat = Surat::with(['template', 'dibuatOleh'])->findOrFail($id);
+        
+        // Simulasikan pembuatan PDF dengan mengembalikan view HTML sederhana
+        // Dalam implementasi nyata, ini akan menggunakan DomPDF atau snappy (e.g. PDF::loadView(...)->download(...))
+        $html = '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>'.$surat->nomor_surat.'</title>
+    <style>
+        body { font-family: "Times New Roman", Times, serif; padding: 40px; line-height: 1.6; }
+        .header { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; }
+        .content { margin-top: 20px; text-align: justify; }
+        .signature { margin-top: 50px; float: right; width: 300px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>MADRASAH TSANAWIYAH TERPADU NUSANTARA</h2>
+        <p>Jl. Pendidikan Islam No. 45, Jawa Barat</p>
+    </div>
+    <h3 style="text-align: center; text-decoration: underline;">'.$surat->jenis_surat.'</h3>
+    <p style="text-align: center;">Nomor: '.$surat->nomor_surat.'</p>
+    
+    <div class="content">
+        <p><strong>Perihal:</strong> '.$surat->perihal.'</p>
+        <div>
+            '.nl2br($surat->isi_surat).'
+        </div>
+    </div>
+    
+    <div class="signature">
+        <p>Kepala Madrasah,</p>
+        <br><br><br>
+        <p><strong>(Telah Ditandatangani Secara Elektronik)</strong></p>
+    </div>
+</body>
+</html>';
+
+        return response($html)
+            ->header('Content-Type', 'text/html') // using html for demo, normally application/pdf
+            ->header('Content-Disposition', 'attachment; filename="Surat_'.$surat->nomor_surat.'.html"');
     }
 }

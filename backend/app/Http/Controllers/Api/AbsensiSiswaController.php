@@ -7,8 +7,12 @@ use App\Models\AbsensiSiswa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 class AbsensiSiswaController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function index(Request $request): JsonResponse
     {
         $query = AbsensiSiswa::with('siswa');
@@ -36,6 +40,27 @@ class AbsensiSiswaController extends Controller
 
     public function storeBatch(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user)) {
+            $idSesi = $request->input('id_sesi');
+            if (! $idSesi) {
+                abort(403, 'Akses ditolak: ID sesi diperlukan.');
+            }
+
+            $sesi = \App\Models\SesiTatapMuka::with('jadwal')->find($idSesi);
+            if (! $sesi) {
+                abort(403, 'Akses ditolak: Sesi tidak ditemukan.');
+            }
+
+            $jadwal = $sesi->jadwal;
+            $isWali = $user->rombelSebagaiWaliKelas()->where('id_rombel', $jadwal->id_rombel)->exists();
+            $isPengajar = $this->accessService->isPengajar($user, $jadwal->id_rombel, $jadwal->id_mapel, $jadwal->semester);
+
+            if (! $isWali && ! $isPengajar) {
+                abort(403, 'Akses ditolak: Anda bukan pengajar atau wali kelas untuk sesi ini.');
+            }
+        }
+
         $request->validate([
             'id_sesi'   => 'required|exists:sesi_tatap_muka,id_sesi',
             'id_rombel' => 'required|exists:rombel,id_rombel',

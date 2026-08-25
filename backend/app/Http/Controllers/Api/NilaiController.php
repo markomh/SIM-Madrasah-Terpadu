@@ -87,9 +87,7 @@ class NilaiController extends Controller
             ->exists();
 
         if (! $isPengajar) {
-            return response()->json([
-                'message' => 'Akses ditolak: Anda tidak terdaftar sebagai pengajar mapel ini di rombel dan semester terkait.',
-            ], 403);
+            abort(403, 'Akses ditolak: Anda tidak terdaftar sebagai pengajar mapel ini di rombel dan semester terkait.');
         }
 
         $nilai = NilaiSiswa::updateOrCreate(
@@ -120,11 +118,9 @@ class NilaiController extends Controller
         $nilai = NilaiSiswa::findOrFail($id);
         $user  = auth()->user();
 
-        // Hanya penilai asli yang berhak mengubah nilainya
-        if ($nilai->id_pegawai_penilai !== $user->id_pegawai) {
-            return response()->json([
-                'message' => 'Akses ditolak: Hanya guru penilai asal yang berhak mengubah nilai ini.',
-            ], 403);
+        // Hanya penilai asli atau Admin yang berhak mengubah nilainya
+        if ($nilai->id_pegawai_penilai !== $user->id_pegawai && ! $this->accessService->isAdminMadrasah($user)) {
+            abort(403, 'Akses ditolak: Hanya guru penilai asal yang berhak mengubah nilai ini.');
         }
 
         $validated = $request->validate([

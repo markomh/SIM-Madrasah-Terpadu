@@ -27,6 +27,14 @@ class JadwalCollisionTest extends TestCase
             'status_aktif' => true,
         ]);
 
+        \App\Models\PenugasanJabatan::create([
+            'id_pegawai' => $pegawai->id_pegawai,
+            'jenis_jabatan' => 'Kepala Madrasah',
+            'status' => 'Aktif',
+            'tanggal_mulai' => now(),
+            'id_tahun' => $tahun->id_tahun,
+        ]);
+
         $tingkat = TingkatPendidikan::create([
             'nama_tingkat' => 'Kelas 10',
             'urutan'       => 1,

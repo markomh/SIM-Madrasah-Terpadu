@@ -9,9 +9,14 @@ use App\Services\SesiTatapMukaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+use App\Services\PegawaiAccessService;
+
 class SesiTatapMukaController extends Controller
 {
-    public function __construct(private SesiTatapMukaService $sesiService) {}
+    public function __construct(
+        private SesiTatapMukaService $sesiService,
+        private PegawaiAccessService $accessService
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -42,6 +47,11 @@ class SesiTatapMukaController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $user = auth()->user();
+        if (! $this->accessService->isPengajarAktif($user) && ! $this->accessService->isAdminMadrasah($user) && $user?->tugas_utama !== 'Guru') {
+            abort(403, 'Akses ditolak: Hanya Pengajar, Guru, atau Admin Madrasah yang dapat mencatat sesi tatap muka.');
+        }
+
         $request->validate([
             'id_jadwal'             => 'required|exists:jadwal_pelajaran,id_jadwal',
             'tanggal'               => 'required|date',

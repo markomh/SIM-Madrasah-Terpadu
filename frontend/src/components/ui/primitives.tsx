@@ -24,6 +24,7 @@ export * from "./avatar";
 export * from "./tooltip";
 export * from "./pagination";
 export * from "./permission-guard";
+export * from "./action-button";
 
 export type StripTone = Tone;
 

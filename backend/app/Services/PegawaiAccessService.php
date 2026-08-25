@@ -155,6 +155,26 @@ class PegawaiAccessService
             || $this->isKepalaMadrasah($pegawai);
     }
 
+    public function canManageKesiswaan(Pegawai $pegawai): bool
+    {
+        return $this->isAdminMadrasah($pegawai)
+            || $this->isOperatorKesiswaan($pegawai)
+            || $this->isKepalaMadrasah($pegawai)
+            || $this->isWaliKelas($pegawai);
+    }
+
+    public function canManageSurat(Pegawai $pegawai): bool
+    {
+        return $this->isAdminMadrasah($pegawai)
+            || $this->isOperatorKesiswaan($pegawai)
+            || $this->isKepalaMadrasah($pegawai);
+    }
+
+    public function canManageReferensi(Pegawai $pegawai): bool
+    {
+        return $this->isAdminMadrasah($pegawai);
+    }
+
     /**
      * Kumpulan lengkap capability flags untuk GET /me response.
      * Frontend menggunakan flags ini untuk rendering dashboard komposit.

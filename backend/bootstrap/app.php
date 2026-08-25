@@ -16,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'set.tenant' => \App\Http\Middleware\SetTenantContext::class,
         ]);
+        
+        $middleware->redirectGuestsTo(fn () => response()->json(['message' => 'Unauthenticated.'], 401));
+        
+        $middleware->api(append: [
+            \App\Http\Middleware\EnforceApiContract::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

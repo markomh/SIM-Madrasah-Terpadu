@@ -18,6 +18,7 @@ class ProfilMadrasah extends Model
     protected $fillable = [
         'id_madrasah', 'nama_madrasah', 'kode_instansi', 'alamat',
         'id_kepala_madrasah', 'nama_kepala_madrasah_cadangan', 'logo_url',
+        'ambang_toleransi_terlambat_menit', 'ambang_flag_digantikan_mendadak',
     ];
 
     protected static function boot(): void
