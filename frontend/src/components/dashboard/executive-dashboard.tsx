@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Users, CheckCircle2, Inbox, Sparkles, ArrowRight } from "lucide-react";
 import type { PersetujuanItem } from "@/services/persetujuan.service";
 import type { Siswa } from "@/types";
+import { useAuth } from "@/components/auth-context";
+import { isKepalaMadrasah } from "@/lib/access";
 
 interface ExecutiveDashboardProps {
   pending: PersetujuanItem[];
@@ -20,6 +22,9 @@ export function ExecutiveDashboard({
   rekapPagi,
   flaggedCount,
 }: ExecutiveDashboardProps) {
+  const { currentUser } = useAuth();
+  const isKamad = !!currentUser?.capabilities?.isKepalaMadrasah;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,7 +135,7 @@ export function ExecutiveDashboard({
                     </p>
                   </div>
                   <Link
-                    href="/persetujuan"
+                    href={isKamad ? "/persetujuan" : (item.jenis === "mutasi" ? "/kesiswaan/mutasi" : item.jenis === "pindah_rombel" ? "/kesiswaan/pindah-rombel" : "/persuratan")}
                     className="rounded bg-primary px-2.5 py-1 text-[11px] font-bold text-white hover:opacity-90 transition shrink-0 inline-flex items-center gap-1"
                   >
                     Tinjau <ArrowRight size={12} />
@@ -150,7 +155,7 @@ export function ExecutiveDashboard({
 
           <div className="mt-4 pt-3 border-t border-border">
             <Link
-              href="/persetujuan"
+              href={isKamad ? "/persetujuan" : "/kesiswaan/mutasi"}
               className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1"
             >
               Lihat Kotak Persetujuan Selengkapnya ({pending.length}) <ArrowRight size={14} />

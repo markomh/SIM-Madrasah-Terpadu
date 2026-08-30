@@ -280,6 +280,31 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ============================================================
+        // Pegawai Madrasah 1 — Persona 8: Admin Rangkap Mengajar (Admin + Pengajar)
+        // ============================================================
+        $adminMengajar = Pegawai::create([
+            'id_pegawai'         => '019153a0-f8f2-777b-bb66-6b211a7e28a9',
+            'id_madrasah'        => $madrasah1->id_madrasah,
+            'nik'                => '3175010901920009',
+            'nip'                => '199209092018012009',
+            'nama_lengkap_gelar' => 'Maya Anggraini, S.Kom.',
+            'status_kepegawaian' => 'PNS',
+            'tugas_utama'        => 'Guru',
+            'email'              => 'adminmengajar@mts-terpadu.sch.id',
+            'password'           => Hash::make('password'),
+            'id_desa'            => $idDesa1,
+        ]);
+
+        PenugasanJabatan::create([
+            'id_penugasan'  => (string) Uuid::uuid4(),
+            'id_pegawai'    => $adminMengajar->id_pegawai,
+            'jenis_jabatan' => 'Admin Madrasah',
+            'id_tahun'      => $tahun1->id_tahun,
+            'tanggal_mulai' => '2026-07-01',
+            'status'        => 'Aktif',
+        ]);
+
+        // ============================================================
         // Profil Madrasah
         // ============================================================
         \App\Models\ProfilMadrasah::create([
@@ -386,6 +411,25 @@ class DatabaseSeeder extends Seeder
             'hari'         => 'Rabu',
             'jam_mulai'    => '07:30',
             'jam_selesai'  => '09:00',
+        ]);
+
+        $mapelInggris = \App\Models\MataPelajaran::create([
+            'id_mapel'     => (string) Uuid::uuid4(),
+            'id_madrasah'  => $madrasah1->id_madrasah,
+            'kode_mapel'   => 'BIG-7',
+            'nama_mapel'   => 'Bahasa Inggris',
+        ]);
+
+        // Jadwal untuk Admin Rangkap Mengajar (Bahasa Inggris)
+        \App\Models\JadwalPelajaran::create([
+            'id_jadwal'    => (string) Uuid::uuid4(),
+            'id_rombel'    => $rombel7A->id_rombel,
+            'id_pegawai'   => $adminMengajar->id_pegawai,
+            'id_mapel'     => $mapelInggris->id_mapel,
+            'semester'     => 'Ganjil',
+            'hari'         => 'Kamis',
+            'jam_mulai'    => '09:00',
+            'jam_selesai'  => '10:30',
         ]);
 
         // ============================================================

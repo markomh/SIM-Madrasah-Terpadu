@@ -43,7 +43,10 @@ export default function KedisiplinanPage() {
   const [error, setError] = useState<string | null>(null);
   const [creatingSurat, setCreatingSurat] = useState<string | null>(null);
 
-  const canAccess = currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList);
+  const canAccess = currentUser && (
+    isKepalaMadrasah(currentUser.id_pegawai, penugasanList) ||
+    isAdminMadrasah(currentUser.id_pegawai, penugasanList)
+  );
 
   useEffect(() => {
     if (!canAccess) return;
@@ -62,7 +65,7 @@ export default function KedisiplinanPage() {
   if (!canAccess) {
     return (
       <AppShell title="Kedisiplinan & JTM">
-        <ErrorBlock message="Halaman ini khusus untuk Kepala Madrasah." />
+        <ErrorBlock message="Halaman ini khusus untuk Kepala Madrasah dan Admin Madrasah." />
       </AppShell>
     );
   }

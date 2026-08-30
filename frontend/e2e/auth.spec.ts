@@ -25,8 +25,11 @@ test.describe('E2E-01 ADMIN PURE', () => {
     
     // Presensi Siswa
     await page.goto('/akademik/presensi-siswa');
-    // Ensure Admin is redirected out of the page
-    await expect(page).not.toHaveURL(/.*\/akademik\/presensi-siswa/);
+    await page.waitForLoadState('networkidle');
+    // Ensure Admin is on the page but sees the Supervisory/Monitoring panel
+    await expect(page).toHaveURL(/.*\/akademik\/presensi-siswa/);
+    await expect(page.locator('text=Monitoring Sesi Tatap Muka')).toBeVisible();
+    await expect(page.locator('button:has-text("Simpan Presensi Sesi")')).toBeHidden();
     
     // Nilai
     await page.goto('/akademik/nilai');
@@ -42,9 +45,17 @@ test.describe('E2E-02 GURU PENGAJAR', () => {
   test('Guru Pengajar can submit attendance and grades for assigned class', async ({ page }) => {
     await loginAs(page, personas.guru);
     
-    // Provide a known date and rombel so it doesn't flake depending on today's day of week
-    await page.goto('/akademik/presensi-siswa?rombel=rb_10a&tanggal=2024-05-20');
+    // Use a Monday date (2026-08-31) to match the scheduled Monday ('Senin') lessons
+    const testDate = '2026-08-31';
+    await page.goto(`/akademik/presensi-siswa?rombel=rb_7a&tanggal=${testDate}`);
     await page.waitForLoadState('networkidle');
+    
+    // If the teaching dashboard is shown, click the edit button to open the form
+    const editBtn = page.locator('button:has-text("Lihat / Edit Presensi & Jurnal")');
+    if (await editBtn.isVisible()) {
+      await editBtn.click();
+    }
+    
     const saveAbsensiBtn = page.locator('button:has-text("Simpan Presensi Sesi")');
     await expect(saveAbsensiBtn).toBeVisible();
   });

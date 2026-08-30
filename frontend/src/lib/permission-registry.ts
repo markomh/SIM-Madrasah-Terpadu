@@ -24,7 +24,8 @@ export type PermissionKey =
   | "wawasan.view_ai_insights"
   | "referensi.crud_tahun_ajaran_mata_pelajaran_tingkat_hari_libur_activate_tahun_ajaran"
   | "referensi.read_provinsi_kabupaten_kecamatan_desa"
-  | "akun.assign_revoke_jabatan_privilege_grant_";
+  | "akun.assign_revoke_jabatan_privilege_grant_"
+  | "kesiswaan.kenaikan_kelas.view";
 
 export const PERMISSION_REGISTRY: Record<PermissionKey, {
   roles: string[];
@@ -57,7 +58,7 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
     uiClass: "shared",
   },
   "kesiswaan.process_execute_kenaikan_kelas": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Guru BK"],
+    roles: ["Admin","Operator"],
     makerChecker: null,
     uiClass: "shared",
   },
@@ -143,6 +144,11 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
   },
   "akun.assign_revoke_jabatan_privilege_grant_": {
     roles: ["Admin"],
+    makerChecker: null,
+    uiClass: "shared",
+  },
+  "kesiswaan.kenaikan_kelas.view": {
+    roles: ["Admin","Operator","Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },

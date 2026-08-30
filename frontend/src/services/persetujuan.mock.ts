@@ -110,7 +110,7 @@ export const persetujuanMock: PersetujuanService = {
       mutasi.tanggal_persetujuan = tgl;
 
       if (mutasi.jenis_mutasi === "Masuk") {
-        const rombelTujuan = store.pendingMutasiRombel[id_mutasi] ?? "rb_10a";
+        const rombelTujuan = store.pendingMutasiRombel[id_mutasi] ?? "rb_7a";
         store.anggotaRombel.push({
           id_anggota: createId("ar"),
           id_siswa: mutasi.id_siswa,

@@ -17,6 +17,7 @@ import {
   ErrorBlock,
   LoadingBlock,
   PageHeader,
+  SurfaceCard,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import type { PersetujuanItem } from "@/services/persetujuan.service";
@@ -24,6 +25,24 @@ import type { Siswa } from "@/types";
 
 import { ExecutiveDashboard } from "@/components/dashboard/executive-dashboard";
 import { OperationalDashboard } from "@/components/dashboard/operational-dashboard";
+
+function EmptyAssignmentState() {
+  return (
+    <SurfaceCard className="p-8 text-center max-w-xl mx-auto border border-dashed border-border rounded-lg mt-8">
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-soft text-amber">
+          <span className="text-xl font-bold">!</span>
+        </div>
+        <div className="space-y-1.5">
+          <h3 className="text-sm font-bold text-ink">Penugasan Belum Aktif</h3>
+          <p className="text-xs text-muted leading-relaxed">
+            Penugasan Anda belum aktif. Beberapa fitur mungkin belum tersedia — silakan hubungi Admin Madrasah jika ini tidak sesuai.
+          </p>
+        </div>
+      </div>
+    </SurfaceCard>
+  );
+}
 
 export default function DashboardPage() {
   const { currentUser, penugasanList, rombelList, ekstraList, jadwalList, isLoading: authLoading } = useAuth();
@@ -57,19 +76,10 @@ export default function DashboardPage() {
         setPending(Array.isArray(p) ? p : []);
         setRisiko(Array.isArray(r) ? r : []);
         setSiswaCount(Array.isArray(s) ? s.filter((x) => !x.id_siswa.includes("pending")).length : 0);
-        setRekapPagi(
-          rekap && Array.isArray(rekap.daftarDetail)
-            ? rekap
-            : {
-                terjadwal: rekap?.terjadwal ?? 0,
-                diinput: rekap?.diinput ?? 0,
-                tepatWaktu: rekap?.tepatWaktu ?? 0,
-                terlambat: rekap?.terlambat ?? 0,
-                digantikan: rekap?.digantikan ?? 0,
-                daftarDetail: Array.isArray(rekap?.daftarDetail) ? rekap.daftarDetail : [],
-              }
-        );
-        setFlaggedCount(Array.isArray(rekapKedisiplinan) ? rekapKedisiplinan.filter((k) => k?.isFlagged).length : 0);
+        setRekapPagi(rekap);
+        if (rekapKedisiplinan) {
+          setFlaggedCount(rekapKedisiplinan.filter((x) => x.isFlagged).length);
+        }
         setError(null);
       })
       .catch((e: Error) => {
@@ -86,7 +96,7 @@ export default function DashboardPage() {
   // Set default tab based on role
   useEffect(() => {
     if (currentUser && !authLoading) {
-      const isExec = isKepalaMadrasah(currentUser.id_pegawai, penugasanList);
+      const isExec = isKepalaMadrasah(currentUser.id_pegawai, penugasanList) || isAdminMadrasah(currentUser.id_pegawai, penugasanList);
       if (!isExec) {
         setActiveTab("administrasi");
       }
@@ -155,29 +165,35 @@ export default function DashboardPage() {
 
       {/* Content */}
       <div className="mt-4">
-        {(activeTab === "eksekutif" && hasExecutive) || (!hasOperational) ? (
-          <ExecutiveDashboard
-            pending={pending}
-            risiko={risiko}
-            siswaCount={siswaCount}
-            rekapPagi={rekapPagi}
-            flaggedCount={flaggedCount}
-          />
-        ) : null}
+        {!hasExecutive && !hasOperational ? (
+          <EmptyAssignmentState />
+        ) : (
+          <>
+            {activeTab === "eksekutif" && hasExecutive && (
+              <ExecutiveDashboard
+                pending={pending}
+                risiko={risiko}
+                siswaCount={siswaCount}
+                rekapPagi={rekapPagi}
+                flaggedCount={flaggedCount}
+              />
+            )}
 
-        {(activeTab === "administrasi" && hasOperational) || (!hasExecutive) ? (
-          <OperationalDashboard
-            pending={pending}
-            risiko={risiko}
-            isAdminMadrasah={currentUser ? isAdminMadrasah(currentUser.id_pegawai, penugasanList) : false}
-            isOperatorKesiswaan={currentUser ? isOperatorKesiswaan(currentUser.id_pegawai, penugasanList) : false}
-            isWaliKelas={currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false}
-            isPembinaEkstrakurikuler={currentUser ? isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList) : false}
-            isPengajarAktif={currentUser ? isPengajarAktif(currentUser.id_pegawai, jadwalList) : false}
-            isTendik={currentUser?.tugas_utama === "Tendik"}
-            isGuruBk={currentUser ? isGuruBk(currentUser.id_pegawai, penugasanList) : false}
-          />
-        ) : null}
+            {activeTab === "administrasi" && hasOperational && (
+              <OperationalDashboard
+                pending={pending}
+                risiko={risiko}
+                isAdminMadrasah={currentUser ? isAdminMadrasah(currentUser.id_pegawai, penugasanList) : false}
+                isOperatorKesiswaan={currentUser ? isOperatorKesiswaan(currentUser.id_pegawai, penugasanList) : false}
+                isWaliKelas={currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false}
+                isPembinaEkstrakurikuler={currentUser ? isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList) : false}
+                isPengajarAktif={currentUser ? isPengajarAktif(currentUser.id_pegawai, jadwalList) : false}
+                isTendik={currentUser?.tugas_utama === "Tendik"}
+                isGuruBk={currentUser ? isGuruBk(currentUser.id_pegawai, penugasanList) : false}
+              />
+            )}
+          </>
+        )}
       </div>
     </AppShell>
   );

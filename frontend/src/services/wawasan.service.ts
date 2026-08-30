@@ -8,6 +8,6 @@ export type RekomendasiJadwal = {
 };
 
 export interface WawasanService {
-  getSiswaBerisiko(minScore?: number): Promise<Siswa[]>;
+  getSiswaBerisiko(minScore?: number, idRombel?: string): Promise<Siswa[]>;
   getRekomendasiJadwal(): Promise<RekomendasiJadwal>;
 }

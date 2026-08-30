@@ -85,6 +85,7 @@ if (missingCols.length > 0) {
 // 2. Generate permission-registry.ts
 let registryEntries = [];
 let keys = [];
+let seenKeys = new Set();
 
 rows.forEach(row => {
   if (row.id === 'M26' || !row.id) return; // Skip portal ortu and empty
@@ -92,8 +93,11 @@ rows.forEach(row => {
   // Create a key based on frontend route and action
   let routeParts = row.frontend_route.split('/').filter(x => x && !x.includes('{'));
   let routePrefix = routeParts.length > 0 ? routeParts[0] : 'core';
-  let actionSlug = row.action.replace(/[^a-zA-Z0-9_]/g, '_').replace(/_+/g, '_').toLowerCase();
+  let actionSlug = row.action.replace(/[^a-zA-Z0-9_.]/g, '_').replace(/_+/g, '_').toLowerCase();
   let key = `${routePrefix}.${actionSlug}`;
+  
+  if (seenKeys.has(key)) return;
+  seenKeys.add(key);
   
   let roles = row.layout_guard_roles.split(',').map(r => r.trim()).filter(r => r && r !== 'none');
   if (roles.includes('ALL_AUTHENTICATED')) {

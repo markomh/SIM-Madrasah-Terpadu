@@ -25,12 +25,26 @@ export default function WawasanPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const canAccess = (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) || (currentUser && isWaliKelas(currentUser.id_pegawai, rombelList)) || (currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList));
+  const isKamad = currentUser ? isKepalaMadrasah(currentUser.id_pegawai, penugasanList) : false;
+  const isAdmin = currentUser ? isAdminMadrasah(currentUser.id_pegawai, penugasanList) : false;
+  const isWK = currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false;
+
+  const canAccess = isKamad || isAdmin || isWK;
 
   useEffect(() => {
-    if (!canAccess) return;
+    if (!canAccess || !currentUser) return;
     let active = true;
-    Promise.all([services.wawasan.getSiswaBerisiko(50), services.wawasan.getRekomendasiJadwal()])
+
+    let targetRombelId: string | undefined = undefined;
+    if (!isKamad && !isAdmin && isWK) {
+      const myRombel = rombelList.find((r) => r.id_wali_kelas === currentUser.id_pegawai);
+      if (myRombel) targetRombelId = myRombel.id_rombel;
+    }
+
+    Promise.all([
+      services.wawasan.getSiswaBerisiko(50, targetRombelId),
+      services.wawasan.getRekomendasiJadwal(),
+    ])
       .then(([r, j]) => {
         if (!active) return;
         setRisiko(r);
@@ -47,7 +61,7 @@ export default function WawasanPage() {
     return () => {
       active = false;
     };
-  }, [version, canAccess]);
+  }, [version, canAccess, currentUser, isKamad, isAdmin, isWK, rombelList]);
 
   if (!canAccess) {
     return (

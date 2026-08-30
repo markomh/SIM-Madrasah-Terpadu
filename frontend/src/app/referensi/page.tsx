@@ -52,6 +52,7 @@ export default function ReferensiPage() {
 
   const [tglLibur, setTglLibur] = useState("");
   const [namaLibur, setNamaLibur] = useState("");
+  const [submittingKey, setSubmittingKey] = useState<string | null>(null);
 
   useEffect(() => {
     let ignore = false;
@@ -177,13 +178,20 @@ export default function ReferensiPage() {
                     </Select>
                     <Button
                       variant="primary"
+                      disabled={submittingKey !== null}
+                      loading={submittingKey === "mapel"}
                       iconLeft={<Plus className="h-4 w-4" />}
                       onClick={async () => {
-                        if (!kodeMapel || !namaMapel) return;
-                        await services.referensi.createMapel({ kode_mapel: kodeMapel, nama_mapel: namaMapel, kelompok_mapel: kelompok });
-                        setKodeMapel("");
-                        setNamaMapel("");
-                        bump();
+                        if (!kodeMapel || !namaMapel || submittingKey !== null) return;
+                        setSubmittingKey("mapel");
+                        try {
+                          await services.referensi.createMapel({ kode_mapel: kodeMapel, nama_mapel: namaMapel, kelompok_mapel: kelompok });
+                          setKodeMapel("");
+                          setNamaMapel("");
+                          bump();
+                        } finally {
+                          setSubmittingKey(null);
+                        }
                       }}
                     >
                       Tambah Mapel
@@ -218,12 +226,19 @@ export default function ReferensiPage() {
                     <Button
                       variant="primary"
                       fullWidth
+                      disabled={submittingKey !== null}
+                      loading={submittingKey === "tingkat"}
                       iconLeft={<Plus className="h-4 w-4" />}
                       onClick={async () => {
-                        if (!namaTingkat) return;
-                        await services.referensi.createTingkat({ nama_tingkat: namaTingkat, urutan });
-                        setNamaTingkat("");
-                        bump();
+                        if (!namaTingkat || submittingKey !== null) return;
+                        setSubmittingKey("tingkat");
+                        try {
+                          await services.referensi.createTingkat({ nama_tingkat: namaTingkat, urutan });
+                          setNamaTingkat("");
+                          bump();
+                        } finally {
+                          setSubmittingKey(null);
+                        }
                       }}
                     >
                       Tambah Tingkat
@@ -260,17 +275,24 @@ export default function ReferensiPage() {
                   <Button
                     variant="primary"
                     fullWidth
+                    disabled={submittingKey !== null}
+                    loading={submittingKey === "rombel"}
                     iconLeft={<Plus className="h-4 w-4" />}
                     onClick={async () => {
-                      if (!selected || !namaRombel) return;
-                      await services.referensi.createRombel({
-                        nama_rombel: namaRombel,
-                        id_tingkat: idTingkatRombel || (tingkat[0]?.id_tingkat ?? ""),
-                        id_tahun: selected.id_tahun,
-                        id_wali_kelas: null,
-                      });
-                      setNamaRombel("");
-                      bump();
+                      if (!selected || !namaRombel || submittingKey !== null) return;
+                      setSubmittingKey("rombel");
+                      try {
+                        await services.referensi.createRombel({
+                          nama_rombel: namaRombel,
+                          id_tingkat: idTingkatRombel || (tingkat[0]?.id_tingkat ?? ""),
+                          id_tahun: selected.id_tahun,
+                          id_wali_kelas: null,
+                        });
+                        setNamaRombel("");
+                        bump();
+                      } finally {
+                        setSubmittingKey(null);
+                      }
                     }}
                   >
                     Tambah Rombel
@@ -308,13 +330,20 @@ export default function ReferensiPage() {
                 <Input label="Keterangan Hari Libur" placeholder="mis. Hari Raya Idul Fitri" value={namaLibur} onChange={(e) => setNamaLibur(e.target.value)} className="min-w-[240px]" />
                 <Button
                   variant="primary"
+                  disabled={submittingKey !== null}
+                  loading={submittingKey === "libur"}
                   iconLeft={<Plus className="h-4 w-4" />}
                   onClick={async () => {
-                    if (!selected || !tglLibur || !namaLibur) return;
-                    await services.referensi.createHariLibur({ tanggal: tglLibur, nama: namaLibur, id_tahun: selected.id_tahun });
-                    setTglLibur("");
-                    setNamaLibur("");
-                    bump();
+                    if (!selected || !tglLibur || !namaLibur || submittingKey !== null) return;
+                    setSubmittingKey("libur");
+                    try {
+                      await services.referensi.createHariLibur({ tanggal: tglLibur, nama: namaLibur, id_tahun: selected.id_tahun });
+                      setTglLibur("");
+                      setNamaLibur("");
+                      bump();
+                    } finally {
+                      setSubmittingKey(null);
+                    }
                   }}
                 >
                   Tambah Libur

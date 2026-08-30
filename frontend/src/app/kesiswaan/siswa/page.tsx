@@ -10,7 +10,13 @@
  *  • Smart Default Rombel: jika isWaliKelas, rombelFilter otomatis ke rombel milik currentUser.
  */
 
-import { isAdminMadrasah, isOperatorKesiswaan, isWaliKelas, isKepalaMadrasah } from "@/lib/access";
+import {
+  isAdminMadrasah,
+  isKepalaMadrasah,
+  isOperatorKesiswaan,
+  isWaliKelas,
+  isGuruBk,
+} from "@/lib/access";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
@@ -75,8 +81,9 @@ export default function SiswaListPage() {
 
   const isWK = currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false;
   const isKamad = currentUser ? isKepalaMadrasah(currentUser.id_pegawai, penugasanList) : false;
+  const isBK = currentUser ? isGuruBk(currentUser.id_pegawai, penugasanList) : false;
   
-  const canAccess = canEdit || isWK || isKamad;
+  const canAccess = canEdit || isWK || isKamad || isBK;
   const isOnlyWK = isWK && !canEdit && !isKamad;
 
   // ── Smart Default: auto-pilih rombel Wali Kelas ──────────────────────────
@@ -181,7 +188,7 @@ export default function SiswaListPage() {
   if (!canAccess) {
     return (
       <AppShell title="Data Siswa Induk">
-        <ErrorBlock message="Anda tidak memiliki akses ke halaman ini. Halaman ini hanya untuk Admin, Operator, Kepala Madrasah, dan Wali Kelas." />
+        <ErrorBlock message="Anda tidak memiliki akses ke halaman ini. Halaman ini hanya untuk Admin, Operator, Kepala Madrasah, Wali Kelas, dan Guru BK." />
       </AppShell>
     );
   }

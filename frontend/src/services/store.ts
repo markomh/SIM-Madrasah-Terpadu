@@ -114,9 +114,9 @@ function buildSeed(): DemoStore {
   ];
 
   const tingkat: TingkatPendidikan[] = [
-    { id_tingkat: "t_10", nama_tingkat: "Kelas 10", urutan: 10 },
-    { id_tingkat: "t_11", nama_tingkat: "Kelas 11", urutan: 11 },
-    { id_tingkat: "t_12", nama_tingkat: "Kelas 12", urutan: 12 },
+    { id_tingkat: "t_7", nama_tingkat: "Kelas 7", urutan: 7 },
+    { id_tingkat: "t_8", nama_tingkat: "Kelas 8", urutan: 8 },
+    { id_tingkat: "t_9", nama_tingkat: "Kelas 9", urutan: 9 },
   ];
 
   const mapel: MataPelajaran[] = [
@@ -134,24 +134,19 @@ function buildSeed(): DemoStore {
     { id_pegawai: "pg_admin", id_madrasah: "md_1", nik: "3201010101010020", nip: "199002022015011002", npk: null, nama_lengkap_gelar: "Rizky Pratama, S.Kom.", status_kepegawaian: "PNS", tugas_utama: "Tendik", alamat_detail: "Jl. Sudirman No.2", id_desa: "desa_2", mapel_sertifikasi: [] },
     { id_pegawai: "pg_ops", id_madrasah: "md_1", nik: "3201010101010030", nip: null, npk: "NPK-003", nama_lengkap_gelar: "Siti Nurhaliza, A.Md.", status_kepegawaian: "Non-PNS", tugas_utama: "Tendik", alamat_detail: "Jl. Pahlawan No.3", id_desa: "desa_3", mapel_sertifikasi: [] },
     { id_pegawai: "pg_wali_a", id_madrasah: "md_1", nik: "3201010101010060", nip: "198503032010012005", npk: null, nama_lengkap_gelar: "Dewi Sartika, S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Mawar No.4", id_desa: "desa_4", mapel_sertifikasi: ["mp_qur"] },
-    { id_pegawai: "pg_wali_b", id_madrasah: "md_1", nik: "3175010501870005", nip: "198705052009012004", npk: null, nama_lengkap_gelar: "Suci Rahmawati, S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Melati No.5", id_desa: "desa_1", mapel_sertifikasi: ["mp_pai"] },
-    { id_pegawai: "pg_wali_c", id_madrasah: "md_1", nik: "3175010601860006", nip: null, npk: "NPK-006", nama_lengkap_gelar: "Rangga Pratama, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Kamboja No.6", id_desa: "desa_2", mapel_sertifikasi: ["mp_pai"] },
-    { id_pegawai: "pg_guru_1", id_madrasah: "md_1", nik: "3175010701910007", nip: null, npk: "NPK-007", nama_lengkap_gelar: "Dewi Kartika, S.Pd.", status_kepegawaian: "Non-PNS", tugas_utama: "Guru", alamat_detail: "Jl. Anggrek No.7", id_desa: "desa_3", mapel_sertifikasi: ["mp_bind", "mp_bing"] },
-    { id_pegawai: "pg_guru_2", id_madrasah: "md_1", nik: "3175010801890008", nip: "198908082011011005", npk: null, nama_lengkap_gelar: "Hendra Wijaya, M.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Flamboyan No.8", id_desa: "desa_4", mapel_sertifikasi: ["mp_mtk", "mp_ipa"] },
-    { id_pegawai: "pg_tendik", id_madrasah: "md_1", nik: "3175010901920009", nip: null, npk: "NPK-009", nama_lengkap_gelar: "Maya Anggraini", status_kepegawaian: "Honorer", tugas_utama: "Tendik", alamat_detail: "Jl. Kenanga No.9", id_desa: "desa_1", mapel_sertifikasi: [] },
-    { id_pegawai: "pg_pembina", id_madrasah: "md_1", nik: "3175011101850011", nip: null, npk: "NPK-011", nama_lengkap_gelar: "Agus Salim, S.Pd.", status_kepegawaian: "Honorer", tugas_utama: "Guru", alamat_detail: "Jl. Veteran No.10", id_desa: "desa_2", mapel_sertifikasi: [] },
     { id_pegawai: "pg_bk", id_madrasah: "md_1", nik: "3201010101010040", nip: "198805052012012003", npk: null, nama_lengkap_gelar: "Nurul Hidayah, S.Psi.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Diponegoro No.11", id_desa: "desa_3", mapel_sertifikasi: [] },
     { id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", id_madrasah: "md_1", nik: "3201010101010001", nip: "19800101200501001", npk: null, nama_lengkap_gelar: "Dr. H. Syaiful Rahman, M.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Demo Terpadu", id_desa: "desa_1", mapel_sertifikasi: ["mp_mtk"] },
     { id_pegawai: "pg_guru_polos", id_madrasah: "md_1", nik: "3201010101010050", nip: "199208082019011004", npk: null, nama_lengkap_gelar: "Bambang Sudarsono, S.Pd.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Polos No.13", id_desa: "desa_4", mapel_sertifikasi: ["mp_pjok"] },
+    { id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a9", id_madrasah: "md_1", nik: "3175010901920009", nip: "199209092018012009", npk: null, nama_lengkap_gelar: "Maya Anggraini, S.Kom.", status_kepegawaian: "PNS", tugas_utama: "Guru", alamat_detail: "Jl. Veteran No.12", id_desa: "desa_1", mapel_sertifikasi: [] },
   ];
 
   const rombel: Rombel[] = [
-    { id_rombel: "rb_10a", id_madrasah: "md_1", nama_rombel: "10-A", id_tingkat: "t_10", id_tahun: "ta_2627", id_wali_kelas: "019153a0-f8f2-777b-bb66-6b211a7e28a5" },
-    { id_rombel: "rb_10b", id_madrasah: "md_1", nama_rombel: "10-B", id_tingkat: "t_10", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_b" },
-    { id_rombel: "rb_11a", id_madrasah: "md_1", nama_rombel: "11-A", id_tingkat: "t_11", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_c" },
-    { id_rombel: "rb_11b", id_madrasah: "md_1", nama_rombel: "11-B", id_tingkat: "t_11", id_tahun: "ta_2627", id_wali_kelas: "pg_guru_1" },
-    { id_rombel: "rb_12a", id_madrasah: "md_1", nama_rombel: "12-A", id_tingkat: "t_12", id_tahun: "ta_2627", id_wali_kelas: "pg_guru_2" },
-    { id_rombel: "rb_12b", id_madrasah: "md_1", nama_rombel: "12-B", id_tingkat: "t_12", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
+    { id_rombel: "rb_7a", id_madrasah: "md_1", nama_rombel: "7-A", id_tingkat: "t_7", id_tahun: "ta_2627", id_wali_kelas: "019153a0-f8f2-777b-bb66-6b211a7e28a5" },
+    { id_rombel: "rb_7b", id_madrasah: "md_1", nama_rombel: "7-B", id_tingkat: "t_7", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
+    { id_rombel: "rb_8a", id_madrasah: "md_1", nama_rombel: "8-A", id_tingkat: "t_8", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
+    { id_rombel: "rb_8b", id_madrasah: "md_1", nama_rombel: "8-B", id_tingkat: "t_8", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
+    { id_rombel: "rb_9a", id_madrasah: "md_1", nama_rombel: "9-A", id_tingkat: "t_9", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
+    { id_rombel: "rb_9b", id_madrasah: "md_1", nama_rombel: "9-B", id_tingkat: "t_9", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
   ];
 
   const firstNames = [
@@ -187,7 +182,7 @@ function buildSeed(): DemoStore {
     };
   });
 
-  const rombelIds = ["rb_10a", "rb_10b", "rb_11a", "rb_11b", "rb_12a", "rb_12b"];
+  const rombelIds = ["rb_7a", "rb_7b", "rb_8a", "rb_8b", "rb_9a", "rb_9b"];
   const anggotaRombel: AnggotaRombel[] = siswa
     .filter((s) => s.status_siswa === "Aktif")
     .map((s, i) => ({
@@ -210,7 +205,7 @@ function buildSeed(): DemoStore {
     anggotaRombel.push({
       id_anggota: "ar_pending_05",
       id_siswa: "sw_05",
-      id_rombel: "rb_11a",
+      id_rombel: "rb_8a",
       tanggal_mulai: todayIso(),
       tanggal_selesai: null,
       status_keanggotaan: "Aktif",
@@ -274,7 +269,7 @@ function buildSeed(): DemoStore {
   ];
 
   const pendingMutasiRombel: Record<string, string> = {
-    mt_01: "rb_10a",
+    mt_01: "rb_7a",
   };
 
   const absensi: AbsensiSiswa[] = anggotaRombel
@@ -291,15 +286,15 @@ function buildSeed(): DemoStore {
     }));
 
   const jadwal: JadwalPelajaran[] = [
-    { id_jadwal: "jd_1", id_rombel: "rb_10a", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_2", id_rombel: "rb_10a", id_pegawai: "pg_guru_1", id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_3", id_rombel: "rb_10b", id_pegawai: "pg_wali_a", id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_4", id_rombel: "rb_11a", id_pegawai: "pg_guru_2", id_mapel: "mp_ipa", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_5", id_rombel: "rb_11a", id_pegawai: "pg_wali_c", id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_6", id_rombel: "rb_12a", id_pegawai: "pg_guru_1", id_mapel: "mp_bing", semester: "Genap", hari: "Rabu", jam_mulai: "10:00", jam_selesai: "11:30" },
-    { id_jadwal: "jd_7", id_rombel: "rb_10a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_8", id_rombel: "rb_10b", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_9", id_rombel: "rb_11a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_1", id_rombel: "rb_7a", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_2", id_rombel: "rb_7a", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a9", id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "08:30", jam_selesai: "10:00" },
+    { id_jadwal: "jd_3", id_rombel: "rb_7b", id_pegawai: "pg_wali_a", id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_4", id_rombel: "rb_8a", id_pegawai: "pg_guru_polos", id_mapel: "mp_ipa", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_5", id_rombel: "rb_8a", id_pegawai: "pg_wali_a", id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:30", jam_selesai: "10:00" },
+    { id_jadwal: "jd_6", id_rombel: "rb_9a", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a9", id_mapel: "mp_bing", semester: "Genap", hari: "Rabu", jam_mulai: "10:00", jam_selesai: "11:30" },
+    { id_jadwal: "jd_7", id_rombel: "rb_7a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:00", jam_selesai: "08:30" },
+    { id_jadwal: "jd_8", id_rombel: "rb_7b", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:30", jam_selesai: "10:00" },
+    { id_jadwal: "jd_9", id_rombel: "rb_8a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:00", jam_selesai: "08:30" },
   ];
 
   const surat: Surat[] = [
@@ -328,11 +323,11 @@ function buildSeed(): DemoStore {
   const izinGuru: IzinGuru[] = [
     {
       id_izin: "iz_1",
-      id_pegawai: "pg_guru_1",
+      id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a9",
       tanggal_izin: todayIso(),
       jenis_izin: "Direncanakan H-1",
       alasan: "Acara keluarga",
-      id_pegawai_pengganti: "pg_wali_c",
+      id_pegawai_pengganti: "pg_wali_a",
       saluran_pelaporan: "WA Pribadi Kepala Madrasah",
       dilaporkan_pada: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
       status_rekonsiliasi: "Tepat Waktu",
@@ -340,7 +335,7 @@ function buildSeed(): DemoStore {
     },
     {
       id_izin: "iz_2",
-      id_pegawai: "pg_guru_2",
+      id_pegawai: "pg_guru_polos",
       tanggal_izin: todayIso(),
       jenis_izin: "Mendesak-Darurat",
       alasan: "Sakit mendadak",
@@ -355,9 +350,9 @@ function buildSeed(): DemoStore {
   const sesiTatapMuka: SesiTatapMuka[] = [
     {
       id_sesi: "st_1",
-      id_jadwal: "jd_1", // MTK by pg_guru_2
+      id_jadwal: "jd_1", // MTK by Dr. H. Syaiful Rahman, M.Pd.
       tanggal: todayIso(),
-      id_pegawai_pelaksana: "pg_guru_2",
+      id_pegawai_pelaksana: "019153a0-f8f2-777b-bb66-6b211a7e28a5",
       waktu_input: new Date(new Date().setHours(7, 5, 0, 0)).toISOString(),
       is_guru_pengganti: false,
       id_izin_terkait: null,
@@ -366,9 +361,9 @@ function buildSeed(): DemoStore {
     },
     {
       id_sesi: "st_2",
-      id_jadwal: "jd_2", // BIN by pg_guru_1 -> tapi izin, diganti pg_wali_c
+      id_jadwal: "jd_2", // BIN by pg_admin_mengajar -> tapi izin, diganti pg_wali_a
       tanggal: todayIso(),
-      id_pegawai_pelaksana: "pg_wali_c",
+      id_pegawai_pelaksana: "pg_wali_a",
       waktu_input: new Date(new Date().setHours(8, 30, 0, 0)).toISOString(),
       is_guru_pengganti: true,
       id_izin_terkait: "iz_1",
@@ -388,14 +383,14 @@ function buildSeed(): DemoStore {
     },
     {
       id_sesi: "st_4",
-      id_jadwal: "jd_4", // IPA by pg_guru_2 (who is sick, replaced by pg_wali_b but mendadak)
+      id_jadwal: "jd_4", // IPA by pg_guru_polos (who is sick, replaced by pg_wali_a but mendadak)
       tanggal: todayIso(),
-      id_pegawai_pelaksana: "pg_wali_b",
+      id_pegawai_pelaksana: "pg_wali_a",
       waktu_input: new Date(new Date().setHours(7, 0, 0, 0)).toISOString(),
       is_guru_pengganti: true,
-      id_izin_terkait: null,
+      id_izin_terkait: "iz_2",
       status_kehadiran_guru: "Digantikan Mendadak",
-      jurnal_materi: "Siswa diminta membaca mandiri karena guru berhalangan mendadak.",
+      jurnal_materi: "Praktikum Hukum Archimedes.",
     }
   ];
 
@@ -413,7 +408,6 @@ function buildSeed(): DemoStore {
     { id_penugasan: "pj_2", id_pegawai: "pg_admin", jenis_jabatan: "Admin Madrasah", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
     { id_penugasan: "pj_3", id_pegawai: "pg_ops", jenis_jabatan: "Operator Kesiswaan", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
     { id_penugasan: "pj_4", id_pegawai: "pg_bk", jenis_jabatan: "Guru BK", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
-    { id_penugasan: "pj_5", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", jenis_jabatan: "Kepala Madrasah", id_tahun: "ta_2627", tanggal_mulai: "2024-07-01", tanggal_selesai: "2026-06-30", status: "Berakhir" },
   ];
   const profilMadrasah: ProfilMadrasah = {
     id_profil: "prof_01",
@@ -539,17 +533,17 @@ function buildSeed(): DemoStore {
 
   const nowIsoString = new Date().toISOString();
   const nilaiSiswa: NilaiSiswa[] = [
-    { id_nilai: "nl_1", id_siswa: "sw_01", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 88, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_2", id_siswa: "sw_01", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 85, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_3", id_siswa: "sw_01", id_komponen: "k_6", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 90, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_4", id_siswa: "sw_02", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 78, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_5", id_siswa: "sw_02", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 72, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_6", id_siswa: "sw_02", id_komponen: "k_6", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 80, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_7", id_siswa: "sw_03", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 95, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_8", id_siswa: "sw_03", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 92, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_9", id_siswa: "sw_04", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 68, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_10", id_siswa: "sw_04", id_komponen: "k_5", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 70, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
-    { id_nilai: "nl_11", id_siswa: "sw_05", id_komponen: "k_4", id_rombel: "rb_10a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 84, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_1", id_siswa: "sw_01", id_komponen: "k_4", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 88, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_2", id_siswa: "sw_01", id_komponen: "k_5", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 85, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_3", id_siswa: "sw_01", id_komponen: "k_6", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 90, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_4", id_siswa: "sw_02", id_komponen: "k_4", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 78, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_5", id_siswa: "sw_02", id_komponen: "k_5", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 72, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_6", id_siswa: "sw_02", id_komponen: "k_6", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 80, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_7", id_siswa: "sw_03", id_komponen: "k_4", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 95, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_8", id_siswa: "sw_03", id_komponen: "k_5", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 92, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_9", id_siswa: "sw_04", id_komponen: "k_4", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 68, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_10", id_siswa: "sw_04", id_komponen: "k_5", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 70, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
+    { id_nilai: "nl_11", id_siswa: "sw_05", id_komponen: "k_4", id_rombel: "rb_7a", id_tahun: "ta_2627", semester: "Ganjil", nilai: 84, id_pegawai_penilai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", tanggal_input: nowIsoString },
   ];
 
   return {

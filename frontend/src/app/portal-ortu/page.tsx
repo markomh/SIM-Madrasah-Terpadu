@@ -27,7 +27,7 @@ export default function PortalOrtuPage() {
     // Demo: orang tua melihat anak sw_01
     Promise.all([
       services.siswa.getById("sw_01"),
-      services.absensi.getRekapHarian("rb_10a", new Date().toISOString().slice(0, 10)),
+      services.absensi.getRekapHarian("rb_7a", new Date().toISOString().slice(0, 10)),
     ])
       .then(([s, a]) => {
         setSiswa(s);

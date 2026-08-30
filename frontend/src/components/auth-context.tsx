@@ -57,9 +57,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         services.jadwal.getAll().catch(() => []),
       ]).then(async ([user, penugasan, rombel, ekstra, jadwal]) => {
         if (cancelled) return;
-        const activeUser = user || (await services.pegawai.getById("pg_kepala").catch(() => null));
-        setCurrentUser(activeUser);
+        const activeUser = (user || (await services.pegawai.getById("pg_kepala").catch(() => null))) as AuthUser | null;
         const activeId = activeUser?.id_pegawai || userId;
+
+        if (activeUser) {
+          const isKepalaMadrasah = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Kepala Madrasah" && j.status === "Aktif");
+          const isAdminMadrasah = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Admin Madrasah" && j.status === "Aktif");
+          const isOperatorKesiswaan = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Operator Kesiswaan" && j.status === "Aktif");
+          const isGuruBk = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Guru BK" && j.status === "Aktif");
+          const isWaliKelas = (rombel || []).some((r) => r.id_wali_kelas === activeId);
+          const isPembinaEkstrakurikuler = (ekstra || []).some((e) => e.id_pembina === activeId);
+          const isPengajarAktif = (jadwal || []).some((j) => j.id_pegawai === activeId);
+
+          activeUser.capabilities = {
+            isKepalaMadrasah,
+            isAdminMadrasah,
+            isOperatorKesiswaan,
+            isGuruBk,
+            isWaliKelas,
+            isPembinaEkstrakurikuler,
+            isPengajarAktif,
+          };
+        }
+
+        setCurrentUser(activeUser);
         setPenugasanList((penugasan || []).filter((p) => p.id_pegawai === activeId && p.status === "Aktif"));
         setRombelList(rombel || []);
         setEkstraList(ekstra || []);
