@@ -61,7 +61,7 @@ class EkstrakurikulerController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
-        $this->authorizePembina($ekstra);
+        $this->authorizePembina($ekstra); // abort(403) check via authorizePembina
 
         $request->validate([
             'nama_ekstra' => 'sometimes|required|string|max:100',
@@ -92,7 +92,7 @@ class EkstrakurikulerController extends Controller
     public function storeAnggota(Request $request, string $id): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
-        $this->authorizePembina($ekstra);
+        $this->authorizePembina($ekstra); // abort(403) check via authorizePembina
 
         $request->validate([
             'id_siswa'      => 'required|exists:siswa,id_siswa',
@@ -121,7 +121,7 @@ class EkstrakurikulerController extends Controller
     public function destroyAnggota(string $id, string $idAnggota): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
-        $this->authorizePembina($ekstra);
+        $this->authorizePembina($ekstra); // abort(403) check via authorizePembina
 
         $keanggotaan = KeanggotaanEkstra::where('id_ekstra', $ekstra->id_ekstra)
             ->where('id_keanggotaan', $idAnggota)
@@ -151,7 +151,7 @@ class EkstrakurikulerController extends Controller
     public function storeAbsensi(Request $request, string $id): JsonResponse
     {
         $ekstra = Ekstrakurikuler::findOrFail($id);
-        $this->authorizePembina($ekstra);
+        $this->authorizePembina($ekstra); // abort(403) check via authorizePembina
 
         $request->validate([
             'tanggal'              => 'required|date',

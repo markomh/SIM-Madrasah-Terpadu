@@ -15,6 +15,7 @@ type AuthContextValue = {
   jadwalList: JadwalPelajaran[];
   isLoading: boolean;
   logout: () => Promise<void>;
+  isConnectionError: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [ekstraList, setEkstraList] = useState<Ekstrakurikuler[]>([]);
   const [jadwalList, setJadwalList] = useState<JadwalPelajaran[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isConnectionError, setIsConnectionError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,14 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (USE_MOCK) {
       Promise.all([
-        services.pegawai.getById(userId).catch(() => null),
-        services.penugasanJabatan.getAll().catch(() => []),
-        services.referensi.getRombel().catch(() => []),
-        services.ekstrakurikuler.getAll().catch(() => []),
-        services.jadwal.getAll().catch(() => []),
+        services.pegawai.getById(userId).catch(() => { setIsConnectionError(true); return null; }),
+        services.penugasanJabatan.getAll().catch(() => { setIsConnectionError(true); return []; }),
+        services.referensi.getRombel().catch(() => { setIsConnectionError(true); return []; }),
+        services.ekstrakurikuler.getAll().catch(() => { setIsConnectionError(true); return []; }),
+        services.jadwal.getAll().catch(() => { setIsConnectionError(true); return []; }),
       ]).then(async ([user, penugasan, rombel, ekstra, jadwal]) => {
         if (cancelled) return;
-        const activeUser = (user || (await services.pegawai.getById("pg_kepala").catch(() => null))) as AuthUser | null;
+        const activeUser = (user || (await services.pegawai.getById("pg_kepala").catch(() => { setIsConnectionError(true); return null; }))) as AuthUser | null;
         const activeId = activeUser?.id_pegawai || userId;
 
         if (activeUser) {
@@ -98,13 +100,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const simulated = await services.pegawai.getById(userId);
             if (simulated && !cancelled) {
               setCurrentUser(simulated);
-              const penugasans = await services.penugasanJabatan.getAll().catch(() => []);
+              const penugasans = await services.penugasanJabatan.getAll().catch(() => { setIsConnectionError(true); return []; });
               if (!cancelled) {
                 setPenugasanList(penugasans.filter(p => p.id_pegawai === userId && p.status === "Aktif"));
               }
             }
           } catch {
             if (!cancelled) {
+              setIsConnectionError(true);
               setCurrentUser(loggedInPegawai);
               setPenugasanList(loggedInPegawai.penugasan_aktif || []);
             }
@@ -125,9 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch data sekunder (non-blocking, tidak mempengaruhi auth state)
         try {
           const [rombel, ekstra, jadwal] = await Promise.all([
-            services.referensi.getRombel().catch(() => []),
-            services.ekstrakurikuler.getAll().catch(() => []),
-            services.jadwal.getAll().catch(() => []),
+            services.referensi.getRombel().catch(() => { setIsConnectionError(true); return []; }),
+            services.ekstrakurikuler.getAll().catch(() => { setIsConnectionError(true); return []; }),
+            services.jadwal.getAll().catch(() => { setIsConnectionError(true); return []; }),
           ]);
           if (!cancelled) {
             setRombelList(rombel || []);
@@ -135,10 +138,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setJadwalList(jadwal || []);
           }
         } catch {
-          // Ignore secondary fetch error
+          setIsConnectionError(true);
         }
       }).catch(() => {
         if (!cancelled) {
+          setIsConnectionError(true);
           setCurrentUser(null);
           setIsLoading(false);
         }
@@ -181,8 +185,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       jadwalList,
       isLoading,
       logout,
+      isConnectionError,
     }),
-    [currentUser, penugasanList, rombelList, ekstraList, jadwalList, isLoading]
+    [currentUser, penugasanList, rombelList, ekstraList, jadwalList, isLoading, isConnectionError]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

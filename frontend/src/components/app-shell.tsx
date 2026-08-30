@@ -116,10 +116,12 @@ const navigation: NavGroup[] = [
   },
 ];
 
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const pathname = usePathname() || "/";
   const authCtx = useAuth();
-  const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList, logout } = authCtx;
+  const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList, logout, isConnectionError } = authCtx;
   const { list: tahunList, selected, setSelectedId, selectedSemester, setSelectedSemester } = useTahunAjaran();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
@@ -304,7 +306,12 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             </button>
             <div className="min-w-0">
               <p className="truncate text-[11px] text-muted leading-tight">{namaMadrasah}</p>
-              <h1 className="truncate text-sm sm:text-base font-bold text-ink leading-tight">{title ?? "SIM Madrasah Terpadu"}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="truncate text-sm sm:text-base font-bold text-ink leading-tight">{title ?? "SIM Madrasah Terpadu"}</h1>
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${USE_MOCK ? "bg-amber-soft text-amber border border-amber/30" : "bg-success-soft text-success border border-success/30"}`}>
+                  {USE_MOCK ? "Mode Demo" : "Terhubung ke Server"}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -411,7 +418,15 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
 
         {/* Main Canvas Container (Margin left lg:ml-64, margin top mt-16, bg-paper) */}
         <main id="main-content" className="lg:ml-64 mt-16 min-h-[calc(100vh-4rem)] bg-paper p-4 sm:p-6 text-ink overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full">{children}</div>
+          <div className="max-w-7xl mx-auto w-full">
+            {isConnectionError && (
+              <div className="mb-4 flex items-center justify-between rounded-[6px] bg-danger-soft border border-danger/30 p-3 text-xs text-danger">
+                <span>Gagal terhubung ke server, sebagian data mungkin tidak akurat</span>
+                <button onClick={() => window.location.reload()} className="underline hover:text-danger font-semibold ml-2">Reload</button>
+              </div>
+            )}
+            {children}
+          </div>
         </main>
       </div>
 

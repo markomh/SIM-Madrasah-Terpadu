@@ -29,9 +29,7 @@ class TemplateSuratController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        if (! $this->accessService->canManageSurat(auth()->user())) {
-            abort(403, 'Akses ditolak: Hanya Admin, Operator Kesiswaan, atau Kepala Madrasah yang berhak mengelola template surat.');
-        }
+        $this->authorize('create', TemplateSurat::class);
 
         $tenantId = app('currentTenant')?->id_madrasah;
 
@@ -63,11 +61,8 @@ class TemplateSuratController extends Controller
 
     public function update(Request $request, string $id): JsonResponse
     {
-        if (! $this->accessService->canManageSurat(auth()->user())) {
-            abort(403, 'Akses ditolak: Hanya Admin, Operator Kesiswaan, atau Kepala Madrasah yang berhak mengelola template surat.');
-        }
-
         $template = TemplateSurat::where('id_template', $id)->firstOrFail();
+        $this->authorize('update', $template);
         $tenantId = app('currentTenant')?->id_madrasah;
 
         $isiTemplate = $request->input('isi_template') ?? $request->input('body_template') ?? $template->isi_template;
@@ -97,11 +92,8 @@ class TemplateSuratController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        if (! $this->accessService->canManageSurat(auth()->user())) {
-            abort(403, 'Akses ditolak: Hanya Admin, Operator Kesiswaan, atau Kepala Madrasah yang berhak mengelola template surat.');
-        }
-
         $template = TemplateSurat::where('id_template', $id)->firstOrFail();
+        $this->authorize('delete', $template);
         $template->delete();
 
         return response()->json(['message' => 'Template surat berhasil dihapus']);

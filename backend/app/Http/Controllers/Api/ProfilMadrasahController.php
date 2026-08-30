@@ -23,9 +23,7 @@ class ProfilMadrasahController extends Controller
 
     public function update(Request $request): JsonResponse
     {
-        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
-            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang berhak mengubah profil madrasah.');
-        }
+        $this->authorize('update', ProfilMadrasah::class);
 
         $request->validate([
             'nama_madrasah' => 'required|string|max:150',

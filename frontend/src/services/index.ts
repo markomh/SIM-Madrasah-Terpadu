@@ -31,13 +31,11 @@ import { persuratanApi } from "./persuratan.api";
 import { persetujuanApi } from "./persetujuan.api";
 import { wawasanApi } from "./wawasan.api";
 import { pengaturanApi } from "./pengaturan.api";
-import {
-  wilayahApi,
-  penugasanJabatanApi,
-  lembagaApi,
-  mutasiApi,
-  keanggotaanApi,
-} from "./remaining-api";
+import { wilayahApi } from "./wilayah.api";
+import { penugasanJabatanApi } from "./penugasan-jabatan.api";
+import { lembagaApi } from "./lembaga.api";
+import { mutasiApi } from "./mutasi.api";
+import { keanggotaanApi } from "./keanggotaan.api";
 import { loadStore, resetStore, SIMULATE_ERROR_KEY } from "./store";
 
 import { madrasahMock } from "./madrasah.mock";
@@ -56,7 +54,7 @@ import { EkstrakurikulerService } from "./ekstrakurikuler.service";
 import { penugasanJabatanService } from "./penugasan-jabatan.service";
 import { LembagaServiceInterface } from "./lembaga.service";
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
 
 /**
  * Single entry point for services — Swaps between Live Backend API (Tahap 2) and Mock (Tahap 1)
