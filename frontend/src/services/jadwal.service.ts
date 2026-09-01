@@ -6,4 +6,5 @@ export interface JadwalService {
   update(id_jadwal: string, data: Partial<Omit<JadwalPelajaran, "id_jadwal">>): Promise<JadwalPelajaran>;
   remove(id_jadwal: string): Promise<void>;
   detectConflicts(candidate: Omit<JadwalPelajaran, "id_jadwal">, excludeId?: string): Promise<JadwalPelajaran[]>;
+  getAllKonflik?(): Promise<any[]>;
 }

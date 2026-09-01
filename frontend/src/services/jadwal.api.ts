@@ -42,4 +42,8 @@ export const jadwalApi = {
     const res = await apiClient.get<{ total_jtm: number }>(`/jadwal/jtm-terjadwal?id_pegawai=${idPegawai}&semester=${semester}`);
     return res.total_jtm;
   },
+
+  getAllKonflik: async (): Promise<any[]> => {
+    return apiClient.get<any[]>("/jadwal/konflik");
+  },
 };
