@@ -1,9 +1,3 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
-
 # AGENTS.md
 
 ## 1. Source of Truth
@@ -18,9 +12,48 @@ Jangan membuat aturan domain baru jika belum ada di dokumen acuan.
 
 Jika terjadi konflik antar dokumen: **STOP dan laporkan `CONTRACT GAP`**. Jangan menebak.
 
+### SSoT Authority & Derived Artifacts
+
+Only the following documents are normative sources of truth:
+
+1. `doc/SIM_Madrasah_Terpadu_SRS_v2.md`
+2. `doc/FRONTEND.md`
+3. `doc/backend.md`
+
+All other artifacts, including but not limited to:
+
+- `contract_matrix.csv`
+- `application_contract_inventory.csv`
+- audit reports
+- QA reports
+- test results
+- implementation/codebase
+- generated inventories
+- agent analysis
+
+are DERIVED ARTIFACTS or EVIDENCE.
+
+They MUST NOT be treated as an additional source of truth and MUST NOT override, redefine, or create business, access, UI, API, database, or workflow contracts.
+
+If a derived artifact conflicts with an SSoT document:
+
+`DERIVED ARTIFACT DRIFT`
+
+Fix the derived artifact. Do not modify the SSoT automatically.
+
+If two or more SSoT documents conflict:
+
+`CONTRACT GAP`
+
+STOP implementation and report the conflict.
+
+The AI MUST NOT decide which SSoT is correct unless an explicit business or architecture decision has been provided by the project owner.
+
 ### Synchronized Decision Logging
 
 Setiap keputusan arsitektural, penyesuaian tipe data, atau deviasi resmi wajib dicatat secara simultan pada `doc/FRONTEND.md` (Bab 9), `doc/backend.md` (Bab 8 & 12).
+
+
 
 ---
 
@@ -122,11 +155,13 @@ Contoh: Guru hanya dapat mengelola nilai sesuai jadwal/mapel/rombel yang sah.
 
 AI **dilarang mengarang permission**.
 
-Permission hanya boleh berasal dari:
+Permission normatif hanya boleh berasal dari SSoT:
 
 1. SRS
 2. `FRONTEND.md`
-3. access matrix yang telah disetujui
+3. `backend.md` untuk enforcement/authorization backend
+
+Access matrix yang telah disetujui hanya merupakan DERIVED ARTIFACT untuk traceability dan verification. Access matrix tidak boleh override, redefine, atau membuat permission baru yang tidak didukung SSoT.
 
 Jika permission tidak jelas:
 
@@ -291,6 +326,31 @@ Selalu:
 
 ---
 
+### Contract Gap Execution Gate
+
+For tasks involving architecture, access control, business rules, API contracts, workflow, database contracts, or cross-layer consistency:
+
+```text
+AUDIT
+→ CLASSIFY
+→ CONTRACT GAP?
+   ├─ YES → STOP → BUSINESS/ARCHITECTURE DECISION
+   │                    ↓
+   │                 UPDATE SSoT
+   │                    ↓
+   │              SYNCHRONIZE SSoT
+   │                    ↓
+   │               CONTRACT FREEZE
+   │
+   └─ NO  → APPROVAL
+              ↓
+           IMPLEMENT
+              ↓
+            VERIFY
+
+
+```
+
 ## 11. Output Rules
 
 Saat audit:
@@ -321,6 +381,24 @@ NEEDS REVIEW
 Jangan menyamarkan asumsi sebagai fakta.
 
 ---
+
+```
+### Audit Finding Classification
+
+Every audit finding MUST be classified before implementation.
+
+Allowed classifications:
+
+```text
+IMPLEMENTATION DEFECT
+DERIVED ARTIFACT DRIFT
+DOCUMENTATION DEFECT
+CONTRACT GAP
+ACCESS GAP
+API CONTRACT GAP
+SECURITY/TENANT GAP
+TEST GAP
+NEEDS REVIEW
 
 ## 12. Minimal Change Principle
 

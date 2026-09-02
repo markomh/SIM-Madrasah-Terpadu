@@ -133,6 +133,30 @@ class AuthorizationGuardTest extends TestCase
             ->assertForbidden();
     }
 
+    /** @test */
+    public function operator_kesiswaan_berhak_memproses_kenaikan_kelas(): void
+    {
+        $operator = Pegawai::where('email', 'operator@mts-terpadu.sch.id')->firstOrFail();
+        $rombel = Rombel::firstOrFail();
+        $tahun  = TahunAjaran::firstOrFail();
+        $siswa  = Siswa::firstOrFail();
+
+        $response = $this->actingAs($operator, 'sanctum')
+            ->postJson('/api/v1/kenaikan-kelas/proses', [
+                'id_rombel_asal'   => $rombel->id_rombel,
+                'id_rombel_tujuan' => $rombel->id_rombel,
+                'id_tahun_tujuan'  => $tahun->id_tahun,
+                'daftar_siswa'     => [
+                    [
+                        'id_siswa' => $siswa->id_siswa,
+                        'status'   => 'Lulus',
+                    ],
+                ],
+            ]);
+
+        $this->assertNotEquals(403, $response->getStatusCode());
+    }
+
     // ==========================================
     // Tambahan Uji Negatif untuk 9 Controller Patch
     // ==========================================

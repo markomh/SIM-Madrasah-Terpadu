@@ -6,7 +6,7 @@ export type PermissionKey =
   | "persetujuan.approve_reject_pindah_rombel"
   | "persetujuan.approve_reject_mutasi"
   | "kesiswaan.crud_siswa"
-  | "kesiswaan.list_kenaikan_kelas_data"
+  | "kesiswaan.kenaikan_kelas.view"
   | "kesiswaan.process_execute_kenaikan_kelas"
   | "kesiswaan.submit_pindah_rombel_request"
   | "kesiswaan.submit_mutasi"
@@ -24,8 +24,7 @@ export type PermissionKey =
   | "wawasan.view_ai_insights"
   | "referensi.crud_tahun_ajaran_mata_pelajaran_tingkat_hari_libur_activate_tahun_ajaran"
   | "referensi.read_provinsi_kabupaten_kecamatan_desa"
-  | "akun.assign_revoke_jabatan_privilege_grant_"
-  | "kesiswaan.kenaikan_kelas.view";
+  | "akun.assign_revoke_jabatan_privilege_grant_";
 
 export const PERMISSION_REGISTRY: Record<PermissionKey, {
   roles: string[];
@@ -52,13 +51,13 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
     makerChecker: null,
     uiClass: "shared",
   },
-  "kesiswaan.list_kenaikan_kelas_data": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Guru BK"],
+  "kesiswaan.kenaikan_kelas.view": {
+    roles: ["Admin","Operator","Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "kesiswaan.process_execute_kenaikan_kelas": {
-    roles: ["Admin","Operator"],
+    roles: ["Admin","Operator","Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
@@ -144,11 +143,6 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
   },
   "akun.assign_revoke_jabatan_privilege_grant_": {
     roles: ["Admin"],
-    makerChecker: null,
-    uiClass: "shared",
-  },
-  "kesiswaan.kenaikan_kelas.view": {
-    roles: ["Admin","Operator","Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },

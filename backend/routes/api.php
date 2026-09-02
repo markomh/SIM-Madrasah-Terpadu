@@ -120,7 +120,7 @@ Route::prefix('v1')->group(function () {
         // ============================================================
         Route::prefix('kenaikan-kelas')->controller(\App\Http\Controllers\Api\KenaikanKelasController::class)->group(function () {
             Route::get('/', 'index');
-            Route::post('proses', 'proses'); // Atomic multi-rombel promotion (Kamad only)
+            Route::post('proses', 'proses'); // Atomic multi-rombel promotion (Admin/Kamad/Operator)
             Route::post('pemetaan', 'setPemetaan');
             Route::post('proses-massal', 'prosesMassal');
         });
@@ -128,6 +128,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('pindah-rombel')->controller(\App\Http\Controllers\Api\PindahRombelController::class)->group(function () {
             Route::get('/', 'index');
             Route::post('/', 'store');
+            Route::post('massal', [\App\Http\Controllers\Api\KenaikanKelasController::class, 'prosesMassal']);
         });
 
 

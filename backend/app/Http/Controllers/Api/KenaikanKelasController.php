@@ -36,9 +36,9 @@ class KenaikanKelasController extends Controller
      */
     public function proses(Request $request): JsonResponse
     {
-        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+        if (! $this->accessService->isAdminOrOpsOrKamad(auth()->user())) {
             return response()->json([
-                'message' => 'Akses ditolak: Hanya Kepala Madrasah atau Admin Madrasah yang berhak memproses kenaikan kelas.',
+                'message' => 'Akses ditolak: Hanya Admin, Kamad, atau Operator Kesiswaan yang berhak memproses kenaikan kelas.',
             ], 403);
         }
         $request->validate([
@@ -109,7 +109,7 @@ class KenaikanKelasController extends Controller
 
     public function setPemetaan(Request $request): JsonResponse
     {
-        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+        if (! $this->accessService->isAdminOrOpsOrKamad(auth()->user())) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
@@ -140,7 +140,7 @@ class KenaikanKelasController extends Controller
 
     public function prosesMassal(Request $request): JsonResponse
     {
-        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+        if (! $this->accessService->isAdminOrOpsOrKamad(auth()->user())) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
         $request->validate([
