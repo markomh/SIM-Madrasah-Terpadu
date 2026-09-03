@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Pegawai;
+use App\Enums\JenisJabatan;
 
 /**
  * PegawaiAccessService
@@ -23,13 +24,13 @@ class PegawaiAccessService
     {
         if ($pegawai->relationLoaded('penugasanAktif')) {
             return $pegawai->penugasanAktif
-                ->where('jenis_jabatan', 'Kepala Madrasah')
+                ->where('jenis_jabatan', JenisJabatan::KEPALA_MADRASAH->value)
                 ->where('status', 'Aktif')
                 ->isNotEmpty();
         }
 
         return $pegawai->penugasanAktif()
-            ->where('jenis_jabatan', 'Kepala Madrasah')
+            ->where('jenis_jabatan', JenisJabatan::KEPALA_MADRASAH->value)
             ->exists();
     }
 
@@ -37,13 +38,13 @@ class PegawaiAccessService
     {
         if ($pegawai->relationLoaded('penugasanAktif')) {
             return $pegawai->penugasanAktif
-                ->where('jenis_jabatan', 'Admin Madrasah')
+                ->where('jenis_jabatan', JenisJabatan::ADMIN_MADRASAH->value)
                 ->where('status', 'Aktif')
                 ->isNotEmpty();
         }
 
         return $pegawai->penugasanAktif()
-            ->where('jenis_jabatan', 'Admin Madrasah')
+            ->where('jenis_jabatan', JenisJabatan::ADMIN_MADRASAH->value)
             ->exists();
     }
 
@@ -51,13 +52,13 @@ class PegawaiAccessService
     {
         if ($pegawai->relationLoaded('penugasanAktif')) {
             return $pegawai->penugasanAktif
-                ->where('jenis_jabatan', 'Operator Kesiswaan')
+                ->where('jenis_jabatan', JenisJabatan::OPERATOR_KESISWAAN->value)
                 ->where('status', 'Aktif')
                 ->isNotEmpty();
         }
 
         return $pegawai->penugasanAktif()
-            ->where('jenis_jabatan', 'Operator Kesiswaan')
+            ->where('jenis_jabatan', JenisJabatan::OPERATOR_KESISWAAN->value)
             ->exists();
     }
 
@@ -65,13 +66,13 @@ class PegawaiAccessService
     {
         if ($pegawai->relationLoaded('penugasanAktif')) {
             return $pegawai->penugasanAktif
-                ->where('jenis_jabatan', 'Guru BK')
+                ->where('jenis_jabatan', JenisJabatan::GURU_BK->value)
                 ->where('status', 'Aktif')
                 ->isNotEmpty();
         }
 
         return $pegawai->penugasanAktif()
-            ->where('jenis_jabatan', 'Guru BK')
+            ->where('jenis_jabatan', JenisJabatan::GURU_BK->value)
             ->exists();
     }
 

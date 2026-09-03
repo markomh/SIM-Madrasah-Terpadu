@@ -3,11 +3,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { CheckCircle2, CheckCheck, ClipboardCheck } from "lucide-react";
 import {
-  SurfaceCard,
+  FormCard,
   ActionButton,
   ErrorBlock,
   Field,
   inputClass,
+  Button,
+  Textarea,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import type {
@@ -151,7 +153,7 @@ export function PresensiSesiForm({
   const alpaCount = students.filter((s) => s.status === "Alpa").length;
 
   return (
-    <SurfaceCard
+    <FormCard
       className="p-5 shadow-sm"
       title={`Presensi: ${selectedMapel?.nama_mapel ?? "Mapel"} (${selectedJadwal?.jam_mulai ?? ""}–${selectedJadwal?.jam_selesai ?? ""})`}
     >
@@ -241,29 +243,30 @@ export function PresensiSesiForm({
                 </div>
 
                 {/* Prompt Catatan */}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={(e) => promptCatatan(idx, e)}
-                  className="absolute bottom-1 right-1 p-0.5 text-[10px] opacity-40 hover:opacity-100 font-bold"
+                  className="absolute bottom-1 right-1 p-0.5 text-[10px] opacity-40 hover:opacity-100 font-bold h-auto min-w-0"
                   title="Tambah Catatan Tambahan"
                 >
                   {s.catatan ? "📝" : "••"}
-                </button>
+                </Button>
               </div>
             );
           })}
         </div>
 
         {/* Jurnal Materi Sesi */}
-        <Field label="Jurnal & Materi Pembelajaran (Tercatat Otomatis)">
-          <textarea
-            className={`${inputClass} min-h-[75px] py-2 text-xs ${!canAccess ? "bg-paper/80 cursor-not-allowed text-muted" : ""}`}
-            placeholder="Deskripsikan secara ringkas topik pembahasan, materi, atau tugas yang diberikan pada sesi KBM ini..."
-            value={materiJurnal}
-            readOnly={!canAccess}
-            onChange={(e) => setMateriJurnal(e.target.value)}
-          />
-        </Field>
+        <Textarea
+          label="Jurnal & Materi Pembelajaran (Tercatat Otomatis)"
+          className={`min-h-[75px] py-2 text-xs ${!canAccess ? "bg-paper/80 cursor-not-allowed text-muted" : ""}`}
+          placeholder="Deskripsikan secara ringkas topik pembahasan, materi, atau tugas yang diberikan pada sesi KBM ini..."
+          value={materiJurnal}
+          readOnly={!canAccess}
+          onChange={(e) => setMateriJurnal(e.target.value)}
+        />
 
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <span className="text-xs text-muted">
@@ -281,6 +284,6 @@ export function PresensiSesiForm({
           </ActionButton>
         </div>
       </form>
-    </SurfaceCard>
+    </FormCard>
   );
 }

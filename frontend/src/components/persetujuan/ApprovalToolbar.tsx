@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeftRight, Shield, FileText, CheckSquare, Square } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ApprovalToolbarProps {
   activeTab: "all" | "pindah_rombel" | "mutasi" | "surat_dinas";
@@ -12,6 +13,7 @@ interface ApprovalToolbarProps {
   filteredCount: number;
   selectedCount: number;
   onToggleSelectAll: () => void;
+  isKamad?: boolean;
 }
 
 export function ApprovalToolbar({
@@ -24,70 +26,65 @@ export function ApprovalToolbar({
   filteredCount,
   selectedCount,
   onToggleSelectAll,
+  isKamad = true,
 }: ApprovalToolbarProps) {
   const isAllSelected = filteredCount > 0 && selectedCount === filteredCount;
 
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <button
+        <Button
           type="button"
+          variant={activeTab === "all" ? "primary" : "secondary"}
+          size="sm"
           onClick={() => setActiveTab("all")}
-          className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
-            activeTab === "all"
-              ? "bg-primary text-white shadow-sm"
-              : "border border-border bg-surface text-ink hover:bg-paper"
-          }`}
+          className="flex items-center gap-1.5 font-bold"
         >
           <span>Semua Pengajuan</span>
           <span className="rounded-full bg-black/15 px-1.5 py-0.2 text-[10px]">{totalCount}</span>
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant={activeTab === "pindah_rombel" ? "primary" : "secondary"}
+          size="sm"
           onClick={() => setActiveTab("pindah_rombel")}
-          className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
-            activeTab === "pindah_rombel"
-              ? "bg-primary text-white shadow-sm"
-              : "border border-border bg-surface text-ink hover:bg-paper"
-          }`}
+          className="flex items-center gap-1.5 font-bold"
         >
           <ArrowLeftRight size={13} />
           <span>Pindah Rombel Lintas Tingkat</span>
           <span className="rounded-full bg-black/15 px-1.5 py-0.2 text-[10px]">{pindahCount}</span>
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant={activeTab === "mutasi" ? "primary" : "secondary"}
+          size="sm"
           onClick={() => setActiveTab("mutasi")}
-          className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
-            activeTab === "mutasi"
-              ? "bg-primary text-white shadow-sm"
-              : "border border-border bg-surface text-ink hover:bg-paper"
-          }`}
+          className="flex items-center gap-1.5 font-bold"
         >
           <Shield size={13} />
           <span>Mutasi Masuk / Keluar</span>
           <span className="rounded-full bg-black/15 px-1.5 py-0.2 text-[10px]">{mutasiCount}</span>
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant={activeTab === "surat_dinas" ? "primary" : "secondary"}
+          size="sm"
           onClick={() => setActiveTab("surat_dinas")}
-          className={`flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
-            activeTab === "surat_dinas"
-              ? "bg-primary text-white shadow-sm"
-              : "border border-border bg-surface text-ink hover:bg-paper"
-          }`}
+          className="flex items-center gap-1.5 font-bold"
         >
           <FileText size={13} />
           <span>Surat Dinas</span>
           <span className="rounded-full bg-black/15 px-1.5 py-0.2 text-[10px]">{suratCount}</span>
-        </button>
+        </Button>
       </div>
 
-      {filteredCount > 0 && (
-        <button
+      {isKamad && filteredCount > 0 && (
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={onToggleSelectAll}
-          className="flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-paper"
+          className="flex items-center gap-1.5 text-xs font-semibold"
         >
           {isAllSelected ? (
             <CheckSquare size={14} className="text-primary" />
@@ -97,7 +94,7 @@ export function ApprovalToolbar({
           <span>
             {isAllSelected ? "Batalkan Pilihan Semua" : "Pilih Semua Pengajuan"}
           </span>
-        </button>
+        </Button>
       )}
     </div>
   );

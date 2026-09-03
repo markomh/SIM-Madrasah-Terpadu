@@ -8,7 +8,7 @@ import { isAdminMadrasah, isKepalaMadrasah } from "@/lib/access";
 import {
   SurfaceCard,
   LoadingBlock,
-  inputClass,
+  Select,
 } from "@/components/ui/primitives";
 import type { Pegawai, Rombel, MataPelajaran, Siswa } from "@/types";
 import type { NilaiSiswa } from "@/types/nilai";
@@ -64,9 +64,9 @@ export function RekapWaliKelasPanel({ currentUser }: RekapWaliKelasPanelProps) {
     <SurfaceCard className="p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 mb-4">
         <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-ink uppercase">Rombel Monitoring:</label>
-          <select
-            className={`${inputClass} text-xs font-bold w-48`}
+          <Select
+            label="Rombel Monitoring"
+            className="text-xs font-bold w-48"
             value={selectedRombelId}
             onChange={(e) => setSelectedRombelId(e.target.value)}
           >
@@ -75,7 +75,7 @@ export function RekapWaliKelasPanel({ currentUser }: RekapWaliKelasPanelProps) {
                 {r.nama_rombel} {r.id_wali_kelas === currentUser.id_pegawai ? "(Binaan Anda)" : ""}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <span className="text-xs text-muted">

@@ -1,7 +1,8 @@
 "use client";
 
 import { Layers } from "lucide-react";
-import { SurfaceCard, Field, inputClass } from "@/components/ui/primitives";
+import { SurfaceCard, Select, inputClass } from "@/components/ui/primitives";
+import { SearchInput } from "@/components/ui/search-input";
 import type { Rombel } from "@/types";
 
 interface SiswaRow {
@@ -49,38 +50,35 @@ export function KenaikanAsalPanel({
   return (
     <SurfaceCard title="1. Filter & Pilih Siswa Rombel Asal">
       <div className="mb-4 grid grid-cols-2 gap-3">
-        <Field label="Filter Tingkat Asal" helperText="Tingkat kelas">
-          <select
-            className={inputClass}
-            value={selectedTingkatAsal}
-            onChange={(e) => {
-              setSelectedTingkatAsal(e.target.value);
-              setAsalRombelId("");
-            }}
-          >
-            <option value="">— Semua Tingkat —</option>
-            {availableTingkatNumbers.map((num) => (
-              <option key={num} value={String(num)}>
-                Tingkat {num}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Select
+          label="Filter Tingkat Asal"
+          helperText="Tingkat kelas"
+          value={selectedTingkatAsal}
+          onChange={(e) => {
+            setSelectedTingkatAsal(e.target.value);
+            setAsalRombelId("");
+          }}
+        >
+          <option value="">— Semua Tingkat —</option>
+          {availableTingkatNumbers.map((num) => (
+            <option key={num} value={String(num)}>
+              Tingkat {num}
+            </option>
+          ))}
+        </Select>
 
-        <Field label="Rombel Asal">
-          <select
-            className={inputClass}
-            value={asalRombelId}
-            onChange={(e) => setAsalRombelId(e.target.value)}
-          >
-            <option value="">— Pilih Rombel Asal —</option>
-            {filteredRombelAsal.map((r) => (
-              <option key={r.id_rombel} value={r.id_rombel}>
-                {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Select
+          label="Rombel Asal"
+          value={asalRombelId}
+          onChange={(e) => setAsalRombelId(e.target.value)}
+        >
+          <option value="">— Pilih Rombel Asal —</option>
+          {filteredRombelAsal.map((r) => (
+            <option key={r.id_rombel} value={r.id_rombel}>
+              {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+            </option>
+          ))}
+        </Select>
       </div>
 
       {asalRombelId ? (

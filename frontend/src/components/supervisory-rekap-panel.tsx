@@ -194,14 +194,16 @@ export function SupervisoryRekapPanel({ tanggal }: SupervisoryRekapPanelProps) {
                       <td className="p-3 text-right">
                         {detail.status === "Tidak Terlaksana" && (
                           <ActionGuard can={canManageKedisiplinan} fallback="hide">
-                            <button
+                            <Button
                               type="button"
+                              variant="primary"
+                              size="sm"
                               onClick={() => handleRemindGuru(detail.nama_guru_seharusnya, detail.rombel, detail.mapel)}
-                              className="inline-flex items-center gap-1 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded hover:bg-primary-hover shadow-sm transition"
+                              className="inline-flex items-center gap-1 text-[10px] font-bold py-1 px-2 h-auto"
                             >
                               <Bell size={11} />
                               <span>Ingatkan Guru</span>
-                            </button>
+                            </Button>
                           </ActionGuard>
                         )}
                       </td>

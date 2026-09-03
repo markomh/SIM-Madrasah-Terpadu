@@ -300,13 +300,15 @@ export default function PegawaiPage() {
           {importFile && (
             <div className="rounded-[4px] bg-primary-soft p-3 text-xs text-primary flex items-center justify-between">
               <span className="font-medium">Berkas siap diimpor: {importFile.name}</span>
-              <button
+              <Button
                 type="button"
-                className="text-danger hover:underline text-xs"
+                variant="ghost"
+                size="sm"
+                className="text-danger hover:underline text-xs p-0 h-auto"
                 onClick={() => setImportFile(null)}
               >
                 Hapus
-              </button>
+              </Button>
             </div>
           )}
         </div>

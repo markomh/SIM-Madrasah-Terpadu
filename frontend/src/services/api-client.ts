@@ -40,8 +40,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}, schema?: 
       headers,
       signal: controller.signal,
     });
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') {
       const errorMessage = "Koneksi terputus: Waktu permintaan habis (Network Degradation)";
       if (typeof window !== "undefined") {
         window.dispatchEvent(

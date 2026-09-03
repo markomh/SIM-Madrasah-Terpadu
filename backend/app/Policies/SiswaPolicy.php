@@ -26,7 +26,7 @@ class SiswaPolicy
      */
     public function viewAny(Pegawai $user): bool
     {
-        return true;
+        return $user->status_pegawai === 'Aktif';
     }
 
     /**
@@ -34,7 +34,7 @@ class SiswaPolicy
      */
     public function view(Pegawai $user, Siswa $siswa): bool
     {
-        return true;
+        return $user->status_pegawai === 'Aktif' && $user->id_madrasah === $siswa->id_madrasah;
     }
 
     /**

@@ -31,6 +31,7 @@ import {
   PageHeader,
   StatusBadge,
   SurfaceCard,
+  Select,
   inputClass,
 } from "@/components/ui/primitives";
 import { Combobox } from "@/components/ui/combobox";
@@ -321,7 +322,7 @@ function DetailSiswaContent() {
           {/* DETAIL VIEW (READ-ONLY PROFILE)                                      */}
           {/* ════════════════════════════════════════════════════════════════════ */}
           {mode === "detail" && (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 items-start">
               {/* Card 1: Identitas Pribadi */}
               <SurfaceCard
                 title="Data Identitas & Biodata"
@@ -353,14 +354,16 @@ function DetailSiswaContent() {
                       <span className="tabular font-mono text-ink">
                         {showNik ? siswa.nik : maskNik(siswa.nik)}
                       </span>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setShowNik(!showNik)}
-                        className="text-muted hover:text-ink focus:outline-none"
+                        className="text-muted hover:text-ink focus:outline-none p-0 h-auto min-w-0"
                         title={showNik ? "Sembunyikan NIK" : "Tampilkan NIK lengkap"}
                       >
                         {showNik ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
+                      </Button>
                     </dd>
                   </div>
                   <div>
@@ -506,30 +509,28 @@ function DetailSiswaContent() {
                     {...register("tanggal_lahir")}
                   />
                 </Field>
-                <Field label="Jenis Kelamin" error={errors.jenis_kelamin?.message}>
-                  <select
-                    className={inputClass}
-                    disabled={!canEdit}
-                    {...register("jenis_kelamin")}
-                  >
-                    <option value="L">Laki-laki</option>
-                    <option value="P">Perempuan</option>
-                  </select>
-                </Field>
-                <Field label="Agama" error={errors.agama?.message}>
-                  <select
-                    className={inputClass}
-                    disabled={!canEdit}
-                    {...register("agama")}
-                  >
-                    <option value="Islam">Islam</option>
-                    <option value="Kristen">Kristen</option>
-                    <option value="Katolik">Katolik</option>
-                    <option value="Hindu">Hindu</option>
-                    <option value="Buddha">Buddha</option>
-                    <option value="Khonghucu">Khonghucu</option>
-                  </select>
-                </Field>
+                <Select
+                  label="Jenis Kelamin"
+                  error={errors.jenis_kelamin?.message}
+                  disabled={!canEdit}
+                  {...register("jenis_kelamin")}
+                >
+                  <option value="L">Laki-laki</option>
+                  <option value="P">Perempuan</option>
+                </Select>
+                <Select
+                  label="Agama"
+                  error={errors.agama?.message}
+                  disabled={!canEdit}
+                  {...register("agama")}
+                >
+                  <option value="Islam">Islam</option>
+                  <option value="Kristen">Kristen</option>
+                  <option value="Katolik">Katolik</option>
+                  <option value="Hindu">Hindu</option>
+                  <option value="Buddha">Buddha</option>
+                  <option value="Khonghucu">Khonghucu</option>
+                </Select>
 
                 {/* Wilayah Alamat Berjenjang */}
                 <div className="md:col-span-2 grid gap-4 md:grid-cols-4 p-4 border border-border rounded-[6px] bg-paper">
@@ -608,28 +609,26 @@ function DetailSiswaContent() {
                   </Field>
                 </div>
 
-                <Field label="Status Siswa" error={errors.status_siswa?.message}>
-                  <select
-                    className={inputClass}
-                    disabled={!canEdit}
-                    {...register("status_siswa")}
-                  >
-                    <option value="Aktif">Aktif</option>
-                    <option value="Lulus">Lulus</option>
-                    <option value="Mutasi Keluar">Mutasi Keluar</option>
-                    <option value="Drop Out">Drop Out</option>
-                  </select>
-                </Field>
-                <Field label="Jalur Masuk" error={errors.jalur_masuk?.message}>
-                  <select
-                    className={inputClass}
-                    disabled={!canEdit}
-                    {...register("jalur_masuk")}
-                  >
-                    <option value="PPDB Reguler">PPDB Reguler</option>
-                    <option value="Mutasi Masuk">Mutasi Masuk</option>
-                  </select>
-                </Field>
+                <Select
+                  label="Status Siswa"
+                  error={errors.status_siswa?.message}
+                  disabled={!canEdit}
+                  {...register("status_siswa")}
+                >
+                  <option value="Aktif">Aktif</option>
+                  <option value="Lulus">Lulus</option>
+                  <option value="Mutasi Keluar">Mutasi Keluar</option>
+                  <option value="Drop Out">Drop Out</option>
+                </Select>
+                <Select
+                  label="Jalur Masuk"
+                  error={errors.jalur_masuk?.message}
+                  disabled={!canEdit}
+                  {...register("jalur_masuk")}
+                >
+                  <option value="PPDB Reguler">PPDB Reguler</option>
+                  <option value="Mutasi Masuk">Mutasi Masuk</option>
+                </Select>
 
                 <div className="md:col-span-2 flex items-center justify-end gap-3 border-t border-border pt-4 mt-2">
                   <Button

@@ -1,4 +1,6 @@
-import type { PenugasanJabatan, JenisJabatan, Rombel, Ekstrakurikuler, JadwalPelajaran } from "@/types";
+import type { PenugasanJabatan, JenisJabatan, Rombel, Ekstrakurikuler, JadwalPelajaran, AuthUser } from "@/types";
+
+export type CapabilityAction = "read" | "create" | "update" | "delete" | "approve" | "export";
 
 export function hasJabatan(idPegawai: string, jenis: JenisJabatan, list?: PenugasanJabatan[]): boolean {
   if (!idPegawai || !Array.isArray(list)) return false;
@@ -45,5 +47,56 @@ export function isPengajar(
 export function isPengajarAktif(idPegawai: string, jadwalList?: JadwalPelajaran[]): boolean {
   if (!idPegawai || !Array.isArray(jadwalList)) return false;
   return jadwalList.some((j) => j.id_pegawai === idPegawai);
+}
+
+/**
+ * Capability-aware Access Model (Page Access -> Data Access -> Action Capability)
+ */
+export interface UserAccessContext {
+  currentUser: AuthUser | null;
+  penugasanList?: PenugasanJabatan[];
+  rombelList?: Rombel[];
+  ekstraList?: Ekstrakurikuler[];
+  jadwalList?: JadwalPelajaran[];
+}
+
+export function canApprove(ctx: UserAccessContext): boolean {
+  const id = ctx.currentUser?.id_pegawai ?? "";
+  if (!id) return false;
+  const caps = ctx.currentUser?.capabilities;
+  if (caps) return caps.isKepalaMadrasah;
+  return isKepalaMadrasah(id, ctx.penugasanList);
+}
+
+export function canCreate(ctx: UserAccessContext): boolean {
+  const id = ctx.currentUser?.id_pegawai ?? "";
+  if (!id) return false;
+  const caps = ctx.currentUser?.capabilities;
+  if (caps) return caps.isAdminMadrasah || caps.isOperatorKesiswaan || caps.isKepalaMadrasah;
+  return (
+    isAdminMadrasah(id, ctx.penugasanList) ||
+    isOperatorKesiswaan(id, ctx.penugasanList) ||
+    isKepalaMadrasah(id, ctx.penugasanList)
+  );
+}
+
+export function canUpdate(ctx: UserAccessContext): boolean {
+  return canCreate(ctx);
+}
+
+export function canDelete(ctx: UserAccessContext): boolean {
+  const id = ctx.currentUser?.id_pegawai ?? "";
+  if (!id) return false;
+  const caps = ctx.currentUser?.capabilities;
+  if (caps) return caps.isAdminMadrasah;
+  return isAdminMadrasah(id, ctx.penugasanList);
+}
+
+export function canExport(ctx: UserAccessContext): boolean {
+  return canCreate(ctx);
+}
+
+export function canRead(ctx: UserAccessContext): boolean {
+  return !!ctx.currentUser;
 }
 

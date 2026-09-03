@@ -1,7 +1,7 @@
 "use client";
 
 import { Printer, X } from "lucide-react";
-import { PrimaryButton } from "@/components/ui/primitives";
+import { PrimaryButton, Button } from "@/components/ui/primitives";
 import { getInstitutionalRoutinesForDay, type BellSchedulePreset } from "@/lib/bell-schedule";
 import type { JadwalPelajaran, MataPelajaran, Pegawai, ProfilMadrasah, Rombel, TahunAjaran } from "@/types";
 
@@ -45,13 +45,15 @@ export function PrintJadwalModal({
               <Printer size={13} />
               <span>Cetak Dokumen</span>
             </PrimaryButton>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={onClose}
-              className="rounded p-1 text-xs font-bold text-muted hover:text-ink"
+              className="p-1 h-auto min-w-0"
             >
               <X size={14} />
-            </button>
+            </Button>
           </div>
         </div>
 

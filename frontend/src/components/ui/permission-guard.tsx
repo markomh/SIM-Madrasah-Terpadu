@@ -2,40 +2,20 @@
 
 import type { ReactNode } from "react";
 import { useAuth } from "@/components/auth-context";
-import {
-  isAdminMadrasah,
-  isKepalaMadrasah,
-  isOperatorKesiswaan,
-  isGuruBk,
-  isWaliKelas,
-  isPembinaEkstrakurikuler,
-  isPengajarAktif,
-  hasJabatan,
-} from "@/lib/access";
-import type { JenisJabatan } from "@/types";
+import { usePermission } from "@/hooks/usePermission";
+import type { PermissionKey } from "@/lib/permission-registry";
 
 export interface PermissionGuardProps {
   children: ReactNode;
   fallback?: ReactNode;
 
-  /** Memerlukan jabatan Admin Madrasah */
-  requireAdmin?: boolean;
-  /** Memerlukan jabatan Kepala Madrasah */
-  requireKamad?: boolean;
-  /** Memerlukan jabatan Operator Kesiswaan */
-  requireOperator?: boolean;
-  /** Memerlukan jabatan Guru BK */
-  requireGuruBk?: boolean;
-  /** Memerlukan status sebagai Wali Kelas di rombel manapun */
-  requireWaliKelas?: boolean;
-  /** Memerlukan status sebagai Pembina Ekstrakurikuler */
-  requirePembinaEkstra?: boolean;
-  /** Memerlukan status sebagai Pengajar aktif di jadwal manapun */
-  requirePengajarAktif?: boolean;
-  /** Memerlukan penugasan jabatan makro spesifik */
-  requireJabatan?: JenisJabatan;
+  /** Formal permission key from SSoT permission registry */
+  permission?: PermissionKey;
+  /** Direct capability flag evaluation */
+  can?: boolean;
+  capability?: boolean;
 
-  /** Fungsi kustom pemeriksa kapabilitas akses */
+  /** Custom capability check callback */
   check?: (ctx: ReturnType<typeof useAuth>) => boolean;
 }
 
@@ -47,40 +27,31 @@ export interface PermissionGuardProps {
 export function PermissionGuard({
   children,
   fallback = null,
-  requireAdmin,
-  requireKamad,
-  requireOperator,
-  requireGuruBk,
-  requireWaliKelas,
-  requirePembinaEkstra,
-  requirePengajarAktif: reqPengajar,
-  requireJabatan,
+  permission,
+  can,
+  capability,
   check,
 }: PermissionGuardProps) {
   const authCtx = useAuth();
-  const { currentUser, penugasanList } = authCtx;
+  const permGranted = usePermission(permission as PermissionKey);
 
-  if (!currentUser) return <>{fallback}</>;
+  if (!authCtx.currentUser) return <>{fallback}</>;
 
-  const caps = currentUser.capabilities;
-
-  // Evaluasi custom function jika diberikan
-  if (check && !check(authCtx)) {
+  if (permission && !permGranted) {
     return <>{fallback}</>;
   }
 
-  // Evaluasi spesifik jabatan makro dan status turunan berdasarkan SSoT backend (True DOM Removal Security)
-  if (requireAdmin && !caps?.isAdminMadrasah) return <>{fallback}</>;
-  if (requireKamad && !caps?.isKepalaMadrasah) return <>{fallback}</>;
-  if (requireOperator && !caps?.isOperatorKesiswaan) return <>{fallback}</>;
-  if (requireGuruBk && !caps?.isGuruBk) return <>{fallback}</>;
-  
-  if (requireWaliKelas && !caps?.isWaliKelas) return <>{fallback}</>;
-  if (requirePembinaEkstra && !caps?.isPembinaEkstrakurikuler) return <>{fallback}</>;
-  if (reqPengajar && !caps?.isPengajarAktif) return <>{fallback}</>;
+  if (can !== undefined && !can) {
+    return <>{fallback}</>;
+  }
 
-  // Evaluasi jabatan dinamis (fallback ke client-list jika dibutuhkan)
-  if (requireJabatan && !hasJabatan(currentUser.id_pegawai, requireJabatan, penugasanList)) return <>{fallback}</>;
+  if (capability !== undefined && !capability) {
+    return <>{fallback}</>;
+  }
+
+  if (check && !check(authCtx)) {
+    return <>{fallback}</>;
+  }
 
   return <>{children}</>;
 }

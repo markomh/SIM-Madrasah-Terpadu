@@ -7,6 +7,21 @@ use Ramsey\Uuid\Uuid;
 
 class RiwayatMutasi extends Model
 {
+    /**
+     * TENANT SCOPING: tabel ini TIDAK memiliki kolom id_madrasah,
+     * sehingga BelongsToTenant TIDAK boleh dipasang di sini.
+     *
+     * Isolasi tenant dijamin secara implisit via relasi ke Siswa:
+     * - MutasiController menggunakan whereHas('siswa') sehingga hanya
+     *   mutasi milik siswa di tenant aktif yang dikembalikan.
+     * - Siswa sudah memiliki BelongsToTenant global scope.
+     *
+     * Jika di masa depan ada query mutasi tanpa join siswa, tambahkan
+     * kolom id_madrasah ke tabel dan pasang trait ini.
+     *
+     * @see AGENTS.md Bab 3 — Multi-Tenant
+     * @see MutasiController::index() — whereHas('siswa')
+     */
     protected $table = 'riwayat_mutasi';
     protected $primaryKey = 'id_mutasi';
     public $incrementing = false;

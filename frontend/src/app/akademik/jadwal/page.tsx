@@ -34,6 +34,7 @@ import {
   PrimaryButton,
   SecondaryButton,
   SurfaceCard,
+  Select,
   inputClass,
 } from "@/components/ui/primitives";
 import { DataTable } from "@/components/ui/data-table";
@@ -357,9 +358,9 @@ export default function JadwalPage() {
             <AiLabel />
             <span className="font-medium">{aiNote}</span>
           </div>
-          <button type="button" onClick={() => setAiNote(null)} className="text-ai hover:opacity-75 font-bold p-1">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setAiNote(null)} className="text-ai hover:opacity-75 font-bold p-1 h-auto min-w-0">
             <X size={14} />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -369,9 +370,9 @@ export default function JadwalPage() {
             <CheckCircle2 size={16} />
             <span>{successMsg}</span>
           </div>
-          <button type="button" onClick={() => setSuccessMsg(null)} className="text-primary hover:opacity-75 font-bold p-1">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setSuccessMsg(null)} className="text-primary hover:opacity-75 font-bold p-1 h-auto min-w-0">
             <X size={14} />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -473,43 +474,43 @@ export default function JadwalPage() {
         <div className="flex flex-wrap items-center gap-2">
           {/* View Mode Switcher */}
           <div className="inline-flex rounded-md border border-border bg-paper p-0.5">
-            <button
+            <Button
               type="button"
+              variant={viewMode === "matrix" ? "primary" : "ghost"}
+              size="sm"
               onClick={() => setViewMode("matrix")}
-              className={`rounded px-2.5 py-1 text-xs font-semibold transition-all ${
-                viewMode === "matrix" ? "bg-surface text-primary shadow-xs" : "text-muted hover:text-ink"
-              }`}
+              className="text-xs font-semibold py-1 px-2.5 h-auto"
             >
               Matriks Mingguan
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={viewMode === "table" ? "primary" : "ghost"}
+              size="sm"
               onClick={() => setViewMode("table")}
-              className={`rounded px-2.5 py-1 text-xs font-semibold transition-all ${
-                viewMode === "table" ? "bg-surface text-primary shadow-xs" : "text-muted hover:text-ink"
-              }`}
+              className="text-xs font-semibold py-1 px-2.5 h-auto"
             >
               Daftar Tabular (EMIS)
-            </button>
+            </Button>
 
             {/* Audit JTM Button — Dedicated to Admin / OPS / Kamad only */}
             {canAuditJtm && (
-              <button
+              <Button
                 type="button"
+                variant={viewMode === "jtm" ? "primary" : "ghost"}
+                size="sm"
                 onClick={() => setViewMode("jtm")}
-                className={`rounded px-2.5 py-1 text-xs font-semibold transition-all ${
-                  viewMode === "jtm" ? "bg-surface text-primary shadow-xs" : "text-muted hover:text-ink"
-                }`}
+                className="text-xs font-semibold py-1 px-2.5 h-auto"
               >
                 Audit JTM Terjadwal
-              </button>
+              </Button>
             )}
           </div>
 
           {/* Rombel Filter */}
           {viewMode !== "jtm" && (
-            <select
-              className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink"
+            <Select
+              className="min-w-[140px]"
               value={selectedRombelFilter}
               onChange={(e) => setSelectedRombelFilter(e.target.value)}
             >
@@ -519,22 +520,20 @@ export default function JadwalPage() {
                   {r.nama_rombel}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
 
           {/* "Hanya Jadwal Saya" Quick Filter for Teachers */}
           {isPengajar && viewMode !== "jtm" && (
-            <button
+            <Button
               type="button"
+              variant={onlyMySchedule ? "primary" : "secondary"}
+              size="sm"
               onClick={() => setOnlyMySchedule(!onlyMySchedule)}
-              className={`rounded-md border px-2.5 py-1.5 text-xs font-bold transition-all ${
-                onlyMySchedule
-                  ? "border-primary bg-primary text-white shadow-xs"
-                  : "border-border bg-surface text-muted hover:text-ink"
-              }`}
+              className="text-xs font-bold"
             >
               Jadwal Saya ({currentSemesterJadwal.filter((j) => j.id_pegawai === currentUser?.id_pegawai).length})
-            </button>
+            </Button>
           )}
         </div>
 
@@ -640,22 +639,26 @@ export default function JadwalPage() {
                         </Link>
                         {canEdit && (
                           <>
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleOpenEdit(j)}
-                              className="rounded p-1 text-ink/70 hover:text-primary hover:bg-paper transition-colors"
+                              className="text-ink/70 hover:text-primary p-1 h-auto min-w-0"
                               title="Edit slot jadwal"
                             >
                               <Edit2 size={13} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => setDeletingId(j.id_jadwal)}
-                              className="rounded p-1 text-danger/60 hover:text-danger hover:bg-danger-soft transition-colors"
+                              className="text-danger/60 hover:text-danger p-1 h-auto min-w-0"
                               title="Hapus slot jadwal"
                             >
                               <Trash2 size={13} />
-                            </button>
+                            </Button>
                           </>
                         )}
                       </div>

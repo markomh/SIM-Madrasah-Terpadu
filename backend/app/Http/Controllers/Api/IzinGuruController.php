@@ -14,6 +14,10 @@ class IzinGuruController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin Madrasah atau Kepala Madrasah yang berhak melihat daftar izin guru.');
+        }
+
         $query = IzinGuru::whereHas('pegawai')->with(['pegawai', 'pegawaiPengganti', 'dicatatOleh']);
 
         if ($request->has('id_pegawai')) {
@@ -25,6 +29,10 @@ class IzinGuruController extends Controller
 
     public function show(string $id): JsonResponse
     {
+        if (! $this->accessService->isAdminOrKamad(auth()->user())) {
+            abort(403, 'Akses ditolak.');
+        }
+
         $izin = IzinGuru::whereHas('pegawai')->with(['pegawai', 'pegawaiPengganti', 'dicatatOleh'])->findOrFail($id);
 
         return response()->json(['data' => $izin]);

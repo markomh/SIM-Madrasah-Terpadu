@@ -17,10 +17,26 @@ class SuratController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $user = auth()->user();
+
+        // Role-aware read filter (SRS Bab 12 — Surat):
+        // Admin/Kamad: semua surat. Operator: semua kecuali Draf milik orang lain. Lainnya: 403.
+        if (! $this->accessService->isAdminOrKamad($user) && ! $this->accessService->isOperatorKesiswaan($user)) {
+            abort(403, 'Akses ditolak: Hanya Admin, Operator, atau Kepala Madrasah yang berhak melihat daftar surat.');
+        }
+
         $query = Surat::with(['template', 'dibuatOleh']);
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Operator hanya melihat surat yang ia buat atau yang sudah melewati draft
+        if ($this->accessService->isOperatorKesiswaan($user) && ! $this->accessService->isAdminOrKamad($user)) {
+            $query->where(function ($q) use ($user) {
+                $q->where('dibuat_oleh', $user->id_pegawai)
+                  ->orWhere('status', '!=', 'Draf');
+            });
         }
 
         return response()->json(['data' => $query->orderBy('created_at', 'desc')->get()]);
@@ -28,6 +44,11 @@ class SuratController extends Controller
 
     public function show(string $id): JsonResponse
     {
+        $user  = auth()->user();
+        if (! $this->accessService->isAdminOrKamad($user) && ! $this->accessService->isOperatorKesiswaan($user)) {
+            abort(403, 'Akses ditolak.');
+        }
+
         $surat = Surat::with(['template', 'dibuatOleh'])->findOrFail($id);
 
         return response()->json(['data' => $surat]);

@@ -5,6 +5,7 @@ import { Save, User } from "lucide-react";
 import {
   Field,
   PrimaryButton,
+  Select,
   inputClass,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
@@ -193,20 +194,18 @@ export function SuratWizardForm({
     <form className="space-y-3" onSubmit={handleSubmit}>
       {/* ── Selector Template ───────────────────────────────────── */}
       {templates.length > 0 && (
-        <Field label="Pilih template (opsional)">
-          <select
-            className={inputClass}
-            value={selectedTemplate}
-            onChange={(e) => applyTemplate(e.target.value)}
-          >
-            <option value="">— Mulai dari kosong —</option>
-            {templates.map((t) => (
-              <option key={t.id_template} value={t.id_template}>
-                {t.nama_template}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Select
+          label="Pilih template (opsional)"
+          value={selectedTemplate}
+          onChange={(e) => applyTemplate(e.target.value)}
+        >
+          <option value="">— Mulai dari kosong —</option>
+          {templates.map((t) => (
+            <option key={t.id_template} value={t.id_template}>
+              {t.nama_template}
+            </option>
+          ))}
+        </Select>
       )}
 
       {/* ─────────────────── WIZARD AUTO-FILL: Siswa ─────────────────────── */}
@@ -231,23 +230,21 @@ export function SuratWizardForm({
           </Field>
 
           {/* Dropdown hasil pencarian */}
-          <Field label="Pilih siswa">
-            <select
-              className={inputClass}
-              value={selectedSiswaId}
-              onChange={(e) => autoFillSiswa(e.target.value)}
-            >
-              <option value="">— Pilih siswa —</option>
-              {filteredSiswa.map((s) => (
-                <option key={s.id_siswa} value={s.id_siswa}>
-                  {s.nama_lengkap} — {s.nisn} ({s.nama_rombel})
-                </option>
-              ))}
-            </select>
-            {filteredSiswa.length === 0 && siswaSearch && (
-              <p className="text-xs text-muted mt-1">Tidak ada siswa yang cocok.</p>
-            )}
-          </Field>
+          <Select
+            label="Pilih siswa"
+            value={selectedSiswaId}
+            onChange={(e) => autoFillSiswa(e.target.value)}
+          >
+            <option value="">— Pilih siswa —</option>
+            {filteredSiswa.map((s) => (
+              <option key={s.id_siswa} value={s.id_siswa}>
+                {s.nama_lengkap} — {s.nisn} ({s.nama_rombel})
+              </option>
+            ))}
+          </Select>
+          {filteredSiswa.length === 0 && siswaSearch && (
+            <p className="text-xs text-muted mt-1">Tidak ada siswa yang cocok.</p>
+          )}
 
           {/* Keperluan manual */}
           <Field label="Keperluan surat">
@@ -278,20 +275,18 @@ export function SuratWizardForm({
             <User size={13} className="shrink-0" />
             <span>Auto-fill Data Pegawai</span>
           </p>
-          <Field label="Pilih pegawai yang ditugaskan">
-            <select
-              className={inputClass}
-              value={selectedPegawaiId}
-              onChange={(e) => autoFillPegawai(e.target.value)}
-            >
-              <option value="">— Pilih pegawai —</option>
-              {pegawaiDaftar.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <Select
+            label="Pilih pegawai yang ditugaskan"
+            value={selectedPegawaiId}
+            onChange={(e) => autoFillPegawai(e.target.value)}
+          >
+            <option value="">— Pilih pegawai —</option>
+            {pegawaiDaftar.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </Select>
           {selectedPegawaiId && (
             <p className="text-[11px] text-amber">
               ✓ Variabel pegawai telah diisi otomatis.
@@ -322,17 +317,15 @@ export function SuratWizardForm({
       </Field>
 
       {/* ── Jenis ───────────────────────────────────────────────── */}
-      <Field label="Jenis">
-        <select
-          className={inputClass}
-          value={jenis}
-          onChange={(e) => setJenis(e.target.value)}
-        >
-          <option>SK</option>
-          <option>Surat Keterangan</option>
-          <option>Surat Tugas</option>
-        </select>
-      </Field>
+      <Select
+        label="Jenis"
+        value={jenis}
+        onChange={(e) => setJenis(e.target.value)}
+      >
+        <option>SK</option>
+        <option>Surat Keterangan</option>
+        <option>Surat Tugas</option>
+      </Select>
 
       {/* ── Isi Ringkas (hasil auto-fill atau manual) ───────────── */}
       <Field label="Isi surat (dapat diedit)">

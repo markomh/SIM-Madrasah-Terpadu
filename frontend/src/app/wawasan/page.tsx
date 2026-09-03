@@ -81,7 +81,7 @@ export default function WawasanPage() {
       {error ? <ErrorBlock message={error} /> : null}
 
       {!loading && !error ? (
-        <div className="grid gap-4 lg:grid-cols-2 items-stretch">
+        <div className="grid gap-4 lg:grid-cols-2 items-start">
           <SurfaceCard
             title="Siswa berisiko"
             action={<AiLabel />}

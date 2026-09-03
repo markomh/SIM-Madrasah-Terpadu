@@ -18,6 +18,7 @@ import {
   LoadingBlock,
   PageHeader,
   SurfaceCard,
+  Button,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import type { PersetujuanItem } from "@/services/persetujuan.service";
@@ -140,26 +141,28 @@ export default function DashboardPage() {
       {/* Tabs */}
       {hasExecutive && hasOperational && (
         <div className="mb-6 border-b border-border flex gap-4">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setActiveTab("eksekutif")}
-            className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+            className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors rounded-none border-b-2 h-auto px-1 ${
               activeTab === "eksekutif"
-                ? "border-b-2 border-primary text-primary"
-                : "text-muted hover:text-ink"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted hover:text-ink"
             }`}
           >
             Tab Eksekutif
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => setActiveTab("administrasi")}
-            className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${
+            className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors rounded-none border-b-2 h-auto px-1 ${
               activeTab === "administrasi"
-                ? "border-b-2 border-primary text-primary"
-                : "text-muted hover:text-ink"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted hover:text-ink"
             }`}
           >
             Tab Administrasi
-          </button>
+          </Button>
         </div>
       )}
 

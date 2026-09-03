@@ -11,6 +11,7 @@ import {
   LoadingBlock,
   PageHeader,
   SurfaceCard,
+  Button,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import { MutasiApprovalDrawer } from "@/components/persuratan/MutasiApprovalDrawer";
@@ -127,27 +128,21 @@ export default function MutasiPage() {
         description="Setiap mutasi wajib menunggu persetujuan Kepala Madrasah."
       />
       <div className="mb-4 flex flex-wrap gap-2">
-        {(([ "daftar", ...(canAjukan ? ["masuk", "keluar"] : []) ]) as ("daftar" | "masuk" | "keluar")[]).map((t) => (
-          <button
+        {(["daftar", ...(canAjukan ? ["masuk", "keluar"] : [])] as ("daftar" | "masuk" | "keluar")[]).map((t) => (
+          <Button
             key={t}
             type="button"
+            variant={tab === t ? "primary" : "secondary"}
+            size="sm"
             onClick={() => {
               setTab(t);
               setError(null);
               setInfo(null);
             }}
-            className={`rounded-md px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 transition-all ${
-              tab === t
-                ? "bg-primary text-white shadow-sm"
-                : "border border-border bg-surface text-gray-700 hover:bg-gray-100"
-            }`}
+            className="font-bold flex items-center gap-1.5"
           >
-            {t === "daftar"
-              ? "📊 Persetujuan & Riwayat"
-              : t === "masuk"
-              ? "📥 Form Mutasi Masuk"
-              : "📤 Form Mutasi Keluar"}
-          </button>
+            {t === "daftar" ? "Riwayat & Daftar Mutasi" : t === "masuk" ? "+ Ajukan Mutasi Masuk" : "+ Ajukan Mutasi Keluar"}
+          </Button>
         ))}
       </div>
 

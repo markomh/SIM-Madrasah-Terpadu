@@ -46,27 +46,31 @@ export function RekapFilterBar({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Date navigator */}
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => onTanggalChange(shiftDate(tanggal, -1))}
-              className="inline-flex items-center justify-center rounded-[4px] border border-border bg-surface p-1.5 text-muted hover:bg-paper hover:text-ink transition-colors"
+              className="p-1.5 h-auto min-w-0"
               aria-label="Hari sebelumnya"
             >
               <ChevronLeft className="h-4 w-4" />
-            </button>
+            </Button>
 
             <span className="text-sm font-semibold text-ink min-w-[200px] text-center">
               {formatTanggalPanjang(tanggal)}
             </span>
 
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => onTanggalChange(shiftDate(tanggal, 1))}
-              className="inline-flex items-center justify-center rounded-[4px] border border-border bg-surface p-1.5 text-muted hover:bg-paper hover:text-ink transition-colors"
+              className="p-1.5 h-auto min-w-0"
               aria-label="Hari berikutnya"
             >
               <ChevronRight className="h-4 w-4" />
-            </button>
+            </Button>
 
             {/* Date picker (calendar icon) */}
             <label className="relative cursor-pointer" aria-label="Pilih tanggal">

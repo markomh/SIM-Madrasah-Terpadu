@@ -38,13 +38,15 @@ export function SlotDetailModal({
               {mapelMap[selectedSlotDetail.id_mapel]?.nama_mapel}
             </h3>
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onClose}
-            className="text-xs font-bold text-muted hover:text-ink p-1"
+            className="text-xs font-bold text-muted hover:text-ink p-1 h-auto min-w-0"
           >
             <X size={14} />
-          </button>
+          </Button>
         </div>
 
         <div className="space-y-2 text-xs bg-paper p-3 rounded-lg border border-border">

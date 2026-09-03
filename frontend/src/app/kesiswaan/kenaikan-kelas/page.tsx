@@ -305,14 +305,14 @@ export default function KenaikanKelasPage() {
             <span>{message}</span>
           </div>
           {lastBatchReport && (
-            <button
+            <PrimaryButton
               type="button"
               onClick={downloadBeritaAcaraCsv}
-              className="inline-flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-primary-hover shadow-sm transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold py-1.5 px-3"
             >
               <Download size={14} />
               <span>Export Berita Acara (CSV)</span>
-            </button>
+            </PrimaryButton>
           )}
         </div>
       )}

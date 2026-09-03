@@ -12,6 +12,7 @@ import {
   PrimaryButton,
   SurfaceCard,
   Field,
+  Select,
   inputClass,
   StatusBadge,
   LoadingBlock,
@@ -129,50 +130,42 @@ export default function IzinGuruPage() {
       <div className="grid gap-6 md:grid-cols-3 items-start">
         <SurfaceCard className="md:col-span-1" title="Catat Izin Baru">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Field label="Nama Pegawai / Guru">
-              <select required className={inputClass} value={idPegawai} onChange={e => setIdPegawai(e.target.value)}>
-                <option value="">— Pilih Pegawai / Guru —</option>
-                {pegawais.map(p => (
-                  <option key={p.id_pegawai} value={p.id_pegawai}>{p.nama_lengkap_gelar}</option>
-                ))}
-              </select>
-            </Field>
+            <Select required label="Nama Pegawai / Guru" value={idPegawai} onChange={e => setIdPegawai(e.target.value)}>
+              <option value="">— Pilih Pegawai / Guru —</option>
+              {pegawais.map(p => (
+                <option key={p.id_pegawai} value={p.id_pegawai}>{p.nama_lengkap_gelar}</option>
+              ))}
+            </Select>
             
             <Field label="Tanggal Izin">
               <input required type="date" className={inputClass} value={tanggalIzin} onChange={e => setTanggalIzin(e.target.value)} />
             </Field>
             
-            <Field label="Jenis Izin">
-              <select required className={inputClass} value={jenisIzin} onChange={e => setJenisIzin(e.target.value as IzinGuru["jenis_izin"])}>
-                <option value="Direncanakan H-1">Direncanakan H-1</option>
-                <option value="Mendesak-Darurat">Mendesak-Darurat</option>
-              </select>
-            </Field>
+            <Select required label="Jenis Izin" value={jenisIzin} onChange={e => setJenisIzin(e.target.value as IzinGuru["jenis_izin"])}>
+              <option value="Direncanakan H-1">Direncanakan H-1</option>
+              <option value="Mendesak-Darurat">Mendesak-Darurat</option>
+            </Select>
             
             <Field label="Alasan">
               <input required type="text" className={inputClass} value={alasan} onChange={e => setAlasan(e.target.value)} />
             </Field>
             
-            <Field label="Saluran Pelaporan">
-              <select required className={inputClass} value={saluran} onChange={e => setSaluran(e.target.value as IzinGuru["saluran_pelaporan"])}>
-                <option value="Langsung/Tatap Muka">Langsung/Tatap Muka</option>
-                <option value="WA Pribadi Kepala Madrasah">WA Pribadi Kepala Madrasah</option>
-                <option value="WA Group">WA Group</option>
-              </select>
-            </Field>
+            <Select required label="Saluran Pelaporan" value={saluran} onChange={e => setSaluran(e.target.value as IzinGuru["saluran_pelaporan"])}>
+              <option value="Langsung/Tatap Muka">Langsung/Tatap Muka</option>
+              <option value="WA Pribadi Kepala Madrasah">WA Pribadi Kepala Madrasah</option>
+              <option value="WA Group">WA Group</option>
+            </Select>
             
             <Field label="Dilaporkan Pada (Waktu)">
               <input required type="datetime-local" className={inputClass} value={dilaporkanPada} onChange={e => setDilaporkanPada(e.target.value)} />
             </Field>
             
-            <Field label="Guru Pengganti (Opsional)">
-              <select className={inputClass} value={idPengganti} onChange={e => setIdPengganti(e.target.value)}>
-                <option value="">-- Tidak Ditentukan --</option>
-                {pegawais.map(p => (
-                  <option key={p.id_pegawai} value={p.id_pegawai}>{p.nama_lengkap_gelar}</option>
-                ))}
-              </select>
-            </Field>
+            <Select label="Guru Pengganti (Opsional)" value={idPengganti} onChange={e => setIdPengganti(e.target.value)}>
+              <option value="">-- Tidak Ditentukan --</option>
+              {pegawais.map(p => (
+                <option key={p.id_pegawai} value={p.id_pegawai}>{p.nama_lengkap_gelar}</option>
+              ))}
+            </Select>
             
             <div className="pt-3 border-t border-border mt-4 flex justify-end">
               <Button variant="primary" type="submit" loading={loading} fullWidth iconLeft={<Save className="h-4 w-4" />}>

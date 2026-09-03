@@ -1,16 +1,10 @@
 "use client";
 
 import { RouteGuard } from "@/components/route-guard";
-import { isAdminMadrasah } from "@/lib/access";
 
 export default function ReferensiLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RouteGuard
-      allowedRoles={(ctx) => {
-        const id = ctx.currentUser?.id_pegawai ?? "";
-        return isAdminMadrasah(id, ctx.penugasanList);
-      }}
-    >
+    <RouteGuard permission="referensi.crud_tahun_ajaran_mata_pelajaran_tingkat_hari_libur_activate_tahun_ajaran">
       {children}
     </RouteGuard>
   );

@@ -43,7 +43,7 @@ export const jadwalApi = {
     return res.total_jtm;
   },
 
-  getAllKonflik: async (): Promise<any[]> => {
-    return apiClient.get<any[]>("/jadwal/konflik");
+  getAllKonflik: async (): Promise<JadwalPelajaran[]> => {
+    return apiClient.get<JadwalPelajaran[]>("/jadwal/konflik");
   },
 };

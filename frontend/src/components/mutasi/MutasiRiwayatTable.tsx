@@ -5,8 +5,10 @@ import { Clock, Paperclip } from "lucide-react";
 import {
   StatusBadge,
   StatusStrip,
-  inputClass,
+  Select,
+  Button,
 } from "@/components/ui/primitives";
+import { SearchInput } from "@/components/ui/search-input";
 import { DataTable } from "@/components/ui/data-table";
 import type { RiwayatMutasi, Siswa } from "@/types";
 
@@ -37,24 +39,24 @@ export function MutasiRiwayatTable({
 }: MutasiRiwayatTableProps) {
   return (
     <>
-      <div className="mb-4 flex flex-wrap gap-2">
-        <input
-          className={`${inputClass} max-w-xs`}
+      <div className="mb-4 flex flex-wrap gap-2 items-end">
+        <SearchInput
+          className="max-w-xs"
           placeholder="Cari ID Siswa / No Surat..."
           value={filterQuery}
-          onChange={(e) => setFilterQuery(e.target.value)}
+          onChange={setFilterQuery}
         />
-        <select
-          className={`${inputClass} max-w-[160px]`}
+        <Select
+          className="max-w-[160px]"
           value={filterJenis}
           onChange={(e) => setFilterJenis(e.target.value)}
         >
           <option value="all">Semua Jenis</option>
           <option value="Masuk">Mutasi Masuk</option>
           <option value="Keluar">Mutasi Keluar</option>
-        </select>
-        <select
-          className={`${inputClass} max-w-[160px]`}
+        </Select>
+        <Select
+          className="max-w-[160px]"
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
@@ -62,7 +64,7 @@ export function MutasiRiwayatTable({
           <option value="Menunggu Persetujuan">Menunggu</option>
           <option value="Disetujui">Disetujui</option>
           <option value="Ditolak">Ditolak</option>
-        </select>
+        </Select>
       </div>
       <DataTable
         data={filteredMutasi}
@@ -149,14 +151,16 @@ export function MutasiRiwayatTable({
                       <span>Proses di Kotak Persetujuan ➔</span>
                     </Link>
                   )}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => onTimelineClick(m)}
-                    className="text-[10px] text-muted hover:text-primary font-medium flex items-center gap-1 mt-0.5"
+                    className="text-[10px] text-muted hover:text-primary font-medium flex items-center gap-1 mt-0.5 p-0 h-auto"
                   >
                     <Clock size={11} />
                     <span>Timeline</span>
-                  </button>
+                  </Button>
                 </div>
               );
             },

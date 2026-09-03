@@ -122,8 +122,6 @@ class EnforceApiContract
         }
 
         // 9. Presensi Siswa (M12)
-        // Row-level is_pengajar check dilakukan di controller.
-        // Di sini pastikan minimal: Admin, Kamad, Wali Kelas, atau Pengajar.
         if (str_starts_with($path, 'absensi-siswa')) {
             if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
                 return $this->accessService->isAdminOrKamad($user) || 
@@ -137,8 +135,100 @@ class EnforceApiContract
         if (str_starts_with($path, 'wawasan')) {
             return $this->accessService->isAdminOrKamad($user) || $this->accessService->isWaliKelas($user);
         }
-        
-        // Rute lain yang di-handle oleh Policy/Controller masing-masing (Siswa, Mutasi, BK, dll.)
-        return true;
+
+        // 11. Siswa (M03)
+        if (str_starts_with($path, 'siswa')) {
+            if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+                return $this->accessService->isAdminOrOpsOrKamad($user);
+            }
+            return true; // Read (GET) - Policy will restrict further if needed
+        }
+
+        // 12. Mutasi (M08)
+        if (str_starts_with($path, 'mutasi')) {
+            return $this->accessService->isAdminOrOpsOrKamad($user);
+        }
+
+        // 13. Izin Guru
+        if (str_starts_with($path, 'izin-guru')) {
+            return $this->accessService->isAdminOrKamad($user); // Policy/Controller restricts read
+        }
+
+        // 14. Persetujuan (M09)
+        // READ (pending list): Admin, Operator, Kepala Madrasah.
+        // APPROVE/REJECT (POST setujui/tolak): HANYA Kepala Madrasah — ditegakkan di Controller.
+        if (str_starts_with($path, 'persetujuan')) {
+            return $this->accessService->isAdminOrOpsOrKamad($user);
+        }
+
+        // 15. Catatan BK (M16)
+        if (str_starts_with($path, 'bk')) {
+            return $this->accessService->isKepalaMadrasah($user) || $this->accessService->isGuruBk($user);
+        }
+
+        // 16. Penugasan Jabatan
+        if (str_starts_with($path, 'penugasan-jabatan')) {
+            return $this->accessService->isAdminMadrasah($user);
+        }
+
+        // 17. Rombel
+        if (str_starts_with($path, 'rombel')) {
+            if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+                return $this->accessService->isAdminOrOpsOrKamad($user);
+            }
+            return true;
+        }
+
+        // 18. Nilai (M13)
+        if (str_starts_with($path, 'nilai')) {
+            return true; // Controller handles detailed relational checks
+        }
+
+        // 19. Sesi Tatap Muka / Rekap (M12) — Guru, Wali Kelas, Admin/Kamad
+        if (str_starts_with($path, 'sesi-tatap-muka')) {
+            if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+                return $this->accessService->isAdminOrKamad($user) ||
+                       $this->accessService->isPengajarAktif($user);
+            }
+            // Read (rekap, index): Admin/Kamad, Wali Kelas, atau Pengajar
+            return $this->accessService->isAdminOrKamad($user) ||
+                   $this->accessService->isWaliKelas($user) ||
+                   $this->accessService->isPengajarAktif($user);
+        }
+
+        // 20. Kedisiplinan (M15) — Rekap: Admin/Kamad, Wali Kelas
+        if (str_starts_with($path, 'kedisiplinan')) {
+            if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+                return $this->accessService->isAdminOrKamad($user);
+            }
+            return $this->accessService->isAdminOrKamad($user) ||
+                   $this->accessService->isWaliKelas($user);
+        }
+
+        // 21. Keanggotaan (baca data aktif rombel) — Admin/Kamad/Ops, Wali Kelas, Pengajar
+        if (str_starts_with($path, 'keanggotaan')) {
+            return true; // Difilter di controller berdasarkan konteks relasional
+        }
+
+        // 22. Surat (M19, M20) - Persuratan
+        if (str_starts_with($path, 'surat')) {
+            return $this->accessService->isAdminOrOpsOrKamad($user);
+        }
+
+        // 23. Profil Madrasah & Pengaturan
+        if (str_starts_with($path, 'profil-madrasah') || str_starts_with($path, 'pengaturan')) {
+            if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+                return $this->accessService->isAdminMadrasah($user);
+            }
+            return true; // Read diperbolehkan untuk semua user aktif
+        }
+
+        // 24. Laporan / Export
+        if (str_starts_with($path, 'laporan')) {
+            return $this->accessService->isAdminOrOpsOrKamad($user);
+        }
+
+        // Default: FAIL-CLOSED. Jika rute tidak terdaftar, blokir otomatis.
+        return false;
     }
 }

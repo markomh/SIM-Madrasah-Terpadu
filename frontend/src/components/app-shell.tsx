@@ -23,7 +23,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-context";
-import { useTahunAjaran } from "@/components/app-providers";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { Search } from "lucide-react";
 import { useToast } from "@/components/toast-context";
@@ -122,7 +121,6 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   const pathname = usePathname() || "/";
   const authCtx = useAuth();
   const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList, logout, isConnectionError } = authCtx;
-  const { list: tahunList, selected, setSelectedId, selectedSemester, setSelectedSemester } = useTahunAjaran();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -150,9 +148,16 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
   useEffect(() => {
     if (authCtx.isLoading) return; // Prevent concurrent fetch with auth getMe()
     let isMounted = true;
+
+    // Admin, Operator, dan Kepala Madrasah dapat melihat antrian persetujuan (SRS Bab 12)
+    const userIdPegawai = currentUser?.id_pegawai ?? "";
+    const canSeePending = isKepalaMadrasah(userIdPegawai, penugasanList)
+      || isAdminMadrasah(userIdPegawai, penugasanList)
+      || isOperatorKesiswaan(userIdPegawai, penugasanList);
+
     Promise.all([
       services.pegawai.getAll().catch(() => []),
-      services.persetujuan.getPending().catch(() => []),
+      canSeePending ? services.persetujuan.getPending().catch(() => []) : Promise.resolve([]),
       services.madrasah.getCurrent().catch(() => null),
     ]).then(([pegawaiData, pendingData, madrasahData]) => {
       if (!isMounted) return;
@@ -163,7 +168,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
     return () => {
       isMounted = false;
     };
-  }, [authCtx.isLoading]);
+  }, [authCtx.isLoading, currentUser?.id_pegawai, penugasanList]);
 
   const personaOptions = useMemo(() => {
     return allPegawai.map((p) => {
@@ -327,34 +332,6 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Context Filter Controls */}
-            <div className="hidden md:flex items-center gap-2 rounded-[6px] border border-border bg-paper px-2.5 py-1 text-xs">
-              <label className="flex items-center gap-1.5">
-                <span className="text-muted font-medium">Tahun:</span>
-                <select
-                  className="rounded-[4px] border border-border bg-surface px-1.5 py-0.5 text-xs text-ink outline-none focus:border-primary cursor-pointer font-medium"
-                  value={selected?.id_tahun ?? ""}
-                  onChange={(e) => setSelectedId(e.target.value)}
-                >
-                  {tahunList.map((t) => (
-                    <option key={t.id_tahun} value={t.id_tahun}>
-                      {t.nama_tahun}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex items-center gap-1.5">
-                <span className="text-muted font-medium">Sem:</span>
-                <select
-                  className="rounded-[4px] border border-border bg-surface px-1.5 py-0.5 text-xs text-ink outline-none focus:border-primary cursor-pointer font-medium"
-                  value={selectedSemester}
-                  onChange={(e) => setSelectedSemester(e.target.value as "Ganjil" | "Genap")}
-                >
-                  <option value="Ganjil">Ganjil</option>
-                  <option value="Genap">Genap</option>
-                </select>
-              </label>
-            </div>
 
             {/* Persona Simulator */}
             <label className="flex h-9 items-center gap-1.5 rounded-[6px] border border-amber/40 bg-amber-soft px-2 py-1 min-w-[140px] sm:min-w-[220px] max-w-[240px] shrink-0">
@@ -375,13 +352,6 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
             {/* Notifications Button */}
             <Link
               href="/persetujuan"
-              onClick={(e) => {
-                const isKamad = currentUser?.capabilities?.isKepalaMadrasah;
-                if (!isKamad) {
-                  e.preventDefault();
-                  window.location.reload();
-                }
-              }}
               title={pendingCount > 0 ? `${pendingCount} pengajuan menunggu persetujuan` : "Tidak ada notifikasi"}
               className="relative flex h-9 w-9 items-center justify-center rounded-[6px] border border-border bg-surface hover:bg-paper transition text-ink shrink-0"
             >

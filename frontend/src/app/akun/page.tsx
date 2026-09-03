@@ -109,7 +109,7 @@ export default function AkunPage() {
       />
       {msg ? <Alert variant="primary" className="mb-4" onClose={() => setMsg(null)}>{msg}</Alert> : null}
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+      <div className="mb-6 grid gap-4 lg:grid-cols-2 items-start">
         <SurfaceCard title="Daftar Penugasan Jabatan" className="lg:col-span-2">
           <div className="mb-4 flex flex-wrap gap-3 items-end rounded-[6px] bg-paper p-3 border border-border">
             <Select

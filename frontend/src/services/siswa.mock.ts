@@ -19,6 +19,22 @@ export const siswaMock: SiswaService = {
     if (filter?.status_siswa) {
       result = result.filter((s) => s.status_siswa === filter.status_siswa);
     }
+    if (filter?.id_tahun && !filter?.id_rombel) {
+      const rombelIdsOfTahun = new Set(
+        loadStore().rombel.filter((r) => r.id_tahun === filter.id_tahun).map((r) => r.id_rombel)
+      );
+      const ids = new Set(
+        anggotaRombel
+          .filter(
+            (a) =>
+              rombelIdsOfTahun.has(a.id_rombel) &&
+              a.tanggal_selesai === null &&
+              a.status_persetujuan !== "Menunggu Persetujuan",
+          )
+          .map((a) => a.id_siswa),
+      );
+      result = result.filter((s) => ids.has(s.id_siswa));
+    }
     if (filter?.id_rombel) {
       const ids = new Set(
         anggotaRombel

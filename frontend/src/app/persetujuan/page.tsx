@@ -12,6 +12,7 @@ import {
   PageHeader,
   PrimaryButton,
   SecondaryButton,
+  Button,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import { MutasiApprovalDrawer } from "@/components/persuratan/MutasiApprovalDrawer";
@@ -351,14 +352,7 @@ export default function PersetujuanPage() {
     }
   };
 
-  if (!(currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList))) {
-    return (
-      <AppShell title="Kotak Persetujuan">
-        <ErrorBlock message="Kotak masuk persetujuan hanya untuk peran Kepala Madrasah. Gunakan Role Switcher demo." />
-      </AppShell>
-    );
-  }
-
+  const isKamad = currentUser ? isKepalaMadrasah(currentUser.id_pegawai, penugasanList) : false;
   return (
     <AppShell title="Kotak Persetujuan">
       <PageHeader
@@ -377,10 +371,11 @@ export default function PersetujuanPage() {
         filteredCount={filteredItems.length}
         selectedCount={selectedKeys.size}
         onToggleSelectAll={toggleSelectAll}
+        isKamad={isKamad}
       />
 
       {/* Enterprise Feature 2: Sticky Batch Action Floating Bar */}
-      {selectedKeys.size > 0 && (
+      {isKamad && selectedKeys.size > 0 && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary-soft/90 p-3 shadow-md backdrop-blur-xs">
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">
@@ -412,13 +407,15 @@ export default function PersetujuanPage() {
               <span>Tolak ({selectedKeys.size})</span>
             </SecondaryButton>
 
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setSelectedKeys(new Set())}
-              className="text-xs text-muted hover:text-ink px-2 py-1"
+              className="text-xs text-muted hover:text-ink px-2 py-1 h-auto min-w-0"
             >
               Batal
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -454,6 +451,7 @@ export default function PersetujuanPage() {
           onRejectSurat={handleRejectSurat}
           onOpenSKDrawer={setApprovalDrawerOpen}
           onOpenTimelineDrawer={setTimelineTarget}
+          isKamad={isKamad}
         />
       ) : null}
 

@@ -159,6 +159,54 @@ export function SurfaceCard({
   );
 }
 
+/**
+ * FormCard — compact card intended for short forms/workbench inputs.
+ * Should NOT force `h-full` so it keeps natural compact height when paired
+ * alongside long listings in a two-column workbench.
+ */
+export function FormCard({ children, className = "", title, action }: {
+  children: ReactNode;
+  className?: string;
+  title?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <section className={`rounded-[6px] border border-border bg-surface ${className}`}>
+      {title ? (
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
+          <h2 className="text-sm font-semibold text-ink">{title}</h2>
+          {action}
+        </div>
+      ) : null}
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+/**
+ * ListingCard — card intended for listings/panels that should stretch to fill
+ * available column height. Internally uses flex + justify-between to keep
+ * footer actions pinned to the bottom.
+ */
+export function ListingCard({ children, className = "", title, action }: {
+  children: ReactNode;
+  className?: string;
+  title?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <section className={`rounded-[6px] border border-border bg-surface h-full flex flex-col ${className}`}>
+      {title ? (
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
+          <h2 className="text-sm font-semibold text-ink">{title}</h2>
+          {action}
+        </div>
+      ) : null}
+      <div className="p-4 flex-1 overflow-hidden">{children}</div>
+    </section>
+  );
+}
+
 /** @deprecated Use <Button variant="primary"> instead */
 export function PrimaryButton({ children, className = "", ...props }: ButtonProps) {
   return (

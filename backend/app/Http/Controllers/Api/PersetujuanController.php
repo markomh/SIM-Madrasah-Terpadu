@@ -30,6 +30,12 @@ class PersetujuanController extends Controller
      */
     public function pending(Request $request): JsonResponse
     {
+        // READ: Admin, Operator, Kepala Madrasah dapat melihat antrian (SRS Bab 12).
+        // Aksi SETUJUI/TOLAK dibatasi ke Kamad di masing-masing method approve/reject.
+        if (! $this->accessService->isAdminOrOpsOrKamad(auth()->user())) {
+            abort(403, 'Akses ditolak: Hanya Admin, Operator, atau Kepala Madrasah yang berhak melihat daftar persetujuan.');
+        }
+
         $items = [];
 
         // 1. Pindah Rombel (scoped to current tenant via rombel)

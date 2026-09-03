@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\JenisJabatan;
 use App\Models\PenugasanJabatan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class PenugasanJabatanController extends Controller
 
         $request->validate([
             'id_pegawai'    => 'required|exists:pegawai,id_pegawai',
-            'jenis_jabatan' => 'required|in:Kepala Madrasah,Admin Madrasah,Operator Kesiswaan,Guru BK',
+            'jenis_jabatan' => ['required', 'in:' . implode(',', JenisJabatan::validValues())],
             'id_tahun'      => 'required|exists:tahun_ajaran,id_tahun',
             'tanggal_mulai' => 'required|date',
         ]);

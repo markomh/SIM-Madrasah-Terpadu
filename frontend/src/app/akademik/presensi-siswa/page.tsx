@@ -19,6 +19,8 @@ import {
   PageHeader,
   SurfaceCard,
   Field,
+  Select,
+  Button,
   inputClass,
   StatusBadge,
   LoadingBlock,
@@ -188,20 +190,18 @@ function PresensiSiswaContent() {
               />
             </Field>
 
-            <Field label="Rombongan Belajar">
-              <select
-                className={inputClass}
-                value={selectedRombel}
-                onChange={(e) => setSelectedRombel(e.target.value)}
-              >
-                <option value="">— Pilih Rombel —</option>
-                {rombels.map((r) => (
-                  <option key={r.id_rombel} value={r.id_rombel}>
-                    {r.nama_rombel}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <Select
+              label="Rombongan Belajar"
+              value={selectedRombel}
+              onChange={(e) => setSelectedRombel(e.target.value)}
+            >
+              <option value="">— Pilih Rombel —</option>
+              {rombels.map((r) => (
+                <option key={r.id_rombel} value={r.id_rombel}>
+                  {r.nama_rombel}
+                </option>
+              ))}
+            </Select>
 
             {sessions.length > 0 && (
               <div className="pt-2">
@@ -215,14 +215,15 @@ function PresensiSiswaContent() {
                     const isSelected = selectedSesi?.id_sesi === s.id_sesi;
 
                     return (
-                      <button
+                      <Button
                         key={s.id_sesi}
                         type="button"
+                        variant={isSelected ? "primary" : "secondary"}
                         onClick={() => handleSelectSesi(s)}
-                        className={`w-full text-left p-3 rounded-lg border text-xs transition-all shadow-xs ${
+                        className={`w-full text-left p-3 rounded-lg text-xs transition-all h-auto flex flex-col items-start ${
                           isSelected
-                            ? "border-primary bg-primary-soft ring-1 ring-primary"
-                            : "border-border bg-surface hover:bg-paper"
+                            ? "bg-primary-soft ring-1 ring-primary text-ink"
+                            : "bg-surface hover:bg-paper text-ink"
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -248,7 +249,7 @@ function PresensiSiswaContent() {
                             </span>
                           )}
                         </div>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -323,17 +324,7 @@ function PresensiSiswaContent() {
 
 export default function PresensiSiswaPage() {
   return (
-    <RouteGuard
-      allowedRoles={(ctx) => {
-        const id = ctx.currentUser?.id_pegawai ?? "";
-        return (
-          isAdminMadrasah(id, ctx.penugasanList) ||
-          isKepalaMadrasah(id, ctx.penugasanList) ||
-          isWaliKelas(id, ctx.rombelList) ||
-          isPengajarAktif(id, ctx.jadwalList)
-        );
-      }}
-    >
+    <RouteGuard permission="akademik.submit_batch_attendance">
       <Suspense fallback={<div>Memuat Halaman Presensi...</div>}>
         <PresensiSiswaContent />
       </Suspense>

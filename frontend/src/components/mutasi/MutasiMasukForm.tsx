@@ -8,6 +8,9 @@ import { UploadCloud, FileText } from "lucide-react";
 import {
   Field,
   PrimaryButton,
+  SecondaryButton,
+  Select,
+  Button,
   inputClass,
 } from "@/components/ui/primitives";
 import { mutasiMasukSchema } from "@/lib/schemas";
@@ -88,7 +91,7 @@ export function MutasiMasukForm({
 
   return (
     <form onSubmit={masukForm.handleSubmit(onSubmit)}>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 items-start">
         {/* Kolom Kiri: Identitas Utama Siswa (Emis 4.0) (Pola Z-1) */}
         <div className="space-y-4">
           <h3 className="text-sm font-bold text-gray-900 border-b border-border pb-1.5 flex items-center gap-2">
@@ -123,22 +126,18 @@ export function MutasiMasukForm({
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Jenis Kelamin" error={masukForm.formState.errors.jenis_kelamin?.message}>
-              <select className={inputClass} {...masukForm.register("jenis_kelamin")}>
-                <option value="L">Laki-laki</option>
-                <option value="P">Perempuan</option>
-              </select>
-            </Field>
-            <Field label="Agama" error={masukForm.formState.errors.agama?.message}>
-              <select className={inputClass} {...masukForm.register("agama")}>
-                <option value="Islam">Islam</option>
-                <option value="Kristen">Kristen</option>
-                <option value="Katolik">Katolik</option>
-                <option value="Hindu">Hindu</option>
-                <option value="Buddha">Buddha</option>
-                <option value="Khonghucu">Khonghucu</option>
-              </select>
-            </Field>
+            <Select label="Jenis Kelamin" error={masukForm.formState.errors.jenis_kelamin?.message} {...masukForm.register("jenis_kelamin")}>
+              <option value="L">Laki-laki</option>
+              <option value="P">Perempuan</option>
+            </Select>
+            <Select label="Agama" error={masukForm.formState.errors.agama?.message} {...masukForm.register("agama")}>
+              <option value="Islam">Islam</option>
+              <option value="Kristen">Kristen</option>
+              <option value="Katolik">Katolik</option>
+              <option value="Hindu">Hindu</option>
+              <option value="Buddha">Buddha</option>
+              <option value="Khonghucu">Khonghucu</option>
+            </Select>
           </div>
 
           <Field label="Nama Ibu Kandung" error={masukForm.formState.errors.nama_ibu_kandung?.message}>
@@ -177,16 +176,14 @@ export function MutasiMasukForm({
             <Field label="Tanggal Mutasi" error={masukForm.formState.errors.tanggal_mutasi?.message}>
               <input type="date" className={inputClass} {...masukForm.register("tanggal_mutasi")} />
             </Field>
-            <Field label="Kelas (Rombel) Tujuan" error={masukForm.formState.errors.id_rombel_tujuan?.message}>
-              <select className={inputClass} {...masukForm.register("id_rombel_tujuan")}>
-                <option value="">— pilih kelas —</option>
-                {rombel.map((r) => (
-                  <option key={r.id_rombel} value={r.id_rombel}>
-                    {r.nama_rombel}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <Select label="Kelas (Rombel) Tujuan" error={masukForm.formState.errors.id_rombel_tujuan?.message} {...masukForm.register("id_rombel_tujuan")}>
+              <option value="">— pilih kelas —</option>
+              {rombel.map((r) => (
+                <option key={r.id_rombel} value={r.id_rombel}>
+                  {r.nama_rombel}
+                </option>
+              ))}
+            </Select>
           </div>
 
           <Field label="Alasan Kepindahan" error={masukForm.formState.errors.alasan?.message}>
@@ -241,16 +238,18 @@ export function MutasiMasukForm({
                 <div className="w-full space-y-2 px-1">
                   <div className="flex items-center justify-between border-b border-primary/20 pb-1.5 text-xs text-primary font-bold">
                     <span>{filesMasuk.length} Berkas Terpilih</span>
-                    <button
+                    <Button
                       type="button"
-                      className="text-red-500 hover:underline font-normal text-[11px]"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:underline font-normal text-[11px] p-0 h-auto"
                       onClick={(e) => {
                         e.stopPropagation();
                         setFilesMasuk([]);
                       }}
                     >
                       Hapus Semua
-                    </button>
+                    </Button>
                   </div>
                   <div className="max-h-28 overflow-y-auto space-y-1">
                     {filesMasuk.map((f, idx) => (
@@ -285,13 +284,12 @@ export function MutasiMasukForm({
           <span>Pengajuan mutasi masuk akan diverifikasi dan disetujui oleh Kepala Madrasah.</span>
         </div>
         <div className="flex gap-2">
-          <button
+          <SecondaryButton
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-border bg-surface px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100"
           >
             Batal
-          </button>
+          </SecondaryButton>
           <PrimaryButton type="submit" disabled={masukForm.formState.isSubmitting}>
             Ajukan Mutasi Masuk ➜
           </PrimaryButton>

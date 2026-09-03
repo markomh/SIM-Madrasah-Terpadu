@@ -20,6 +20,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from "@/components/ui/primitives";
+import { Button } from "@/components/ui/button";
 import type { PersetujuanItem } from "@/services/persetujuan.service";
 import type { Siswa, Rombel, AnggotaRombel, Pegawai } from "@/types";
 
@@ -41,6 +42,7 @@ interface ApprovalListTableProps {
   onRejectSurat: (idSurat: string, key: string) => Promise<void>;
   onOpenSKDrawer: (mutasi: any) => void;
   onOpenTimelineDrawer: (target: any) => void;
+  isKamad?: boolean;
 }
 
 export function ApprovalListTable({
@@ -61,6 +63,7 @@ export function ApprovalListTable({
   onRejectSurat,
   onOpenSKDrawer,
   onOpenTimelineDrawer,
+  isKamad = true,
 }: ApprovalListTableProps) {
   if (filteredItems.length === 0) {
     return (
@@ -106,17 +109,19 @@ export function ApprovalListTable({
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   {/* Left: Checkbox + Metadata & Student Info */}
                   <div className="flex items-start gap-3">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onToggleItemSelect(key)}
-                      className="mt-1 text-muted hover:text-primary transition-colors"
+                      className="mt-1 p-0 text-muted hover:text-primary transition-colors h-auto min-w-0"
                     >
                       {isSelected ? (
                         <CheckSquare size={18} className="text-primary" />
                       ) : (
                         <Square size={18} className="text-muted" />
                       )}
-                    </button>
+                    </Button>
 
                     <div className="space-y-2 max-w-xl text-ink">
                       <div className="flex items-center gap-2">
@@ -181,8 +186,10 @@ export function ApprovalListTable({
                     </div>
 
                     <div className="flex items-center gap-3 mt-1">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() =>
                           onOpenTimelineDrawer({
                             recordId: item.data.id_anggota,
@@ -197,11 +204,11 @@ export function ApprovalListTable({
                             },
                           })
                         }
-                        className="text-[11px] font-semibold text-muted hover:text-primary flex items-center gap-1"
+                        className="text-[11px] font-semibold text-muted hover:text-primary flex items-center gap-1 p-0 h-auto"
                       >
                         <Clock size={13} />
                         <span>Timeline Audit</span>
-                      </button>
+                      </Button>
 
                       <Link
                         href="/kesiswaan/pindah-rombel"
@@ -230,17 +237,19 @@ export function ApprovalListTable({
               <SurfaceCard className="border-0 shadow-none p-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-start gap-3">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onToggleItemSelect(key)}
-                      className="mt-1 text-muted hover:text-primary transition-colors"
+                      className="mt-1 p-0 text-muted hover:text-primary transition-colors h-auto min-w-0"
                     >
                       {isSelected ? (
                         <CheckSquare size={18} className="text-primary" />
                       ) : (
                         <Square size={18} className="text-muted" />
                       )}
-                    </button>
+                    </Button>
 
                     <div className="space-y-2 max-w-xl text-ink">
                       <div className="flex items-center gap-2">
@@ -334,8 +343,10 @@ export function ApprovalListTable({
                     </div>
 
                     <div className="flex items-center gap-3 mt-1">
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() =>
                           onOpenTimelineDrawer({
                             recordId: item.data.id_mutasi,
@@ -351,11 +362,11 @@ export function ApprovalListTable({
                             },
                           })
                         }
-                        className="text-[11px] font-semibold text-muted hover:text-primary flex items-center gap-1"
+                        className="text-[11px] font-semibold text-muted hover:text-primary flex items-center gap-1 p-0 h-auto"
                       >
                         <Clock size={13} />
                         <span>Timeline Audit</span>
-                      </button>
+                      </Button>
 
                       <Link
                         href="/kesiswaan/mutasi"
@@ -382,17 +393,19 @@ export function ApprovalListTable({
               <SurfaceCard className="border-0 shadow-none p-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-start gap-3">
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onToggleItemSelect(key)}
-                      className="mt-1 text-muted hover:text-primary transition-colors"
+                      className="mt-1 p-0 text-muted hover:text-primary transition-colors h-auto min-w-0"
                     >
                       {isSelected ? (
                         <CheckSquare size={18} className="text-primary" />
                       ) : (
                         <Square size={18} className="text-muted" />
                       )}
-                    </button>
+                    </Button>
 
                     <div className="space-y-2 max-w-xl text-ink">
                       <div className="flex items-center gap-2">

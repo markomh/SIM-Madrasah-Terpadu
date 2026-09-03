@@ -8,6 +8,9 @@ import { UploadCloud, FileText } from "lucide-react";
 import {
   Field,
   PrimaryButton,
+  SecondaryButton,
+  Select,
+  Button,
   inputClass,
 } from "@/components/ui/primitives";
 import { mutasiKeluarSchema } from "@/lib/schemas";
@@ -100,41 +103,38 @@ export function MutasiKeluarForm({
 
   return (
     <form onSubmit={keluarForm.handleSubmit(onSubmit)}>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 items-start">
         <div className="space-y-4">
           <h3 className="text-sm font-bold text-gray-900 border-b border-border pb-1.5 flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">1</span>
             Identitas Siswa & Registrasi Surat
           </h3>
 
-          <Field label="Pilih Kelas (Rombel)" helperText="Pilih kelas siswa terlebih dahulu">
-            <select
-              className={inputClass}
-              value={selectedRombelKeluar}
-              onChange={(e) => {
-                setSelectedRombelKeluar(e.target.value);
-                keluarForm.setValue("id_siswa", "");
-              }}
-            >
-              <option value="">— Semua Kelas —</option>
-              {rombel.map((r) => (
-                <option key={r.id_rombel} value={r.id_rombel}>
-                  {r.nama_rombel}
-                </option>
-              ))}
-            </select>
-          </Field>
+          <Select
+            label="Pilih Kelas (Rombel)"
+            helperText="Pilih kelas siswa terlebih dahulu"
+            value={selectedRombelKeluar}
+            onChange={(e) => {
+              setSelectedRombelKeluar(e.target.value);
+              keluarForm.setValue("id_siswa", "");
+            }}
+          >
+            <option value="">— Semua Kelas —</option>
+            {rombel.map((r) => (
+              <option key={r.id_rombel} value={r.id_rombel}>
+                {r.nama_rombel}
+              </option>
+            ))}
+          </Select>
 
-          <Field label="Nama Lengkap Siswa" error={keluarForm.formState.errors.id_siswa?.message}>
-            <select className={inputClass} {...keluarForm.register("id_siswa")}>
-              <option value="">— pilih siswa —</option>
-              {filteredSiswaKeluar.map((s) => (
-                <option key={s.id_siswa} value={s.id_siswa}>
-                  {s.nama_lengkap} (NISN: {s.nisn})
-                </option>
-              ))}
-            </select>
-          </Field>
+          <Select label="Nama Lengkap Siswa" error={keluarForm.formState.errors.id_siswa?.message} {...keluarForm.register("id_siswa")}>
+            <option value="">— pilih siswa —</option>
+            {filteredSiswaKeluar.map((s) => (
+              <option key={s.id_siswa} value={s.id_siswa}>
+                {s.nama_lengkap} (NISN: {s.nisn})
+              </option>
+            ))}
+          </Select>
 
           <Field
             label="No. Surat Pengajuan (Otomatis)"
@@ -223,16 +223,18 @@ export function MutasiKeluarForm({
                 <div className="w-full space-y-2 px-1">
                   <div className="flex items-center justify-between border-b border-primary/20 pb-1.5 text-xs text-primary font-bold">
                     <span>{filesKeluar.length} Berkas Terpilih</span>
-                    <button
+                    <Button
                       type="button"
-                      className="text-red-500 hover:underline font-normal text-[11px]"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:underline font-normal text-[11px] p-0 h-auto"
                       onClick={(e) => {
                         e.stopPropagation();
                         setFilesKeluar([]);
                       }}
                     >
                       Hapus Semua
-                    </button>
+                    </Button>
                   </div>
                   <div className="max-h-28 overflow-y-auto space-y-1">
                     {filesKeluar.map((f, idx) => (
@@ -267,13 +269,12 @@ export function MutasiKeluarForm({
           <span>Setelah disetujui Kepala Madrasah, Surat Keterangan Pindah (SKP) resmi akan diterbitkan.</span>
         </div>
         <div className="flex gap-2">
-          <button
+          <SecondaryButton
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-border bg-surface px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100"
           >
             Batal
-          </button>
+          </SecondaryButton>
           <PrimaryButton type="submit" disabled={keluarForm.formState.isSubmitting}>
             Ajukan Mutasi Keluar ➜
           </PrimaryButton>

@@ -6,6 +6,8 @@ import {
   Field,
   PrimaryButton,
   SecondaryButton,
+  Button,
+  Select,
   inputClass,
 } from "@/components/ui/primitives";
 import {
@@ -88,18 +90,16 @@ export function JadwalForm({
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {formQuickOptions.sesiPagi.map((s) => (
-                  <button
+                  <Button
                     key={s.label}
                     type="button"
+                    variant={formData.jam_mulai === s.jam_mulai && formData.jam_selesai === s.jam_selesai ? "primary" : "secondary"}
+                    size="sm"
                     onClick={() => setFormData({ ...formData, jam_mulai: s.jam_mulai, jam_selesai: s.jam_selesai })}
-                    className={`rounded border px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                      formData.jam_mulai === s.jam_mulai && formData.jam_selesai === s.jam_selesai
-                        ? "border-primary bg-primary text-white shadow-xs"
-                        : "border-border bg-surface text-ink hover:bg-paper"
-                    }`}
+                    className="text-[11px] font-semibold py-1 px-2.5 h-auto"
                   >
                     {s.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -113,18 +113,16 @@ export function JadwalForm({
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {formQuickOptions.sesiSiang.map((s) => (
-                  <button
+                  <Button
                     key={s.label}
                     type="button"
+                    variant={formData.jam_mulai === s.jam_mulai && formData.jam_selesai === s.jam_selesai ? "primary" : "secondary"}
+                    size="sm"
                     onClick={() => setFormData({ ...formData, jam_mulai: s.jam_mulai, jam_selesai: s.jam_selesai })}
-                    className={`rounded border px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                      formData.jam_mulai === s.jam_mulai && formData.jam_selesai === s.jam_selesai
-                        ? "border-primary bg-primary text-white shadow-xs"
-                        : "border-border bg-surface text-ink hover:bg-paper"
-                    }`}
+                    className="text-[11px] font-semibold py-1 px-2.5 h-auto"
                   >
                     {s.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -135,18 +133,16 @@ export function JadwalForm({
             <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-bold text-muted uppercase">Blok Ganda 2 JP:</span>
               {formQuickOptions.doubleBlockSlots.map((b) => (
-                <button
+                <Button
                   key={b.label}
                   type="button"
+                  variant={formData.jam_mulai === b.jam_mulai && formData.jam_selesai === b.jam_selesai ? "primary" : "secondary"}
+                  size="sm"
                   onClick={() => setFormData({ ...formData, jam_mulai: b.jam_mulai, jam_selesai: b.jam_selesai })}
-                  className={`rounded border px-2 py-0.5 text-[10px] font-bold transition-all ${
-                    formData.jam_mulai === b.jam_mulai && formData.jam_selesai === b.jam_selesai
-                      ? "border-primary bg-primary text-white shadow-xs"
-                      : "border-border/80 bg-surface text-muted hover:text-ink"
-                  }`}
+                  className="text-[10px] font-bold py-0.5 px-2 h-auto"
                 >
                   {b.label}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -154,61 +150,53 @@ export function JadwalForm({
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-        <Field label="Rombongan Belajar">
-          <select
-            className={inputClass}
-            value={formData.id_rombel}
-            onChange={(e) => setFormData({ ...formData, id_rombel: e.target.value })}
-          >
-            {rombel.map((r) => (
-              <option key={r.id_rombel} value={r.id_rombel}>
-                {r.nama_rombel}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Select
+          label="Rombongan Belajar"
+          value={formData.id_rombel}
+          onChange={(e) => setFormData({ ...formData, id_rombel: e.target.value })}
+        >
+          {rombel.map((r) => (
+            <option key={r.id_rombel} value={r.id_rombel}>
+              {r.nama_rombel}
+            </option>
+          ))}
+        </Select>
 
-        <Field label="Guru Pengajar (GTK)">
-          <select
-            className={inputClass}
-            value={formData.id_pegawai}
-            onChange={(e) => setFormData({ ...formData, id_pegawai: e.target.value })}
-          >
-            {pegawai.map((p) => (
-              <option key={p.id_pegawai} value={p.id_pegawai}>
-                {p.nama_lengkap_gelar}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Select
+          label="Guru Pengajar (GTK)"
+          value={formData.id_pegawai}
+          onChange={(e) => setFormData({ ...formData, id_pegawai: e.target.value })}
+        >
+          {pegawai.map((p) => (
+            <option key={p.id_pegawai} value={p.id_pegawai}>
+              {p.nama_lengkap_gelar}
+            </option>
+          ))}
+        </Select>
 
-        <Field label="Mata Pelajaran">
-          <select
-            className={inputClass}
-            value={formData.id_mapel}
-            onChange={(e) => setFormData({ ...formData, id_mapel: e.target.value })}
-          >
-            {mapel.map((m) => (
-              <option key={m.id_mapel} value={m.id_mapel}>
-                {m.nama_mapel} ({m.kode_mapel})
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Select
+          label="Mata Pelajaran"
+          value={formData.id_mapel}
+          onChange={(e) => setFormData({ ...formData, id_mapel: e.target.value })}
+        >
+          {mapel.map((m) => (
+            <option key={m.id_mapel} value={m.id_mapel}>
+              {m.nama_mapel} ({m.kode_mapel})
+            </option>
+          ))}
+        </Select>
 
-        <Field label="Hari KBM">
-          <select
-            className={inputClass}
-            value={formData.hari}
-            onChange={(e) => setFormData({ ...formData, hari: e.target.value })}
-          >
-            {HARI_LIST.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <Select
+          label="Hari KBM"
+          value={formData.hari}
+          onChange={(e) => setFormData({ ...formData, hari: e.target.value })}
+        >
+          {HARI_LIST.map((h) => (
+            <option key={h} value={h}>
+              {h}
+            </option>
+          ))}
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 items-end">

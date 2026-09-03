@@ -6,6 +6,8 @@ import {
   Field,
   PrimaryButton,
   SecondaryButton,
+  Button,
+  Select,
   inputClass,
 } from "@/components/ui/primitives";
 import type { BellSchedulePreset, MasterPeriodSlot } from "@/lib/bell-schedule";
@@ -94,27 +96,31 @@ export function BellScheduleMasterModal({
           </div>
           <div className="flex items-center gap-2">
             {canEdit && (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={onResetPresets}
-                className="inline-flex items-center gap-1 rounded bg-paper border border-border px-2 py-1 text-[11px] font-semibold text-muted hover:text-ink"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold py-1 px-2 h-auto"
                 title="Reset ke pengaturan bawaan"
               >
                 <RotateCcw size={11} />
                 <span>Reset Default</span>
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 onClose();
                 setShowAddRoutineForm(false);
                 setEditingRoutineSlot(null);
               }}
-              className="text-xs font-bold text-muted hover:text-ink p-1"
+              className="text-xs font-bold text-muted hover:text-ink p-1 h-auto min-w-0"
             >
               <X size={14} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -122,19 +128,17 @@ export function BellScheduleMasterModal({
           {/* Segmented Jenjang Tabs (MI, MTs, MA, Ramadhan) */}
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-paper rounded-lg border border-border">
             {presets.map((p) => (
-              <button
+              <Button
                 key={p.id_preset}
                 type="button"
+                variant={activePreset.id_preset === p.id_preset ? "primary" : "ghost"}
+                size="sm"
                 onClick={() => {
                   setActivePresetId(p.id_preset);
                   setShowAddRoutineForm(false);
                   setEditingRoutineSlot(null);
                 }}
-                className={`flex-1 min-w-[120px] py-1.5 px-2 rounded-md font-bold text-center transition-all ${
-                  activePreset.id_preset === p.id_preset
-                    ? "bg-surface text-primary shadow-xs border border-border"
-                    : "text-muted hover:text-ink"
-                }`}
+                className="flex-1 min-w-[120px] font-bold text-center"
               >
                 {p.jenjang === "MI"
                   ? "🏫 MI (35 Mnt)"
@@ -143,7 +147,7 @@ export function BellScheduleMasterModal({
                   : p.jenjang === "MA"
                   ? "🏫 MA (45 Mnt)"
                   : "🌙 Ramadhan (30 Mnt)"}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -174,19 +178,17 @@ export function BellScheduleMasterModal({
                     onChange={(e) => setNewRoutineName(e.target.value)}
                   />
                 </Field>
-                <Field label="Tipe Sesi">
-                  <select
-                    className={inputClass}
-                    value={newRoutineType}
-                    onChange={(e) => setNewRoutineType(e.target.value as MasterPeriodSlot["tipe"])}
-                  >
-                    <option value="UPACARA">Upacara</option>
-                    <option value="IBADAH">Ibadah / Dhuha</option>
-                    <option value="SENAM">Senam / Bersih</option>
-                    <option value="ISTIRAHAT">Istirahat / Snack</option>
-                    <option value="ISHOMA">Ishoma / Dhuhur</option>
-                  </select>
-                </Field>
+                <Select
+                  label="Tipe Sesi"
+                  value={newRoutineType}
+                  onChange={(e) => setNewRoutineType(e.target.value as MasterPeriodSlot["tipe"])}
+                >
+                  <option value="UPACARA">Upacara</option>
+                  <option value="IBADAH">Ibadah / Dhuha</option>
+                  <option value="SENAM">Senam / Bersih</option>
+                  <option value="ISTIRAHAT">Istirahat / Snack</option>
+                  <option value="ISHOMA">Ishoma / Dhuhur</option>
+                </Select>
                 <Field label="Jam Mulai (24 Jam)">
                   <input
                     type="time"
@@ -237,19 +239,21 @@ export function BellScheduleMasterModal({
           <div className="flex items-center justify-between">
             <span className="font-bold text-ink">Daftar Slot Rutinitas & KBM ({activePreset.slots.length} Slot):</span>
             {canEdit && !showAddRoutineForm && (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setEditingRoutineSlot(null);
                   setNewRoutineName("");
                   setNewRoutineKet("");
                   setShowAddRoutineForm(true);
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline p-0 h-auto"
               >
                 <Plus size={12} />
                 <span>Tambah Rutinitas</span>
-              </button>
+              </Button>
             )}
           </div>
 
@@ -295,8 +299,10 @@ export function BellScheduleMasterModal({
                     <td className="p-2 text-center">
                       {s.tipe !== "KBM" && (
                         <div className="flex items-center justify-center gap-1">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               setEditingRoutineSlot(s);
                               setNewRoutineName(s.nama);
@@ -307,19 +313,21 @@ export function BellScheduleMasterModal({
                               setNewRoutineKet(s.keterangan || "");
                               setShowAddRoutineForm(true);
                             }}
-                            className="text-muted hover:text-primary p-0.5"
+                            className="text-muted hover:text-primary p-0.5 h-auto min-w-0"
                             title="Edit"
                           >
                             <Edit2 size={12} />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleDeleteRoutineSlot(s.id_slot)}
-                            className="text-muted hover:text-danger p-0.5"
+                            className="text-muted hover:text-danger p-0.5 h-auto min-w-0"
                             title="Hapus"
                           >
                             <Trash2 size={12} />
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </td>

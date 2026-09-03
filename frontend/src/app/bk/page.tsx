@@ -109,7 +109,7 @@ export default function BkPage() {
       />
       {error && <ErrorBlock message={error} />}
 
-      <div className="grid gap-6 md:grid-cols-3 items-stretch">
+      <div className="grid gap-6 md:grid-cols-3 items-start">
         <SurfaceCard className="md:col-span-1 h-full" title="Pilih Siswa">
           <Select 
             label="Cari/Pilih Siswa"

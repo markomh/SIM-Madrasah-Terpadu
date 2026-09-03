@@ -400,6 +400,9 @@ SECURITY/TENANT GAP
 TEST GAP
 NEEDS REVIEW
 
+---
+
+
 ## 12. Minimal Change Principle
 
 Tujuan utama:

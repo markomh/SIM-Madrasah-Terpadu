@@ -25,7 +25,7 @@ class RiwayatMutasiPolicy
      */
     public function viewAny(Pegawai $user): bool
     {
-        return true;
+        return $this->accessService->isAdminOrOpsOrKamad($user);
     }
 
     /**

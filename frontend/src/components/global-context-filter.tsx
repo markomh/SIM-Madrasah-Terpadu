@@ -11,6 +11,7 @@
  * filter global (Siswa, Presensi, Nilai, Rekap Presensi).
  */
 
+import { usePathname } from "next/navigation";
 import { useTahunAjaran } from "@/components/app-providers";
 import { inputClass } from "@/components/ui/primitives";
 
@@ -25,6 +26,7 @@ export function GlobalContextFilter({
   label = "Konteks Data",
   hideSemester = false,
 }: GlobalContextFilterProps) {
+  const pathname = usePathname();
   const {
     list,
     selected,
@@ -33,6 +35,18 @@ export function GlobalContextFilter({
     setSelectedSemester,
     loading,
   } = useTahunAjaran();
+
+  // Route-aware logic: Data Kesiswaan, Kepegawaian, dan Referensi Master terikat pada Tahun Ajaran penuh (3NF), bukan semesteran.
+  const isMasterOrKesiswaanRoute =
+    !!pathname &&
+    (pathname.startsWith("/kesiswaan") ||
+      pathname.startsWith("/kepegawaian") ||
+      pathname.startsWith("/pegawai") ||
+      pathname.startsWith("/referensi") ||
+      pathname.startsWith("/sarpras") ||
+      pathname.startsWith("/master"));
+
+  const shouldShowSemester = !hideSemester && !isMasterOrKesiswaanRoute;
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[4px] border border-border/70 bg-paper px-3 py-2">
@@ -65,7 +79,7 @@ export function GlobalContextFilter({
       </div>
 
       {/* Semester selector */}
-      {!hideSemester && (
+      {shouldShowSemester && (
         <div className="flex items-center gap-1.5">
           <span className="shrink-0 text-xs text-muted">Semester:</span>
           <select

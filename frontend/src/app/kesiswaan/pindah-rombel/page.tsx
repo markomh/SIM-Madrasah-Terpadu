@@ -22,6 +22,8 @@ import {
   statusToTone,
   StatusStrip,
   SurfaceCard,
+  Select,
+  Button,
   inputClass,
 } from "@/components/ui/primitives";
 import { pindahRombelSchema } from "@/lib/schemas";
@@ -162,45 +164,39 @@ export default function PindahRombelPage() {
                 }
               })}
             >
-              <Field label="Rombel Asal">
-                <select 
-                  className={inputClass} 
-                  value={asalRombelId}
-                  onChange={(e) => {
-                    setAsalRombelId(e.target.value);
-                    setValue("id_siswa", "");
-                  }}
-                >
-                  <option value="">— pilih Rombel Asal —</option>
-                  {rombel.map((r) => (
-                    <option key={r.id_rombel} value={r.id_rombel}>
-                      {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              <Select 
+                label="Rombel Asal"
+                value={asalRombelId}
+                onChange={(e) => {
+                  setAsalRombelId(e.target.value);
+                  setValue("id_siswa", "");
+                }}
+              >
+                <option value="">— pilih Rombel Asal —</option>
+                {rombel.map((r) => (
+                  <option key={r.id_rombel} value={r.id_rombel}>
+                    {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                  </option>
+                ))}
+              </Select>
 
-              <Field label="Nama Lengkap Siswa" error={errors.id_siswa?.message}>
-                <select className={inputClass} {...register("id_siswa")} disabled={!asalRombelId}>
-                  <option value="">{asalRombelId ? "— pilih siswa —" : "Pilih Rombel Asal dahulu"}</option>
-                  {filteredSiswa.map((s) => (
-                    <option key={s.id_siswa} value={s.id_siswa}>
-                      {s.nama_lengkap} (NISN: {s.nisn})
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              <Select label="Nama Lengkap Siswa" error={errors.id_siswa?.message} {...register("id_siswa")} disabled={!asalRombelId}>
+                <option value="">{asalRombelId ? "— pilih siswa —" : "Pilih Rombel Asal dahulu"}</option>
+                {filteredSiswa.map((s) => (
+                  <option key={s.id_siswa} value={s.id_siswa}>
+                    {s.nama_lengkap} (NISN: {s.nisn})
+                  </option>
+                ))}
+              </Select>
 
-              <Field label="Rombel Tujuan" error={errors.id_rombel_tujuan?.message}>
-                <select className={inputClass} {...register("id_rombel_tujuan")}>
-                  <option value="">— pilih Rombel Tujuan —</option>
-                  {rombel.map((r) => (
-                    <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
-                      {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              <Select label="Rombel Tujuan" error={errors.id_rombel_tujuan?.message} {...register("id_rombel_tujuan")}>
+                <option value="">— pilih Rombel Tujuan —</option>
+                {rombel.map((r) => (
+                  <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
+                    {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                  </option>
+                ))}
+              </Select>
 
               {/* Dynamic Rule Alert Indicator */}
               {isSameLevel && (
@@ -294,8 +290,10 @@ export default function PindahRombelPage() {
                           ? "Menunggu Persetujuan Kepala Madrasah" 
                           : p.status_persetujuan}
                       </Badge>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() =>
                           setTimelineTarget({
                             recordId: p.id_anggota,
@@ -309,11 +307,11 @@ export default function PindahRombelPage() {
                             },
                           })
                         }
-                        className="text-[10px] text-muted hover:text-primary font-medium flex items-center gap-1"
+                        className="text-[11px] font-semibold text-muted hover:text-primary flex items-center gap-1 p-0 h-auto"
                       >
-                        <Clock size={11} />
-                        <span>Timeline</span>
-                      </button>
+                        <Clock size={13} />
+                        <span>Timeline Audit</span>
+                      </Button>
                     </div>
                   </div>
 

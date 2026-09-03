@@ -3,6 +3,7 @@ import type { StatusSiswa, Siswa } from "@/types";
 export interface SiswaService {
   getAll(filter?: {
     id_rombel?: string;
+    id_tahun?: string;
     status_siswa?: StatusSiswa;
     query?: string;
   }): Promise<Siswa[]>;

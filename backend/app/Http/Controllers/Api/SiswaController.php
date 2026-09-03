@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AnggotaRombel;
 use App\Models\Siswa;
+use App\Services\PegawaiAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,9 +19,32 @@ use Illuminate\Http\Request;
  */
 class SiswaController extends Controller
 {
+    public function __construct(private PegawaiAccessService $accessService) {}
+
     public function index(Request $request): JsonResponse
     {
+        $user  = auth()->user();
         $query = Siswa::with(['madrasah', 'rombelAktif']);
+
+        // Relational Scope (SRS Bab 5 — Matriks Hak Akses):
+        // Wali Kelas hanya melihat siswa di rombel yang ia ampu.
+        // Admin, Kamad, Operator, dan Guru BK melihat semua siswa tenant.
+        $isManager = $this->accessService->isAdminOrOpsOrKamad($user)
+                  || $this->accessService->isGuruBk($user);
+
+        if (! $isManager && $this->accessService->isWaliKelas($user)) {
+            // Batasi hanya pada rombel yang di-ampu Wali Kelas ini
+            $idRombelDiampu = $user->rombelSebagaiWaliKelas()
+                ->pluck('id_rombel');
+
+            $query->whereHas('anggotaRombel', function ($q) use ($idRombelDiampu) {
+                $q->whereIn('id_rombel', $idRombelDiampu)
+                  ->where('status_keanggotaan', 'Aktif');
+            });
+        } elseif (! $isManager) {
+            // Pengguna bukan Wali Kelas, bukan Manager => blokir
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak untuk melihat daftar siswa.');
+        }
 
         if ($request->has('status_siswa')) {
             $query->where('status_siswa', $request->status_siswa);

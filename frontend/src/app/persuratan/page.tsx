@@ -226,15 +226,16 @@ export default function PersuratanPage() {
                 </h2>
                 <div className="flex items-center gap-3">
                   {/* Cetak / Simpan PDF */}
-                  <button
+                  <Button
+                    variant="primary"
                     type="button"
                     id="btn-cetak-surat"
-                    className="flex items-center gap-1.5 rounded-[4px] border border-primary bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary/90 transition"
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold"
                     onClick={() => window.print()}
                   >
                     <Printer size={15} />
-                    Cetak / Simpan PDF
-                  </button>
+                    <span>Cetak / Simpan PDF</span>
+                  </Button>
                   <Button
                     variant="danger"
                     size="sm"

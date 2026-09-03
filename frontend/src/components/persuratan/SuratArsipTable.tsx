@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { isKepalaMadrasah } from "@/lib/access";
 import { AiLabel, StatusBadge, StatusStrip } from "@/components/ui/primitives";
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { services } from "@/services";
 import type { Surat, AuthUser } from "@/types";
@@ -93,40 +94,46 @@ export function SuratArsipTable({
           key: "aksi",
           header: "Aksi",
           render: (s) => (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 items-start">
               {/* Preview A4 */}
-              <button
+              <Button
                 type="button"
-                className="text-left text-xs font-semibold text-ink hover:text-primary"
+                variant="ghost"
+                size="sm"
+                className="text-left text-xs font-semibold text-ink hover:text-primary h-auto p-0"
                 onClick={() => onPreviewToggle(s)}
               >
                 {previewSuratId === s.id_surat ? "Tutup preview" : "Preview A4"}
-              </button>
+              </Button>
 
               {/* Ajukan TTD */}
               {s.status === "Draf" ? (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   disabled={processingSuratId === s.id_surat}
-                  className="text-left text-xs font-semibold text-primary disabled:opacity-50"
+                  className="text-left text-xs font-semibold text-primary disabled:opacity-50 h-auto p-0"
                   onClick={() => handleRequestSign(s)}
                 >
                   {processingSuratId === s.id_surat ? "Memproses..." : "Ajukan TTD"}
-                </button>
+                </Button>
               ) : null}
 
               {/* Tanda tangani — hanya Kepala Madrasah */}
               {s.status === "Menunggu TTD" &&
               currentUser &&
               isKepalaMadrasah(currentUser.id_pegawai, penugasanList) ? (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   disabled={processingSuratId === s.id_surat}
-                  className="text-left text-xs font-semibold text-primary disabled:opacity-50"
+                  className="text-left text-xs font-semibold text-primary disabled:opacity-50 h-auto p-0"
                   onClick={() => handleSign(s)}
                 >
                   {processingSuratId === s.id_surat ? "Memproses..." : "Tanda tangani (mock)"}
-                </button>
+                </Button>
               ) : null}
             </div>
           ),

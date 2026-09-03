@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUpRight, RefreshCw, Users, ArrowRight } from "lucide-react";
-import { SurfaceCard, Field, PrimaryButton, inputClass } from "@/components/ui/primitives";
+import { SurfaceCard, Field, PrimaryButton, Select, inputClass } from "@/components/ui/primitives";
 import type { Rombel, Siswa } from "@/types";
 
 interface KenaikanTujuanPanelProps {
@@ -55,45 +55,44 @@ export function KenaikanTujuanPanel({
     <SurfaceCard title="2. Rombel Tujuan & Eksekusi" action={headerAction}>
       <div className="space-y-4">
         <div className="mb-4 grid grid-cols-2 gap-3">
-          <Field label="Smart Rombel Tujuan" helperText="Diurutkan sesuai tingkat berikutnya">
-            <select
-              className={inputClass}
-              value={tujuanRombelId}
-              onChange={(e) => setTujuanRombelId(e.target.value)}
-            >
-              <option value="">— Pilih Rombel Tujuan —</option>
+          <Select
+            label="Smart Rombel Tujuan"
+            helperText="Diurutkan sesuai tingkat berikutnya"
+            value={tujuanRombelId}
+            onChange={(e) => setTujuanRombelId(e.target.value)}
+          >
+            <option value="">— Pilih Rombel Tujuan —</option>
 
-              {promosiRombel.length > 0 && selectedAsalRombel && (
-                <optgroup label={`Promosi Kenaikan Kelas (Tingkat ${getTingkatNumber(selectedAsalRombel) + 1})`}>
-                  {promosiRombel.map((r) => (
-                    <option key={r.id_rombel} value={r.id_rombel}>
-                      {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                    </option>
-                  ))}
-                </optgroup>
-              )}
+            {promosiRombel.length > 0 && selectedAsalRombel && (
+              <optgroup label={`Promosi Kenaikan Kelas (Tingkat ${getTingkatNumber(selectedAsalRombel) + 1})`}>
+                {promosiRombel.map((r) => (
+                  <option key={r.id_rombel} value={r.id_rombel}>
+                    {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                  </option>
+                ))}
+              </optgroup>
+            )}
 
-              {rotasiRombel.length > 0 && selectedAsalRombel && (
-                <optgroup label={`Rotasi Kelas Paralel (Tingkat ${getTingkatNumber(selectedAsalRombel)})`}>
-                  {rotasiRombel.map((r) => (
-                    <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
-                      {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                    </option>
-                  ))}
-                </optgroup>
-              )}
+            {rotasiRombel.length > 0 && selectedAsalRombel && (
+              <optgroup label={`Rotasi Kelas Paralel (Tingkat ${getTingkatNumber(selectedAsalRombel)})`}>
+                {rotasiRombel.map((r) => (
+                  <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
+                    {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                  </option>
+                ))}
+              </optgroup>
+            )}
 
-              {lainnyaRombel.length > 0 && (
-                <optgroup label="Rombel Tingkat Lainnya">
-                  {lainnyaRombel.map((r) => (
-                    <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
-                      {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-          </Field>
+            {lainnyaRombel.length > 0 && (
+              <optgroup label="Rombel Tingkat Lainnya">
+                {lainnyaRombel.map((r) => (
+                  <option key={r.id_rombel} value={r.id_rombel} disabled={r.id_rombel === asalRombelId}>
+                    {r.nama_rombel} (Tingkat {getTingkatNumber(r)})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </Select>
 
           <Field label="Tanggal Efektif">
             <input

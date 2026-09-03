@@ -3,10 +3,11 @@ import { SiswaService } from "./siswa.service";
 import { apiClient } from "./api-client";
 
 export const siswaApi: SiswaService = {
-  async getAll(filter?: { status_siswa?: string; id_rombel?: string; query?: string }): Promise<Siswa[]> {
+  async getAll(filter?: { status_siswa?: string; id_rombel?: string; id_tahun?: string; query?: string }): Promise<Siswa[]> {
     const params = new URLSearchParams();
     if (filter?.status_siswa) params.append("status_siswa", filter.status_siswa);
     if (filter?.id_rombel) params.append("id_rombel", filter.id_rombel);
+    if (filter?.id_tahun) params.append("id_tahun", filter.id_tahun);
     if (filter?.query) params.append("query", filter.query);
     // Request per_page=100 to ensure we load enough students in the listing
     params.append("per_page", "100");

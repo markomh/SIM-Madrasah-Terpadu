@@ -37,13 +37,15 @@ export function BatchSummaryModal({ batchAlert, onClose }: BatchSummaryModalProp
             <AlertTriangle size={18} />
             <h3 className="text-sm font-bold text-ink">Ringkasan Aksi Massal</h3>
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={onClose}
-            className="text-muted hover:text-ink p-1 rounded-md transition-colors"
+            className="text-muted hover:text-ink p-1 h-auto min-w-0"
           >
             <X size={16} />
-          </button>
+          </Button>
         </div>
 
         {/* Content */}
