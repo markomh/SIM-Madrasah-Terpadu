@@ -23,7 +23,7 @@ interface GlobalContextFilterProps {
 }
 
 export function GlobalContextFilter({
-  label = "Konteks Data",
+  label = "Filter Tahun Ajaran",
   hideSemester = false,
 }: GlobalContextFilterProps) {
   const pathname = usePathname();
@@ -67,12 +67,11 @@ export function GlobalContextFilter({
           value={selected?.id_tahun ?? ""}
           onChange={(e) => setSelectedId(e.target.value)}
           disabled={loading || list.length === 0}
-          aria-label="Pilih Tahun Ajaran"
+          aria-label="Tahun Ajaran"
         >
           {list.map((t) => (
             <option key={t.id_tahun} value={t.id_tahun}>
               {t.nama_tahun}
-              {t.status_aktif ? " (Aktif)" : ""}
             </option>
           ))}
         </select>
@@ -89,7 +88,7 @@ export function GlobalContextFilter({
             onChange={(e) =>
               setSelectedSemester(e.target.value as "Ganjil" | "Genap")
             }
-            aria-label="Pilih Semester"
+            aria-label="Semester"
           >
             <option value="Ganjil">Ganjil</option>
             <option value="Genap">Genap</option>

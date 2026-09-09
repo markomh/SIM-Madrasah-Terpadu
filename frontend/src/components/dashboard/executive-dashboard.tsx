@@ -56,7 +56,7 @@ export function ExecutiveDashboard({
 
         <SurfaceCard className="p-4 sm:p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Surat Menunggu TTD</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Kotak Persetujuan</span>
             <div className="flex h-8 w-8 items-center justify-center rounded-[6px] bg-amber-soft text-amber">
               <Inbox size={18} />
             </div>

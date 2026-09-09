@@ -208,6 +208,42 @@ export function BellScheduleMasterModal({
                   />
                 </Field>
               </div>
+              
+              <div className="mt-2">
+                <label className="text-[10px] font-bold text-ink/70 uppercase block mb-1.5">Berlaku Pada Hari</label>
+                <div className="flex flex-wrap gap-2">
+                  {["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].map(hari => {
+                    const isChecked = newRoutineDays.length === 0 || newRoutineDays.includes(hari);
+                    return (
+                      <label key={hari} className="flex items-center gap-1.5 bg-surface border border-border px-2 py-1.5 rounded-md text-xs cursor-pointer hover:bg-primary/5 transition-colors">
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-border text-primary focus:ring-primary/30"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              if (newRoutineDays.length > 0) {
+                                const next = [...newRoutineDays, hari];
+                                if (next.length === 6) setNewRoutineDays([]);
+                                else setNewRoutineDays(next);
+                              }
+                            } else {
+                              if (newRoutineDays.length === 0) {
+                                setNewRoutineDays(["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].filter(h => h !== hari));
+                              } else {
+                                setNewRoutineDays(newRoutineDays.filter(h => h !== hari));
+                              }
+                            }
+                          }}
+                        />
+                        <span className="font-medium text-ink">{hari}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-[9px] text-muted mt-1.5">Secara bawaan rutinitas berlaku setiap hari. Hilangkan centang pada hari tertentu jika tidak ada rutinitas tersebut (Contoh: Kosongkan centang Jumat jika Apel Pagi hanya ada Senin-Kamis & Sabtu).</p>
+              </div>
+
               <Field label="Keterangan / Lokasi (Opsional)">
                 <input
                   type="text"

@@ -432,7 +432,7 @@ export default function PersetujuanPage() {
       {/* Enterprise Feature 2: Popup Laporan Ringkasan Hasil Otorisasi Massal */}
       <BatchSummaryModal batchAlert={batchAlert} onClose={() => setBatchAlert(null)} />
 
-      {!loading && !error ? (
+      {!loading && !error && currentUser ? (
         <ApprovalListTable
           filteredItems={filteredItems}
           selectedKeys={selectedKeys}

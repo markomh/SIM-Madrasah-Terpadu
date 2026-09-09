@@ -55,7 +55,7 @@ function NilaiPageContent() {
     <AppShell title="Gradebook & Penilaian Operasional">
       <PageHeader
         title="Gradebook & Penilaian Operasional"
-        description="Pencatatan raw score berbasis aktivitas KBM (Tugas, UH, Praktik, UTS, UAS) dengan pewarisan konteks jadwal dan integrasi ekspor RDM/EMIS."
+        description="Pencatatan nilai harian KBM (Tugas, UH, Praktik, UTS, UAS) terintegrasi RDM & EMIS."
       />
 
       <div className="space-y-8">

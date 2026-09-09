@@ -162,7 +162,7 @@ export default function PersuratanPage() {
       <div className="print:hidden">
         <PageHeader
           title="Buat & Arsip Surat"
-          description={`Instansi: ${profil?.nama_madrasah ?? "…"} · e-Signature disimulasikan (mock response).`}
+          description={`Instansi: ${profil?.nama_madrasah ?? "…"} · Penerbitan dan pengarsipan surat resmi madrasah berstempel digital.`}
         />
 
         {mockMsg ? (

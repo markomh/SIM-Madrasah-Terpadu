@@ -86,7 +86,7 @@ export function TahunAjaranProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
     if (USE_MOCK || currentUser) {
       void refresh();
     }

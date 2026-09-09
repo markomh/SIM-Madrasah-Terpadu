@@ -6,16 +6,130 @@
   --color-surface: #ffffff;
   --color-primary: #1f5d4c;
   --color-primary-soft: #e4eee9;
+  --color-primary-border: #1f5d4c4d;
   --color-amber: #b8722a;
   --color-amber-soft: #f5eadf;
+  --color-amber-border: #b8722a4d;
   --color-danger: #a5342a;
   --color-danger-soft: #f8e8e6;
+  --color-danger-border: #a5342a4d;
   --color-ai: #5b4b8a;
   --color-ai-soft: #ede9f4;
+  --color-ai-border: #5b4b8a4d;
   --color-border: #d8ddd9;
   --color-muted: #5a6a72;
+
+  /* BARU — wajib ditambahkan: dipakai di app-shell.tsx (badge "Terhubung ke
+     Server") tapi sebelumnya tidak pernah didefinisikan, sehingga badge itu
+     tampil rusak (transparan) di produksi. Ini bukan token estetika baru,
+     tapi menambal token yang SUDAH diasumsikan ada oleh kode yang berjalan. */
+  --color-success: #1c7a4d;
+  --color-success-soft: #e3f4ea;
+  --color-success-border: #1c7a4d4d;
+
+  /* BARU — makna "informasi netral" (bukan sukses, bukan peringatan, bukan
+     bahaya, bukan AI). Sebelumnya ditambal bg-blue-50/text-blue-700 raw
+     Tailwind di 2 tempat.
+     CATATAN PENTING (disambiguasi wajib dibaca): "info" dan "ai" TERLIHAT
+     mirip (sama-sama bukan status sukses/gagal) tapi maknanya BEDA TOTAL:
+       - "ai"   = HANYA untuk output yang masih butuh verifikasi manusia
+                  (SRS Bab 5 poin 4). WAJIB tampil dengan label "Hasil AI —
+                  perlu verifikasi".
+       - "info" = konten yang SUDAH final/tidak butuh verifikasi (mis. tips
+                  statis, catatan penjelasan sistem). TIDAK BOLEH dipakai
+                  untuk data apa pun yang berasal dari kolom *_ai atau
+                  proses machine learning — sekecil apa pun. */
+  --color-info: #2a5fa8;
+  --color-info-soft: #e6edf7;
+  --color-info-border: #2a5fa84d;
+
+  /* BARU — badge/indikator netral. SENGAJA dibuat beda dari --color-paper
+     (background halaman) supaya badge netral tidak menyatu/tak terlihat
+     di atas halaman biasa. Jangan pernah menyamakan kedua token ini. */
+  --color-neutral-soft: #eef0ef;
+
   --radius-sm: 4px;
   --radius-md: 6px;
+  /* OPEN QUESTION untuk tim: Tailwind punya utility bawaan "rounded-sm"/
+     "rounded-md" dengan nilai default yang mungkin TIDAK SAMA dengan kedua
+     token di atas (tergantung versi Tailwind). Sebelum dipakai meluas,
+     verifikasi manual: apakah tim akan SELALU memakai var(--radius-sm)/
+     var(--radius-md) via arbitrary value (rounded-[var(--radius-sm)]), atau
+     mengubah konfigurasi Tailwind agar "rounded-sm"/"rounded-md" bawaan
+     benar-benar disamakan ke nilai ini? Jangan asumsikan otomatis sama. */
+
+  /* -----------------------------------------------------------------------
+       2.2 — TYPOGRAPHY SCALE (5 ukuran tetap — jangan tambah ukuran baru
+       tanpa merevisi kontrak ini. Setiap ukuran punya PERAN, bukan sekadar
+       "ukuran yang kelihatan pas".)
+       -----------------------------------------------------------------------
+       | Token    | Ukuran/Line-height | Weight | Peran                                          |
+       |----------|--------------------|--------|-----------------------------------------------|
+       | display  | 28px / 1.2         | 700    | Angka besar KPI, headline dashboard            |
+       | heading  | 20px / 1.3         | 600    | Judul halaman, judul section/card              |
+       | label    | 13px / 1.4         | 600    | Label field, header kolom tabel, teks badge    |
+       | body     | 14px / 1.5         | 400    | Isi tabel, paragraf, teks form                 |
+       | caption  | 12px / 1.4         | 400    | Timestamp, helper text, footnote               |
+
+       DILARANG KERAS: text-[10px], text-[9px], text-[11px], atau ukuran
+       arbitrary Tailwind lain apa pun. Kalau butuh badge super kecil,
+       tetap pakai token "caption" (12px) — jangan menciptakan ukuran baru
+       hanya karena badge-nya "terasa kebesaran".
+       ----------------------------------------------------------------------- */
+  --text-display-size: 28px;
+  --text-display-leading: 1.2;
+  --text-heading-size: 20px;
+  --text-heading-leading: 1.3;
+  --text-label-size: 13px;
+  --text-label-leading: 1.4;
+  --text-body-size: 14px;
+  --text-body-leading: 1.5;
+  --text-caption-size: 12px;
+  --text-caption-leading: 1.4;
+
+  /* -----------------------------------------------------------------------
+       2.3 — SPACING SCALE
+       -----------------------------------------------------------------------
+       PENTING — kenapa dinamai xs/sm/md/lg, BUKAN space-1/space-2/dst:
+       Tailwind sudah punya utility angka sendiri (p-1, p-2, gap-4, dst)
+       dengan nilai pxnya SENDIRI. Kalau token kita juga dinamai dengan
+       angka urut, empat angka pertama kebetulan cocok (4/8/12/16px) tapi
+       angka kelima dan seterusnya MENYIMPANG dari Tailwind (lihat tabel).
+       Itu jebakan: orang/AI agen akan percaya pola "sama" lalu salah
+       tebak di angka besar. Penamaan xs/sm/md/lg TIDAK PERNAH bisa
+       tertukar dengan sistem penomoran Tailwind — beda alfabet, beda dunia.
+
+       | Token        | Nilai | Pemakaian umum                                  |
+       |--------------|-------|--------------------------------------------------|
+       | space-2xs    | 2px   | Padding vertikal badge/pill super tipis           |
+       | space-xs     | 4px   | Gap antar ikon-teks, gap dalam badge              |
+       | space-sm     | 8px   | Gap antar elemen inline, padding chip/badge       |
+       | space-md     | 12px  | Padding baris tabel (mode dense), gap form label  |
+       | space-lg     | 16px  | Padding card, gap antar field form                |
+       | space-xl     | 24px  | Padding baris tabel (mode comfortable), gap card  |
+       | space-2xl    | 32px  | Gap antar section dalam halaman                   |
+       | space-3xl    | 48px  | Gap antar section besar, margin halaman atas      |
+
+       ATURAN PEMAKAIAN DI JSX (menutup celah "Tailwind mana yang boleh"):
+       - Tailwind utility LAYOUT (flex, grid, items-*, justify-*, w-*, h-*,
+         rounded-*) TETAP BOLEH dipakai bebas — token di atas TIDAK
+         menggantikan ini.
+       - Tailwind utility SPACING NUMERIK BAWAAN (p-4, gap-2, m-6, space-x-3,
+         dst) DILARANG. Untuk padding/margin/gap, WAJIB pakai salah satu:
+           (a) class siap pakai (.density-row, .form-stack, dst di bawah), atau
+           (b) arbitrary value eksplisit: className="p-[var(--space-lg)]"
+       - Tailwind utility TIPOGRAFI (text-xs, font-bold, dll) dan WARNA
+         (text-emerald-600, bg-blue-50, dll) DILARANG — pakai class Layer 3
+         dan Layer 4 di bawah.
+       ----------------------------------------------------------------------- */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
 }
 
 @theme inline {
@@ -30,6 +144,11 @@
   --color-danger-soft: var(--color-danger-soft);
   --color-ai: var(--color-ai);
   --color-ai-soft: var(--color-ai-soft);
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-info: var(--color-info);
+  --color-info-soft: var(--color-info-soft);
+  --color-neutral-soft: var(--color-neutral-soft);
   --color-border: var(--color-border);
   --color-muted: var(--color-muted);
   --font-sans: var(--font-plus-jakarta);
@@ -52,4 +171,526 @@ body {
 ::selection {
   background: var(--color-primary-soft);
   color: var(--color-ink);
+}
+
+/* =============================================================================
+   SIM MADRASAH DESIGN SYSTEM — LAYER 2: SEMANTIC TOKENS
+   =============================================================================
+   Sumber rujukan aktual yang TERVERIFIKASI ADA di repo: SRS
+   (doc/SIM_Madrasah_Terpadu_SRS_v2.md), FRONTEND.md, backend.md.
+
+   PERINGATAN: dokumen "FRONTEND_DESIGN_CONTRACT.md" dan "ENTERPRISE FORM
+   LAYOUT CONTRACT" yang sempat dirujuk versi draf sebelumnya TIDAK
+   DITEMUKAN di riwayat git repo ini pada saat file ini ditulis. JANGAN
+   berasumsi isinya, JANGAN mengarang aturan atas nama dokumen tersebut —
+   kalau dokumen itu memang ada di tempat lain, minta salinannya dulu ke
+   tim sebelum menjadikannya rujukan aturan apa pun.
+
+   Status: AKTIF — berlaku untuk SELURUH komponen baru sejak revisi ini.
+
+   ATURAN WAJIB:
+   1. Token raw Tailwind bawaan (mis. text-emerald-600, bg-blue-50) TIDAK
+      dihapus dari konfigurasi — komponen LAMA masih boleh memakainya
+      sampai dimigrasikan satu per satu ke token semantik di bawah.
+   2. Komponen BARU wajib memakai token semantik, BUKAN token raw.
+      Contoh SALAH  : className="text-emerald-600"  (warna dipilih karena "bagus")
+      Contoh BENAR  : className="text-success"       (warna dipilih karena makna)
+   3. Satu warna = satu makna, di SELURUH app, tanpa kecuali.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------
+     2.1 — SEMANTIC COLOR (makna & status, bukan estetika)
+     -----------------------------------------------------------------------
+     Tabel makna — WAJIB dibaca AI agen sebelum menulis satu baris JSX pun.
+     Jangan pernah memilih warna karena "kelihatan pas"; pilih berdasarkan
+     MAKNA di baris tabel ini, bukan tampilan visualnya.
+
+     | Token      | Makna                                            | Contoh pemakaian                                    |
+     |------------|---------------------------------------------------|------------------------------------------------------|
+     | primary    | Aksi utama, brand, elemen interaktif aktif        | Tombol utama, nav aktif, link, focus ring            |
+     | success    | Kondisi positif/selesai/tervalidasi               | "Disetujui", "Tepat Waktu", status server terhubung  |
+     | amber      | Peringatan/butuh tindakan/status transisi         | "Menunggu Persetujuan", "Terlambat", "Mode Demo"     |
+     | danger     | Kegagalan/ditolak/kritis                          | "Ditolak", "Alpa", validasi error, hapus permanen    |
+     | ai         | HANYA untuk keluaran AI yang perlu verifikasi     | skor_risiko_ai, draf surat AI, rekomendasi jadwal    |
+     | info       | Informasi netral yang SUDAH final, bukan dari AI  | Tooltip penjelasan, catatan sistem, tips statis      |
+     | neutral    | Status tanpa polaritas baik/buruk                 | Badge kategori generik, filter tag yang belum aktif  |
+     | muted      | Teks sekunder, tidak butuh perhatian utama        | Timestamp, keterangan kecil, placeholder             |
+     | ink        | Teks utama                                        | Judul, isi tabel, label utama                        |
+
+     DILARANG KERAS: memilih warna primary/success/amber/danger secara
+     bergantian untuk MAKNA YANG SAMA di layar berbeda (mis. "Disetujui"
+     memakai primary di satu halaman dan success di halaman lain).
+     ----------------------------------------------------------------------- */
+
+/* =============================================================================
+   LAYER 3 — TYPOGRAPHY UTILITY CLASSES
+   =============================================================================
+   [AI INSTRUCTION RULE]
+   - Pemetaan langsung dari token ke class siap pakai.
+   - Komponen WAJIB pilih salah satu class ini untuk teks.
+   - DILARANG KERAS menggunakan utilitas native Tailwind untuk ukuran/berat
+     huruf (text-xs, font-bold, dll).
+   - Class ini HANYA mengatur bentuk huruf (ukuran, tinggi baris, ketebalan).
+     JANGAN sisipkan properti warna di class ini — warna diatur terpisah
+     lewat class Layer 4 di bawah (mis. gabungkan className="text-heading
+     text-ink", dua class, dua tanggung jawab berbeda).
+   ============================================================================= */
+.text-display {
+  font-size: var(--text-display-size);
+  line-height: var(--text-display-leading);
+  font-weight: 700;
+}
+
+.text-heading {
+  font-size: var(--text-heading-size);
+  line-height: var(--text-heading-leading);
+  font-weight: 600;
+}
+
+.text-label {
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-leading);
+  font-weight: 600;
+}
+
+.text-body {
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
+  font-weight: 400;
+}
+
+.text-caption {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-leading);
+  font-weight: 400;
+}
+
+/* Varian tracking untuk label kapital (mis. header kolom tabel, eyebrow text) */
+.text-label-caps {
+  font-size: var(--text-label-size);
+  line-height: var(--text-label-leading);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* =============================================================================
+   LAYER 4 — SEMANTIC COLOR UTILITY CLASSES
+   =============================================================================
+   Class di bawah ini mengatur TIGA hal secara terpisah: warna teks, warna
+   ikon (memakai properti color yang sama seperti teks), dan warna
+   background. Setiap badge status dan indikator sistem di aplikasi WAJIB
+   memakai salah satu class siap pakai (.badge-*) di bawah — DILARANG
+   menyusun kombinasi bg+text+border sendiri secara manual di JSX seperti
+   yang terjadi di app-shell.tsx (itulah sebabnya token "success" sempat
+   dipakai padahal belum pernah didefinisikan).
+   ============================================================================= */
+/* --- Teks & ikon --- */
+.text-ink {
+  color: var(--color-ink);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-amber {
+  color: var(--color-amber);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+.text-ai {
+  color: var(--color-ai);
+}
+
+.text-info {
+  color: var(--color-info);
+}
+
+/* --- Background permukaan --- */
+.bg-surface {
+  background-color: var(--color-surface);
+}
+
+.bg-paper {
+  background-color: var(--color-paper);
+}
+
+.bg-primary-soft {
+  background-color: var(--color-primary-soft);
+}
+
+.bg-success-soft {
+  background-color: var(--color-success-soft);
+}
+
+.bg-amber-soft {
+  background-color: var(--color-amber-soft);
+}
+
+.bg-danger-soft {
+  background-color: var(--color-danger-soft);
+}
+
+.bg-ai-soft {
+  background-color: var(--color-ai-soft);
+}
+
+.bg-info-soft {
+  background-color: var(--color-info-soft);
+}
+
+.bg-neutral-soft {
+  background-color: var(--color-neutral-soft);
+}
+
+/* --- Badge / indikator status siap pakai (satu class = selesai) ---
+   Border memakai token *-border (hex 8-digit dengan alpha bawaan) — BUKAN
+   fungsi color-mix() — supaya tidak bergantung pada dukungan browser untuk
+   fungsi CSS yang lebih baru, dan supaya AI agen tidak perlu memahami
+   sintaks color-mix untuk sekadar memakai badge. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: 999px;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.badge-primary {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+}
+
+.badge-success {
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+  border-color: var(--color-success-border);
+}
+
+.badge-amber {
+  background-color: var(--color-amber-soft);
+  color: var(--color-amber);
+  border-color: var(--color-amber-border);
+}
+
+.badge-danger {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+}
+
+.badge-ai {
+  background-color: var(--color-ai-soft);
+  color: var(--color-ai);
+  border-color: var(--color-ai-border);
+}
+
+.badge-info {
+  background-color: var(--color-info-soft);
+  color: var(--color-info);
+  border-color: var(--color-info-border);
+}
+
+/* neutral SENGAJA memakai --color-neutral-soft, BUKAN --color-paper — kalau
+   dipakai --color-paper, badge ini menyatu tak terlihat dengan background
+   halaman karena keduanya warna yang sama persis. */
+.badge-neutral {
+  background-color: var(--color-neutral-soft);
+  color: var(--color-muted);
+  border-color: var(--color-border);
+}
+
+/* Wajib: setiap badge/label yang datanya bersumber dari kolom *_ai atau
+   proses AI (SRS Bab 5 poin 4) WAJIB memakai .badge-ai + teks
+   "Hasil AI — perlu verifikasi" atau ikon Sparkles — tidak boleh dicampur
+   ke .badge-primary/.badge-neutral/.badge-info meski datanya terlihat
+   "baik-baik saja" secara sekilas. */
+
+/* =============================================================================
+   LAYER 5 — DENSITY UTILITY CLASSES
+   =============================================================================
+   Dipasang di container card/row. Pilih SATU mode per halaman/komponen,
+   jangan campur dense + comfortable dalam satu list yang sama.
+
+   PANDUAN PEMILIHAN (konteks SIM-Madrasah, sesuai SRS v2 Bab 8 & 9):
+   - density-dense        → Data Siswa Induk (Bab 9A, ratusan baris per
+                             madrasah), Presensi Siswa per Sesi Tatap Muka
+                             (Bab 9K, diisi guru setiap jam pelajaran),
+                             Rekap Kedisiplinan Guru (Bab 10 poin 15),
+                             DAFTAR/ANTREAN Persetujuan Mutasi/Pindah Rombel
+                             (Bab 10 poin 9-11 — ini LIST-nya, untuk memindai
+                             cepat berapa banyak item menunggu), Audit Log
+                             (Bab 9I) — semua yang dipindai cepat berulang
+                             kali oleh Operator Kesiswaan/Admin.
+   - density-comfortable  → Dashboard Eksekutif Kepala Madrasah (Bab 8
+                             poin 5, kartu KPI ringkas), Profil Madrasah
+                             (Bab 9O, diisi sekali lalu jarang diubah),
+                             FORM/DETAIL SATU ITEM Pengajuan Mutasi/Izin
+                             Guru (Bab 9G, 9L — ini saat Kepala Madrasah
+                             benar-benar MEMBUKA SATU pengajuan untuk
+                             dibaca lengkap dan diputuskan, beda momen
+                             dari daftarnya di atas), modal konfirmasi
+                             Proses Kenaikan Kelas massal (Bab 10 poin 7,
+                             aksi berdampak besar — jangan dibuat padat
+                             agar operator sempat membaca ulang sebelum klik).
+
+     Catatan disambiguasi: "Antrean Persetujuan" (dense) dan "Form
+     Pengajuan" (comfortable) BUKAN dua aturan yang saling bertentangan —
+     keduanya potongan alur yang sama, momen yang berbeda: dense untuk
+     MENYAPU DAFTAR banyak item, comfortable untuk MEMBACA SATU item
+     sebelum keputusan diambil.
+   ============================================================================= */
+.density-dense {
+  --row-padding-y: var(--space-sm);
+  --row-padding-x: var(--space-md);
+  --row-gap: var(--space-sm);
+}
+
+.density-comfortable {
+  --row-padding-y: var(--space-lg);
+  --row-padding-x: var(--space-xl);
+  --row-gap: var(--space-lg);
+}
+
+/* Elemen anak memakai variabel di atas, bukan padding hardcoded, supaya
+   otomatis ikut mode density milik parent-nya. */
+.density-row {
+  padding-block: var(--row-padding-y, var(--space-md));
+  padding-inline: var(--row-padding-x, var(--space-lg));
+}
+
+.density-stack>*+* {
+  margin-top: var(--row-gap, var(--space-md));
+}
+
+/* =============================================================================
+     LAYER 6 — FORM LAYOUT TOKENS & UTILITY CLASSES
+     =============================================================================
+     PERINGATAN: dokumen "ENTERPRISE FORM LAYOUT CONTRACT" yang sempat
+     dirujuk versi draf sebelumnya TIDAK DITEMUKAN di repo ini. Nilai-nilai
+     di bawah adalah standar enterprise umum yang WAJIB dikonfirmasi ulang
+     ke tim sebelum dianggap final — bukan hasil membaca dokumen tertentu.
+
+     Berlaku untuk SELURUH form di aplikasi (Pengaturan Ambang Kedisiplinan
+     — Bab 14, Login, dialog konfirmasi seperti Approve/Reject Mutasi).
+
+     KOEKSISTENSI dengan token --space-* di atas:
+     - --space-*  = token layout HALAMAN/CARD (padding card, section gap, row gap)
+     - --form-*   = token layout FORM (field gap, label gap, input height)
+     Keduanya hidup berdampingan, BUKAN saling mengganti.
+
+     CATATAN STRUKTUR: blok ":root" di bawah ini adalah blok KEDUA di file
+     ini (blok pertama ada di baris paling atas file). CSS mengizinkan
+     ":root" muncul berkali-kali — seluruh isinya digabung otomatis oleh
+     browser. INI BUKAN DUPLIKAT ATAU KESALAHAN — JANGAN DIHAPUS.
+     ============================================================================= */
+:root {
+  --form-label-gap: var(--space-xs);
+  /* jarak label ke input */
+  --form-field-gap: var(--space-lg);
+  /* jarak antar field dalam satu form */
+  --form-section-gap: var(--space-2xl);
+  /* jarak antar section form */
+  --form-input-height: 40px;
+  /* tinggi standar input/select/tombol form — nilai independen, TIDAK mengikuti skala --space-* di atas karena mengukur tinggi elemen interaktif, bukan jarak */
+  --form-input-radius: var(--radius-sm);
+}
+
+.form-stack>*+* {
+  margin-top: var(--form-field-gap);
+}
+
+.form-section+.form-section {
+  margin-top: var(--form-section-gap);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--form-label-gap);
+}
+
+.form-input-h {
+  height: var(--form-input-height);
+  border-radius: var(--form-input-radius);
+}
+
+/* Form dua kolom (mis. Nama Lengkap | NISN berdampingan) */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+@media (max-width: 640px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================================================
+   LAYER 7 — CALENDAR CANVAS (Jadwal Day-Grid View)
+   =============================================================================
+   Digunakan oleh JadwalCanvasView.tsx untuk merender jadwal penjadwalan
+   dalam format kanvas kalender bergaya Google Calendar. Setiap slot jadwal
+   diposisikan secara absolut berdasarkan jam_mulai dan jam_selesai.
+
+   SEMUA warna memakai token semantik dari Layer 2/4 di atas — DILARANG
+   menambah warna hardcoded baru di section ini.
+   ============================================================================= */
+
+/* Container utama: grid 7 kolom (1 timeline + 6 hari) */
+.calendar-canvas {
+  display: grid;
+  grid-template-columns: 56px repeat(6, 1fr);
+  position: relative;
+  min-height: 600px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-surface);
+}
+
+/* Kolom timeline kiri (jam label) */
+.calendar-timeline {
+  position: relative;
+  border-right: 1px solid var(--color-border);
+  background-color: var(--color-paper);
+}
+
+.calendar-time-label {
+  position: absolute;
+  right: var(--space-sm);
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Header hari (Senin–Sabtu) */
+.calendar-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  background-color: var(--color-paper);
+}
+
+.calendar-day-header:last-child {
+  border-right: none;
+}
+
+/* Kolom hari (container relatif untuk kartu absolut) */
+.calendar-day-column {
+  position: relative;
+  border-right: 1px solid var(--color-border);
+}
+
+.calendar-day-column:last-child {
+  border-right: none;
+}
+
+/* Garis grid horizontal (setiap 30 menit) */
+.calendar-grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--color-border);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Garis grid jam penuh (lebih tebal) */
+.calendar-grid-line-hour {
+  opacity: 0.8;
+}
+
+/* Pita rutinitas (Upacara, Dhuha, Istirahat, Ishoma, Senam) */
+.calendar-routine-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  border-radius: var(--radius-sm);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* Kartu slot KBM (posisi absolut) */
+.calendar-slot-card {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.calendar-slot-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: scale(1.01);
+  z-index: 10;
+}
+
+.calendar-slot-card:active {
+  transform: scale(0.98);
+}
+
+/* Indikator kiri tebal pada kartu */
+.calendar-slot-card-accent {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+}
+
+/* Garis waktu sekarang (now line) */
+.calendar-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--color-danger);
+  z-index: 15;
+  pointer-events: none;
+}
+
+.calendar-now-line::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-danger);
 }

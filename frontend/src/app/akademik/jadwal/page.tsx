@@ -47,6 +47,7 @@ import {
 } from "@/lib/bell-schedule";
 import type { JadwalPelajaran, MataPelajaran, Pegawai, ProfilMadrasah, Rombel } from "@/types";
 import { JadwalMatrixView } from "@/components/jadwal/JadwalMatrixView";
+import { JadwalCanvasView } from "@/components/jadwal/JadwalCanvasView";
 import { JadwalJtmAuditView } from "@/components/jadwal/JadwalJtmAuditView";
 import { JadwalForm } from "@/components/jadwal/JadwalForm";
 import { BellScheduleMasterModal } from "@/components/jadwal/BellScheduleMasterModal";
@@ -72,7 +73,7 @@ export default function JadwalPage() {
 
   // Bell Schedule Presets state
   const [presets, setPresets] = useState<BellSchedulePreset[]>([]);
-  const [activePresetId, setActivePresetId] = useState<string>("mts_madrasah");
+  const [activePresetId, setActivePresetId] = useState<string>("");
   const activePreset = useMemo(() => {
     return presets.find((p) => p.id_preset === activePresetId) ?? presets[0] ?? null;
   }, [presets, activePresetId]);
@@ -88,8 +89,9 @@ export default function JadwalPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // View Mode: Timetable Matrix vs Tabular List vs Audit JTM
-  const [viewMode, setViewMode] = useState<"matrix" | "table" | "jtm">("matrix");
+  const [viewMode, setViewMode] = useState<"canvas" | "matrix" | "table" | "jtm">("canvas");
   const [selectedRombelFilter, setSelectedRombelFilter] = useState<string>("all");
+  const [selectedGuruFilter, setSelectedGuruFilter] = useState<string>("all");
   const [onlyMySchedule, setOnlyMySchedule] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -125,7 +127,6 @@ export default function JadwalPage() {
   useEffect(() => {
     const loaded = loadBellPresets();
     setPresets(loaded);
-    if (loaded[0]) setActivePresetId(loaded[0].id_preset);
   }, []);
 
   useEffect(() => {
@@ -150,6 +151,15 @@ export default function JadwalPage() {
         setPegawai(p);
         setMapel(m);
         setProfilMadrasah(prof as ProfilMadrasah);
+        
+        // Tenant-based preset initialization
+        const loadedPresets = loadBellPresets();
+        const tenantJenjang = (prof as ProfilMadrasah)?.jenjang;
+        const matchingPreset = loadedPresets.find((p) => p.jenjang === tenantJenjang) || loadedPresets[0];
+        if (matchingPreset) {
+          setActivePresetId(matchingPreset.id_preset);
+        }
+
         setFormData((f) => ({
           ...f,
           id_rombel: f.id_rombel || r[0]?.id_rombel || "",
@@ -175,6 +185,7 @@ export default function JadwalPage() {
   const displayJadwal = useMemo(() => {
     return currentSemesterJadwal.filter((j) => {
       const matchRombel = selectedRombelFilter === "all" || j.id_rombel === selectedRombelFilter;
+      const matchGuru = selectedGuruFilter === "all" || j.id_pegawai === selectedGuruFilter;
       const matchMySchedule = !onlyMySchedule || (currentUser && j.id_pegawai === currentUser.id_pegawai);
       const pName = pegawaiMap[j.id_pegawai]?.nama_lengkap_gelar ?? "";
       const mName = mapelMap[j.id_mapel]?.nama_mapel ?? "";
@@ -184,9 +195,9 @@ export default function JadwalPage() {
         pName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         mName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         rName.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchRombel && matchMySchedule && matchSearch;
+      return matchRombel && matchGuru && matchMySchedule && matchSearch;
     });
-  }, [currentSemesterJadwal, selectedRombelFilter, onlyMySchedule, searchQuery, currentUser, pegawaiMap, mapelMap, rombelMap]);
+  }, [currentSemesterJadwal, selectedRombelFilter, selectedGuruFilter, onlyMySchedule, searchQuery, currentUser, pegawaiMap, mapelMap, rombelMap]);
 
   // JTM Workload Calculation (24 JTM Certification Monitor)
   const teacherJtmList = useMemo(() => {
@@ -376,8 +387,8 @@ export default function JadwalPage() {
         </div>
       )}
 
-      {/* Summary Metric Cards & Bell Schedule Active Indicator (Role-Scoped) */}
-      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {/* Summary Metric Cards (Role-Scoped) */}
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Total Slot KBM</p>
           <p className="mt-1 text-xl font-bold text-ink">
@@ -418,30 +429,6 @@ export default function JadwalPage() {
             </p>
           </div>
         )}
-
-        {/* Master Preset Indicator: Editable for Admin, Read-Only for Others */}
-        <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Preset Jenjang Master</p>
-          {canEdit ? (
-            <div className="mt-1 flex items-center gap-1.5">
-              <select
-                className="text-xs font-bold text-primary bg-transparent border-none p-0 focus:ring-0 cursor-pointer"
-                value={activePresetId}
-                onChange={(e) => setActivePresetId(e.target.value)}
-              >
-                {presets.map((p) => (
-                  <option key={p.id_preset} value={p.id_preset}>
-                    {p.nama_preset}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <p className="mt-1 text-xs font-bold text-primary truncate" title={activePreset?.nama_preset}>
-              {activePreset?.nama_preset ?? "MTs (40 Menit/JP)"}
-            </p>
-          )}
-        </div>
       </div>
 
       {/* FORM: Tambah / Edit Slot Jadwal */}
@@ -476,6 +463,15 @@ export default function JadwalPage() {
           <div className="inline-flex rounded-md border border-border bg-paper p-0.5">
             <Button
               type="button"
+              variant={viewMode === "canvas" ? "primary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("canvas")}
+              className="text-xs font-semibold py-1 px-2.5 h-auto"
+            >
+              Kanvas Kalender
+            </Button>
+            <Button
+              type="button"
               variant={viewMode === "matrix" ? "primary" : "ghost"}
               size="sm"
               onClick={() => setViewMode("matrix")}
@@ -507,20 +503,37 @@ export default function JadwalPage() {
             )}
           </div>
 
-          {/* Rombel Filter */}
+          {/* Rombel & Guru Filters */}
           {viewMode !== "jtm" && (
-            <Select
-              className="min-w-[140px]"
-              value={selectedRombelFilter}
-              onChange={(e) => setSelectedRombelFilter(e.target.value)}
-            >
-              <option value="all">Semua Rombel ({currentSemesterJadwal.length} Slot)</option>
-              {rombel.map((r) => (
-                <option key={r.id_rombel} value={r.id_rombel}>
-                  {r.nama_rombel}
-                </option>
-              ))}
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select
+                className="min-w-[140px]"
+                value={selectedRombelFilter}
+                onChange={(e) => setSelectedRombelFilter(e.target.value)}
+              >
+                <option value="all">Semua Rombel ({currentSemesterJadwal.length} Slot)</option>
+                {rombel.map((r) => (
+                  <option key={r.id_rombel} value={r.id_rombel}>
+                    {r.nama_rombel}
+                  </option>
+                ))}
+              </Select>
+              
+              <Select
+                className="min-w-[140px]"
+                value={selectedGuruFilter}
+                onChange={(e) => setSelectedGuruFilter(e.target.value)}
+              >
+                <option value="all">Semua Guru Pengajar</option>
+                {pegawai
+                  .filter((p) => ["Guru", "Kepala Madrasah"].includes(p.tugas_utama))
+                  .map((p) => (
+                  <option key={p.id_pegawai} value={p.id_pegawai}>
+                    {p.nama_lengkap_gelar}
+                  </option>
+                ))}
+              </Select>
+            </div>
           )}
 
           {/* "Hanya Jadwal Saya" Quick Filter for Teachers */}
@@ -554,6 +567,25 @@ export default function JadwalPage() {
 
       {!loading && !error && (
         <>
+          {/* VIEW MODE 0: CANVAS / CALENDAR VIEW (BARU) */}
+          {viewMode === "canvas" && (
+            <SurfaceCard className="p-0 overflow-hidden shadow-sm">
+              <JadwalCanvasView
+                activePreset={activePreset}
+                displayJadwal={displayJadwal}
+                pegawaiMap={pegawaiMap}
+                rombelMap={rombelMap}
+                mapelMap={mapelMap}
+                onSlotClick={setSelectedSlotDetail}
+                onEmptyClick={canEdit ? (hari, jam_mulai, jam_selesai) => {
+                  setEditingJadwal(null);
+                  setFormData((f) => ({ ...f, hari, jam_mulai, jam_selesai }));
+                  setShowAddForm(true);
+                } : undefined}
+              />
+            </SurfaceCard>
+          )}
+
           {/* VIEW MODE 1: MATRIX VIEW */}
           {viewMode === "matrix" && (
             <SurfaceCard className="p-0 overflow-hidden shadow-sm">
@@ -565,6 +597,11 @@ export default function JadwalPage() {
                 rombelMap={rombelMap}
                 mapelMap={mapelMap}
                 onSlotClick={setSelectedSlotDetail}
+                onEmptyClick={canEdit ? (hari, jam_mulai, jam_selesai) => {
+                  setEditingJadwal(null);
+                  setFormData((f) => ({ ...f, hari, jam_mulai, jam_selesai }));
+                  setShowAddForm(true);
+                } : undefined}
               />
             </SurfaceCard>
           )}

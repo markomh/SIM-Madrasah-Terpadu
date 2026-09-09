@@ -75,7 +75,7 @@ export default function WawasanPage() {
     <AppShell title="Dashboard AI">
       <PageHeader
         title="Dashboard AI (Prediksi & Rekomendasi)"
-        description="Seluruh output memakai token AI dan label verifikasi manusia."
+        description="Analisis prediktif akademis dan rekomendasi intervensi madrasah."
       />
       {loading ? <LoadingBlock /> : null}
       {error ? <ErrorBlock message={error} /> : null}

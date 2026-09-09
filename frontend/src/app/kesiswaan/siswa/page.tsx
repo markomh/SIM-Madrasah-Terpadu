@@ -197,7 +197,7 @@ export default function SiswaListPage() {
     <AppShell title="Data Siswa Induk">
       <PageHeader
         title="Data Siswa Induk"
-        description="Pencarian instan, filter, dan aksi detail/edit sesuai hak akses."
+        description="Kelola data induk siswa terdaftar, status keaktifan, dan rekam akademis."
         action={
           canEdit ? (
             <>

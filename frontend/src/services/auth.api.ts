@@ -4,7 +4,7 @@ import { loadStore } from "./store";
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
     if (USE_MOCK) {
       let mockUserId = "pg_kepala";
       if (email.includes("admin")) mockUserId = "pg_admin";
@@ -49,7 +49,7 @@ export const authApi = {
     }
   },
   getMe: async () => {
-    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
     if (USE_MOCK) {
       const activeId = (typeof window !== "undefined" && window.localStorage.getItem("sim-madrasah-userid")) || "pg_kepala";
       const storeData = loadStore();

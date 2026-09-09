@@ -68,7 +68,7 @@ const navigation: NavGroup[] = [
     group: "AKADEMIK",
     items: [
       { href: "/akademik/jadwal", label: "Penjadwalan", icon: CalendarDays, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
-      { href: "/akademik/presensi-siswa", label: "Presensi Siswa (Sesi)", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/presensi-siswa", label: "Presensi Siswa", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
       { href: "/akademik/rekap-presensi", label: "Rekap Presensi", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
       { href: "/akademik/nilai", label: "Nilai Harian", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
     ],
@@ -78,7 +78,7 @@ const navigation: NavGroup[] = [
     items: [
       { href: "/kepegawaian/pegawai", label: "Data Pegawai", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
       { href: "/kepegawaian/izin", label: "Izin Guru", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
-      { href: "/kepegawaian/kedisiplinan", label: "Kedisiplinan & JTM", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kepegawaian/kedisiplinan", label: "Kedisiplinan & Jam Mengajar", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
@@ -103,7 +103,7 @@ const navigation: NavGroup[] = [
   {
     group: "REFERENSI",
     items: [
-      { href: "/referensi", label: "Mapel, Tingkat, Libur", icon: Settings2, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/referensi", label: "Data Referensi", icon: Settings2, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
@@ -136,7 +136,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
       } else if (status === 422) {
         toast(`Validasi Gagal: ${message}`, "error");
       } else if (status >= 500) {
-        toast(`SSoT / System Error: ${message}`, "error");
+        toast(`Kesalahan Sistem: ${message}`, "error");
       } else {
         toast(`Error (${status}): ${message}`, "error");
       }
@@ -278,7 +278,7 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-[4px] focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none"
       >
-        Skip to main content
+        Lompat ke konten utama
       </a>
 
       <div className="min-h-screen">
@@ -310,9 +310,8 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
               <Menu size={18} />
             </button>
             <div className="min-w-0">
-              <p className="truncate text-[11px] text-muted leading-tight">{namaMadrasah}</p>
               <div className="flex items-center gap-2">
-                <h1 className="truncate text-sm sm:text-base font-bold text-ink leading-tight">{title ?? "SIM Madrasah Terpadu"}</h1>
+                <span className="truncate text-sm sm:text-base font-bold text-ink leading-tight">{title ?? "SIM Madrasah Terpadu"}</span>
                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${USE_MOCK ? "bg-amber-soft text-amber border border-amber/30" : "bg-success-soft text-success border border-success/30"}`}>
                   {USE_MOCK ? "Mode Demo" : "Terhubung ke Server"}
                 </span>

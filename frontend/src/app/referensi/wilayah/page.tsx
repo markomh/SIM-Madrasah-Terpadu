@@ -92,7 +92,7 @@ export default function MasterWilayahPage() {
     <AppShell title="Master Wilayah">
       <PageHeader 
         title="Master Data Wilayah (Read-Only)" 
-        description="Data referensi wilayah dari Provinsi hingga Desa untuk dropdown form alamat." 
+        description="Master data wilayah administratif (Provinsi, Kabupaten, Kecamatan, Desa/Kelurahan)." 
       />
       
       {error ? <ErrorBlock message={error} /> : null}

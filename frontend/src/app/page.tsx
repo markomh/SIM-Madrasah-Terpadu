@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 : "border-transparent text-muted hover:text-ink"
             }`}
           >
-            Tab Eksekutif
+            Ringkasan Eksekutif
           </Button>
           <Button
             variant="ghost"
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                 : "border-transparent text-muted hover:text-ink"
             }`}
           >
-            Tab Administrasi
+            Operasional & Tugas
           </Button>
         </div>
       )}

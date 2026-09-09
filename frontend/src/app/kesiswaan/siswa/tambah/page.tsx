@@ -97,7 +97,7 @@ export default function TambahSiswaPage() {
 
   return (
     <AppShell title="Tambah Siswa">
-      <PageHeader title="Tambah Siswa Baru" description="Validasi NIK 16 digit & field wajib di sisi klien." />
+      <PageHeader title="Tambah Siswa Baru" description="Pastikan NIK 16 digit dan seluruh data wajib terisi dengan benar." />
       {submitError ? <div className="mb-4"><ErrorBlock message={submitError} /></div> : null}
       <SurfaceCard>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>

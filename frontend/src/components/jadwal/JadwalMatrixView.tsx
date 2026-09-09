@@ -14,6 +14,7 @@ interface JadwalMatrixViewProps {
   rombelMap: Record<string, Rombel>;
   mapelMap: Record<string, MataPelajaran>;
   onSlotClick: (j: JadwalPelajaran) => void;
+  onEmptyClick?: (hari: string, jam_mulai: string, jam_selesai: string) => void;
 }
 
 export function JadwalMatrixView({
@@ -24,6 +25,7 @@ export function JadwalMatrixView({
   rombelMap,
   mapelMap,
   onSlotClick,
+  onEmptyClick,
 }: JadwalMatrixViewProps) {
   const getSlotSequenceLabel = (jamMulai: string, jamSelesai: string) => {
     if (!activePreset) return "KBM";
@@ -37,10 +39,13 @@ export function JadwalMatrixView({
       <table className="w-full table-fixed border-collapse text-left text-xs">
         <thead>
           <tr className="border-b border-border bg-paper text-muted">
+            <th className="p-2.5 font-bold uppercase tracking-wider text-center w-24 border-r border-border/60">
+              JAM
+            </th>
             {HARI_LIST.map((hari) => (
               <th
                 key={hari}
-                className="p-2.5 font-bold uppercase tracking-wider text-center w-1/6 border-r last:border-r-0 border-border/60"
+                className="p-2.5 font-bold uppercase tracking-wider text-center border-r last:border-r-0 border-border/60"
               >
                 {hari}
               </th>
@@ -48,11 +53,17 @@ export function JadwalMatrixView({
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {timelineRows.map((timeRange) => {
+          {timelineRows.map((timeRange, rowIndex) => {
             const [jamMulai, jamSelesai] = timeRange.split("–");
 
             return (
               <tr key={timeRange} className="hover:bg-paper/20 transition-colors">
+                {/* Waktu / Jam Ke Column */}
+                <td className="p-2 align-middle border-r border-border/50 text-center bg-paper/30 w-24">
+                  <div className="font-bold text-ink text-sm">
+                    Jam {rowIndex + 1}
+                  </div>
+                </td>
                 {/* 6 Day Columns (table-layout fixed) */}
                 {HARI_LIST.map((hari) => {
                   const institutionalSlots = activePreset ? getInstitutionalRoutinesForDay(hari, activePreset) : [];
@@ -65,100 +76,56 @@ export function JadwalMatrixView({
                   );
 
                   return (
-                    <td key={hari} className="p-1.5 align-top border-r last:border-r-0 border-border/50">
+                    <td key={hari} className="p-2 align-top border-r last:border-r-0 border-border/50 text-center">
+                      <div className="text-[11px] text-muted font-mono mb-1.5">{jamMulai} - {jamSelesai}</div>
+                      
                       {/* Routine Slot (Upacara / Dhuha / Senam / Istirahat / Ishoma) */}
                       {matchedRoutine ? (
-                        <div className="flex flex-col overflow-hidden rounded-md border border-border bg-surface shadow-2xs">
-                          {/* Card Header: Strictly Icon & Time Only */}
-                          <div
-                            className={`flex items-center justify-between px-2 py-1 text-[9px] font-bold text-white ${
-                              matchedRoutine.tipe === "UPACARA"
-                                ? "bg-amber-600"
-                                : matchedRoutine.tipe === "IBADAH" || matchedRoutine.tipe === "ISHOMA"
-                                ? "bg-emerald-700"
-                                : matchedRoutine.tipe === "SENAM"
-                                ? "bg-teal-600"
-                                : "bg-sky-600"
-                            }`}
-                          >
-                            <span className="flex items-center gap-1">
-                              {matchedRoutine.tipe === "UPACARA" ? (
-                                <Flag size={10} />
-                              ) : matchedRoutine.tipe === "IBADAH" || matchedRoutine.tipe === "ISHOMA" ? (
-                                <Sun size={10} />
-                              ) : matchedRoutine.tipe === "SENAM" ? (
-                                <Sparkles size={10} />
-                              ) : (
-                                <Coffee size={10} />
-                              )}
-                              <span className="opacity-90">{matchedRoutine.tipe}</span>
-                            </span>
-                            <span className="font-mono">{matchedRoutine.jam_mulai} – {matchedRoutine.jam_selesai}</span>
-                          </div>
-                          {/* Card Body: Activity Name & Description */}
-                          <div className="p-2 flex flex-col gap-0.5">
-                            <span className="text-[10px] font-extrabold text-ink uppercase line-clamp-1">
-                              {matchedRoutine.nama}
-                            </span>
-                            {matchedRoutine.keterangan && (
-                              <span className="text-[9px] text-muted line-clamp-1">
-                                {matchedRoutine.keterangan}
-                              </span>
-                            )}
-                          </div>
+                        <div
+                          className={`inline-flex w-full items-center justify-center px-2 py-1.5 rounded text-[11px] font-bold ${
+                            matchedRoutine.tipe === "UPACARA"
+                              ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                              : matchedRoutine.tipe === "IBADAH" || matchedRoutine.tipe === "ISHOMA"
+                              ? "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300"
+                              : matchedRoutine.tipe === "SENAM"
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                          }`}
+                        >
+                          <span className="line-clamp-1">{matchedRoutine.nama}</span>
                         </div>
                       ) : matchedKbmSlots.length === 0 ? (
-                        <div className="h-10 rounded border border-dashed border-border/30 flex items-center justify-center text-[10px] text-muted/30">
-                          —
+                        <div
+                          className={`h-10 rounded border border-dashed border-border/30 flex items-center justify-center text-[11px] text-muted/40 font-medium py-1 transition-colors ${
+                            onEmptyClick ? "cursor-pointer hover:bg-primary/5 hover:border-primary/30 hover:text-primary/70" : ""
+                          }`}
+                          onClick={() => onEmptyClick && onEmptyClick(hari, jamMulai, jamSelesai)}
+                        >
+                          {onEmptyClick ? "+ Tambah Jadwal" : "Belum ada jadwal"}
                         </div>
                       ) : (
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5 text-left">
                           {matchedKbmSlots.map((j) => {
                             const m = mapelMap[j.id_mapel];
                             const p = pegawaiMap[j.id_pegawai];
                             const r = rombelMap[j.id_rombel];
-                            const isAgama = m?.kelompok_mapel === "Agama";
-                            const seqLabel = getSlotSequenceLabel(j.jam_mulai, j.jam_selesai);
 
                             return (
                               <div
                                 key={j.id_jadwal}
                                 onClick={() => onSlotClick(j)}
-                                className={`cursor-pointer flex flex-col overflow-hidden rounded-md border shadow-2xs transition-all hover:shadow-md hover:scale-[1.01] active:scale-95 ${
-                                  isAgama
-                                    ? "border-emerald-300 dark:border-emerald-800 bg-surface"
-                                    : "border-indigo-300 dark:border-indigo-800 bg-surface"
-                                }`}
+                                className="cursor-pointer flex flex-col rounded border border-border/80 bg-surface p-1.5 shadow-2xs hover:shadow-sm hover:border-primary/50 transition-all"
                               >
-                                {/* CARD HEADER: Time & Sequence Bar */}
-                                <div
-                                  className={`flex items-center justify-between px-2 py-1 text-[9px] font-bold text-white ${
-                                    isAgama ? "bg-emerald-700" : "bg-primary"
-                                  }`}
-                                >
-                                  <span className="flex items-center gap-1">
-                                    <span className="flex h-3.5 px-1 items-center justify-center rounded-xs bg-white/20 text-white font-mono">
-                                      {seqLabel.replace("Jam Ke-", "JP ")}
-                                    </span>
+                                <div className="flex justify-between items-start gap-1">
+                                  <span className="text-[10px] font-bold text-ink leading-tight line-clamp-2">
+                                    {m?.nama_mapel ?? j.id_mapel}
                                   </span>
-                                  <span className="font-mono">{j.jam_mulai} – {j.jam_selesai}</span>
+                                  <span className="text-[9px] font-semibold bg-paper px-1 rounded text-muted shrink-0">
+                                    {r?.nama_rombel ?? j.id_rombel}
+                                  </span>
                                 </div>
-
-                                {/* CARD BODY: Subject, Teacher, & Rombel Badge */}
-                                <div className="p-2 flex flex-col gap-1">
-                                  <div className="flex justify-between items-start gap-1">
-                                    <span className="text-[10px] font-extrabold text-ink uppercase line-clamp-1">
-                                      {m?.nama_mapel ?? j.id_mapel}
-                                    </span>
-                                    <span className="text-[9px] font-bold bg-paper border border-border/80 px-1 py-0.2 rounded text-ink shrink-0">
-                                      {r?.nama_rombel ?? j.id_rombel}
-                                    </span>
-                                  </div>
-
-                                  <div className="flex items-center gap-1 text-[10px] text-muted truncate">
-                                    <User size={10} className="shrink-0 text-muted" />
-                                    <span className="truncate">{p?.nama_lengkap_gelar ?? j.id_pegawai}</span>
-                                  </div>
+                                <div className="text-[9px] text-muted mt-1 truncate">
+                                  {p?.nama_lengkap_gelar ?? j.id_pegawai}
                                 </div>
                               </div>
                             );

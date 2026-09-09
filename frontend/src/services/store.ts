@@ -27,7 +27,7 @@ import type {
   Madrasah,
 } from "@/types";
 
-export const STORAGE_KEY = "sim-madrasah-demo-store-v5";
+export const STORAGE_KEY = "sim-madrasah-demo-store-v6";
 export const SIMULATE_ERROR_KEY = "sim-madrasah-simulate-error";
 
 export type DemoStore = {
@@ -285,16 +285,202 @@ function buildSeed(): DemoStore {
       catatan: i % 5 === 0 ? "Surat orang tua" : null,
     }));
 
+  // Jadwal Pelajaran Lengkap 1 Madrasah (MTs: 7-A, 7-B, 8-A, 8-B, 9-A, 9-B)
+  // Durasi 40 Menit / JP, Bebas Bentrok (0 Collision), Audit 24 JTM Sertifikasi Terpenuhi
+  const g_syaiful = "019153a0-f8f2-777b-bb66-6b211a7e28a5"; // MTK
+  const g_dewi = "pg_wali_a";                                 // QUR, PAI
+  const g_maya = "019153a0-f8f2-777b-bb66-6b211a7e28a9";     // BIN, BIG
+  const g_bambang = "pg_guru_polos";                          // IPA, PJOK
+  const g_ahmad = "pg_kepala";                                // PAI
+
   const jadwal: JadwalPelajaran[] = [
-    { id_jadwal: "jd_1", id_rombel: "rb_7a", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a5", id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_2", id_rombel: "rb_7a", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a9", id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_3", id_rombel: "rb_7b", id_pegawai: "pg_wali_a", id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_4", id_rombel: "rb_8a", id_pegawai: "pg_guru_polos", id_mapel: "mp_ipa", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_5", id_rombel: "rb_8a", id_pegawai: "pg_wali_a", id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_6", id_rombel: "rb_9a", id_pegawai: "019153a0-f8f2-777b-bb66-6b211a7e28a9", id_mapel: "mp_bing", semester: "Genap", hari: "Rabu", jam_mulai: "10:00", jam_selesai: "11:30" },
-    { id_jadwal: "jd_7", id_rombel: "rb_7a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:00", jam_selesai: "08:30" },
-    { id_jadwal: "jd_8", id_rombel: "rb_7b", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:30", jam_selesai: "10:00" },
-    { id_jadwal: "jd_9", id_rombel: "rb_8a", id_pegawai: "pg_guru_polos", id_mapel: "mp_pjok", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:00", jam_selesai: "08:30" },
+    // === SENIN ===
+    // Jam 1 (07:45 - 08:25)
+    { id_jadwal: "jd_mon_1_7a", id_rombel: "rb_7a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_mon_1_7b", id_rombel: "rb_7b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_mon_1_8a", id_rombel: "rb_8a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_mon_1_8b", id_rombel: "rb_8b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Senin", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_mon_1_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Senin", jam_mulai: "07:45", jam_selesai: "08:25" },
+
+    // Jam 2 (08:25 - 09:05)
+    { id_jadwal: "jd_mon_2_7a", id_rombel: "rb_7a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_mon_2_7b", id_rombel: "rb_7b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_mon_2_8a", id_rombel: "rb_8a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_mon_2_8b", id_rombel: "rb_8b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Senin", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_mon_2_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Senin", jam_mulai: "08:25", jam_selesai: "09:05" },
+
+    // Jam 3 (09:05 - 09:45)
+    { id_jadwal: "jd_mon_3_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_mon_3_7b", id_rombel: "rb_7b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_mon_3_8a", id_rombel: "rb_8a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_mon_3_8b", id_rombel: "rb_8b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Senin", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_mon_3_9b", id_rombel: "rb_9b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Senin", jam_mulai: "09:05", jam_selesai: "09:45" },
+
+    // Jam 4 (10:15 - 10:55)
+    { id_jadwal: "jd_mon_4_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Senin", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_mon_4_7b", id_rombel: "rb_7b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_mon_4_8a", id_rombel: "rb_8a", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Senin", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_mon_4_9a", id_rombel: "rb_9a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_mon_4_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Senin", jam_mulai: "10:15", jam_selesai: "10:55" },
+
+    // Jam 5 (10:55 - 11:35)
+    { id_jadwal: "jd_mon_5_7a", id_rombel: "rb_7a", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Senin", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_mon_5_8a", id_rombel: "rb_8a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Senin", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_mon_5_8b", id_rombel: "rb_8b", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Senin", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_mon_5_9a", id_rombel: "rb_9a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Senin", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_mon_5_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Senin", jam_mulai: "10:55", jam_selesai: "11:35" },
+
+    // === SELASA ===
+    // Jam 1 (07:45 - 08:25)
+    { id_jadwal: "jd_tue_1_7a", id_rombel: "rb_7a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_tue_1_7b", id_rombel: "rb_7b", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_tue_1_8a", id_rombel: "rb_8a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_tue_1_9a", id_rombel: "rb_9a", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_tue_1_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "07:45", jam_selesai: "08:25" },
+
+    // Jam 2 (08:25 - 09:05)
+    { id_jadwal: "jd_tue_2_7a", id_rombel: "rb_7a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_tue_2_7b", id_rombel: "rb_7b", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_tue_2_8a", id_rombel: "rb_8a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_tue_2_9a", id_rombel: "rb_9a", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_tue_2_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "08:25", jam_selesai: "09:05" },
+
+    // Jam 3 (09:05 - 09:45)
+    { id_jadwal: "jd_tue_3_7a", id_rombel: "rb_7a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_tue_3_7b", id_rombel: "rb_7b", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Selasa", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_tue_3_8b", id_rombel: "rb_8b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Selasa", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_tue_3_9a", id_rombel: "rb_9a", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Selasa", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_tue_3_9b", id_rombel: "rb_9b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Selasa", jam_mulai: "09:05", jam_selesai: "09:45" },
+
+    // Jam 4 (10:15 - 10:55)
+    { id_jadwal: "jd_tue_4_7a", id_rombel: "rb_7a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_tue_4_7b", id_rombel: "rb_7b", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_tue_4_8b", id_rombel: "rb_8b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_tue_4_9a", id_rombel: "rb_9a", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_tue_4_9b", id_rombel: "rb_9b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:15", jam_selesai: "10:55" },
+
+    // Jam 5 (10:55 - 11:35)
+    { id_jadwal: "jd_tue_5_7b", id_rombel: "rb_7b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_tue_5_8a", id_rombel: "rb_8a", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_tue_5_8b", id_rombel: "rb_8b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_tue_5_9a", id_rombel: "rb_9a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:55", jam_selesai: "11:35" },
+    { id_jadwal: "jd_tue_5_9b", id_rombel: "rb_9b", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Selasa", jam_mulai: "10:55", jam_selesai: "11:35" },
+
+    // === RABU ===
+    // Jam 1 (07:45 - 08:25)
+    { id_jadwal: "jd_wed_1_7a", id_rombel: "rb_7a", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Rabu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_wed_1_7b", id_rombel: "rb_7b", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Rabu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_wed_1_8a", id_rombel: "rb_8a", id_pegawai: g_dewi, id_mapel: "mp_pai", semester: "Ganjil", hari: "Rabu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_wed_1_8b", id_rombel: "rb_8b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Rabu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_wed_1_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Rabu", jam_mulai: "07:45", jam_selesai: "08:25" },
+
+    // Jam 2 (08:25 - 09:05)
+    { id_jadwal: "jd_wed_2_7a", id_rombel: "rb_7a", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Rabu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_wed_2_7b", id_rombel: "rb_7b", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Rabu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_wed_2_8a", id_rombel: "rb_8a", id_pegawai: g_dewi, id_mapel: "mp_pai", semester: "Ganjil", hari: "Rabu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_wed_2_8b", id_rombel: "rb_8b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Rabu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_wed_2_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Rabu", jam_mulai: "08:25", jam_selesai: "09:05" },
+
+    // Jam 3 (09:05 - 09:45)
+    { id_jadwal: "jd_wed_3_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Rabu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_wed_3_7b", id_rombel: "rb_7b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Rabu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_wed_3_8a", id_rombel: "rb_8a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Rabu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_wed_3_8b", id_rombel: "rb_8b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Rabu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_wed_3_9b", id_rombel: "rb_9b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Rabu", jam_mulai: "09:05", jam_selesai: "09:45" },
+
+    // Jam 4 (10:15 - 10:55)
+    { id_jadwal: "jd_wed_4_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Rabu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_wed_4_7b", id_rombel: "rb_7b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Rabu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_wed_4_8a", id_rombel: "rb_8a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Rabu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_wed_4_9a", id_rombel: "rb_9a", id_pegawai: g_dewi, id_mapel: "mp_pai", semester: "Ganjil", hari: "Rabu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_wed_4_9b", id_rombel: "rb_9b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Rabu", jam_mulai: "10:15", jam_selesai: "10:55" },
+
+    // === KAMIS ===
+    // Jam 1 (07:45 - 08:25)
+    { id_jadwal: "jd_thu_1_7a", id_rombel: "rb_7a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_thu_1_7b", id_rombel: "rb_7b", id_pegawai: g_dewi, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_thu_1_8a", id_rombel: "rb_8a", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_thu_1_8b", id_rombel: "rb_8b", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_thu_1_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "07:45", jam_selesai: "08:25" },
+
+    // Jam 2 (08:25 - 09:05)
+    { id_jadwal: "jd_thu_2_7a", id_rombel: "rb_7a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_thu_2_7b", id_rombel: "rb_7b", id_pegawai: g_dewi, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_thu_2_8a", id_rombel: "rb_8a", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_thu_2_8b", id_rombel: "rb_8b", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_thu_2_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "08:25", jam_selesai: "09:05" },
+
+    // Jam 3 (09:05 - 09:45)
+    { id_jadwal: "jd_thu_3_7a", id_rombel: "rb_7a", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_thu_3_7b", id_rombel: "rb_7b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Kamis", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_thu_3_8a", id_rombel: "rb_8a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Kamis", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_thu_3_8b", id_rombel: "rb_8b", id_pegawai: g_dewi, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_thu_3_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "09:05", jam_selesai: "09:45" },
+
+    // Jam 4 (10:15 - 10:55)
+    { id_jadwal: "jd_thu_4_7a", id_rombel: "rb_7a", id_pegawai: g_dewi, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_thu_4_7b", id_rombel: "rb_7b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Kamis", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_thu_4_8a", id_rombel: "rb_8a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Kamis", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_thu_4_8b", id_rombel: "rb_8b", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Kamis", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_thu_4_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Kamis", jam_mulai: "10:15", jam_selesai: "10:55" },
+
+    // === JUMAT === (KBM Singkat 07:30 - 11:30)
+    // Jam 1 (07:30 - 08:10)
+    { id_jadwal: "jd_fri_1_7a", id_rombel: "rb_7a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:30", jam_selesai: "08:10" },
+    { id_jadwal: "jd_fri_1_7b", id_rombel: "rb_7b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:30", jam_selesai: "08:10" },
+    { id_jadwal: "jd_fri_1_8a", id_rombel: "rb_8a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:30", jam_selesai: "08:10" },
+    { id_jadwal: "jd_fri_1_9a", id_rombel: "rb_9a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:30", jam_selesai: "08:10" },
+    { id_jadwal: "jd_fri_1_9b", id_rombel: "rb_9b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Jumat", jam_mulai: "07:30", jam_selesai: "08:10" },
+
+    // Jam 2 (08:10 - 08:50)
+    { id_jadwal: "jd_fri_2_7a", id_rombel: "rb_7a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:10", jam_selesai: "08:50" },
+    { id_jadwal: "jd_fri_2_7b", id_rombel: "rb_7b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:10", jam_selesai: "08:50" },
+    { id_jadwal: "jd_fri_2_8a", id_rombel: "rb_8a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:10", jam_selesai: "08:50" },
+    { id_jadwal: "jd_fri_2_9a", id_rombel: "rb_9a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:10", jam_selesai: "08:50" },
+    { id_jadwal: "jd_fri_2_9b", id_rombel: "rb_9b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:10", jam_selesai: "08:50" },
+
+    // Jam 3 (08:50 - 09:30)
+    { id_jadwal: "jd_fri_3_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:50", jam_selesai: "09:30" },
+    { id_jadwal: "jd_fri_3_7b", id_rombel: "rb_7b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:50", jam_selesai: "09:30" },
+    { id_jadwal: "jd_fri_3_8b", id_rombel: "rb_8b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:50", jam_selesai: "09:30" },
+    { id_jadwal: "jd_fri_3_9a", id_rombel: "rb_9a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:50", jam_selesai: "09:30" },
+    { id_jadwal: "jd_fri_3_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Jumat", jam_mulai: "08:50", jam_selesai: "09:30" },
+
+    // Jam 4 (10:00 - 10:40)
+    { id_jadwal: "jd_fri_4_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Jumat", jam_mulai: "10:00", jam_selesai: "10:40" },
+    { id_jadwal: "jd_fri_4_7b", id_rombel: "rb_7b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Jumat", jam_mulai: "10:00", jam_selesai: "10:40" },
+    { id_jadwal: "jd_fri_4_8b", id_rombel: "rb_8b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Jumat", jam_mulai: "10:00", jam_selesai: "10:40" },
+    { id_jadwal: "jd_fri_4_9a", id_rombel: "rb_9a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Jumat", jam_mulai: "10:00", jam_selesai: "10:40" },
+    { id_jadwal: "jd_fri_4_9b", id_rombel: "rb_9b", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Jumat", jam_mulai: "10:00", jam_selesai: "10:40" },
+
+    // === SABTU ===
+    // Jam 1 (07:45 - 08:25)
+    { id_jadwal: "jd_sat_1_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Sabtu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_sat_1_7b", id_rombel: "rb_7b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Sabtu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_sat_1_8a", id_rombel: "rb_8a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Sabtu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_sat_1_8b", id_rombel: "rb_8b", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Sabtu", jam_mulai: "07:45", jam_selesai: "08:25" },
+    { id_jadwal: "jd_sat_1_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Sabtu", jam_mulai: "07:45", jam_selesai: "08:25" },
+
+    // Jam 2 (08:25 - 09:05)
+    { id_jadwal: "jd_sat_2_7a", id_rombel: "rb_7a", id_pegawai: g_maya, id_mapel: "mp_bing", semester: "Ganjil", hari: "Sabtu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_sat_2_7b", id_rombel: "rb_7b", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Sabtu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_sat_2_8a", id_rombel: "rb_8a", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Sabtu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_sat_2_8b", id_rombel: "rb_8b", id_pegawai: g_bambang, id_mapel: "mp_pjok", semester: "Ganjil", hari: "Sabtu", jam_mulai: "08:25", jam_selesai: "09:05" },
+    { id_jadwal: "jd_sat_2_9a", id_rombel: "rb_9a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Sabtu", jam_mulai: "08:25", jam_selesai: "09:05" },
+
+    // Jam 3 (09:05 - 09:45)
+    { id_jadwal: "jd_sat_3_7a", id_rombel: "rb_7a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Sabtu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_sat_3_7b", id_rombel: "rb_7b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Sabtu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_sat_3_8a", id_rombel: "rb_8a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Sabtu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_sat_3_8b", id_rombel: "rb_8b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Sabtu", jam_mulai: "09:05", jam_selesai: "09:45" },
+    { id_jadwal: "jd_sat_3_9b", id_rombel: "rb_9b", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Sabtu", jam_mulai: "09:05", jam_selesai: "09:45" },
+
+    // Jam 4 (10:15 - 10:55)
+    { id_jadwal: "jd_sat_4_7a", id_rombel: "rb_7a", id_pegawai: g_ahmad, id_mapel: "mp_pai", semester: "Ganjil", hari: "Sabtu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_sat_4_7b", id_rombel: "rb_7b", id_pegawai: g_bambang, id_mapel: "mp_ipa", semester: "Ganjil", hari: "Sabtu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_sat_4_8a", id_rombel: "rb_8a", id_pegawai: g_syaiful, id_mapel: "mp_mtk", semester: "Ganjil", hari: "Sabtu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_sat_4_8b", id_rombel: "rb_8b", id_pegawai: g_dewi, id_mapel: "mp_qur", semester: "Ganjil", hari: "Sabtu", jam_mulai: "10:15", jam_selesai: "10:55" },
+    { id_jadwal: "jd_sat_4_9b", id_rombel: "rb_9b", id_pegawai: g_maya, id_mapel: "mp_bind", semester: "Ganjil", hari: "Sabtu", jam_mulai: "10:15", jam_selesai: "10:55" },
   ];
 
   const surat: Surat[] = [

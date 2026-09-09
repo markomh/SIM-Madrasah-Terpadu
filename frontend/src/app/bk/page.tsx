@@ -105,7 +105,7 @@ export default function BkPage() {
     <AppShell title="Bimbingan Konseling">
       <PageHeader 
         title="Bimbingan Konseling" 
-        description="Pencatatan riwayat bimbingan siswa. Data Rahasia difilter langsung dari sisi service layer." 
+        description="Pencatatan riwayat bimbingan siswa. Catatan rahasia terproteksi secara otomatis." 
       />
       {error && <ErrorBlock message={error} />}
 

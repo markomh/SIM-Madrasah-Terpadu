@@ -139,7 +139,7 @@ function PresensiSiswaContent() {
     <AppShell title="Presensi Siswa per Sesi">
       <PageHeader
         title="Input Presensi Sesi Tatap Muka"
-        description="Presensi operasional per sesi KBM (Moodle/ManageBac style) dengan pewarisan konteks jadwal dan pencatatan kehadiran guru otomatis."
+        description="Presensi harian siswa per sesi kegiatan belajar mengajar (KBM) beserta rekap kehadiran guru."
       />
 
       {/* Context Inheritance Banner when a session is active */}
@@ -155,7 +155,7 @@ function PresensiSiswaContent() {
                   {selectedRombelObj.nama_rombel} • {selectedMapel.nama_mapel}
                 </span>
                 <span className="rounded bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary">
-                  Konteks Terkunci
+                  Sesi Aktif
                 </span>
               </div>
               <p className="text-xs text-muted mt-0.5">
