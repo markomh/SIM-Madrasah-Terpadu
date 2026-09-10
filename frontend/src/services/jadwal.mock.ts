@@ -20,7 +20,7 @@ export const jadwalMock: JadwalService = {
     const all = loadStore().jadwal.filter((j) => j.id_jadwal !== excludeId);
     return all.filter(
       (j) =>
-        j.id_pegawai === candidate.id_pegawai &&
+        (j.id_pegawai === candidate.id_pegawai || (candidate.id_rombel && j.id_rombel === candidate.id_rombel)) &&
         j.semester === candidate.semester &&
         j.hari === candidate.hari &&
         overlaps(j.jam_mulai, j.jam_selesai, candidate.jam_mulai, candidate.jam_selesai),
@@ -31,7 +31,7 @@ export const jadwalMock: JadwalService = {
     maybeThrowSimulatedError();
     const conflicts = await this.detectConflicts(data);
     if (conflicts.length > 0) {
-      throw new Error("Bentrok jadwal: kombinasi guru + hari + jam sudah terpakai.");
+      throw new Error("Bentrok jadwal: Guru atau Rombel ini sudah memiliki jadwal pada jam dan hari tersebut.");
     }
     const created: JadwalPelajaran = { ...data, id_jadwal: createId("jd") };
     mutateStore((s) => s.jadwal.push(created));
@@ -56,7 +56,7 @@ export const jadwalMock: JadwalService = {
 
     const conflicts = await this.detectConflicts(merged, id_jadwal);
     if (conflicts.length > 0) {
-      throw new Error("Bentrok jadwal: perubahan menyebabkan tabrakan waktu mengajar guru.");
+      throw new Error("Bentrok jadwal: perubahan menyebabkan tabrakan waktu guru atau rombel.");
     }
 
     let updated: JadwalPelajaran | null = null;

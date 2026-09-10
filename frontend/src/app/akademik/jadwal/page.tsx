@@ -114,6 +114,7 @@ export default function JadwalPage() {
     jam_selesai: "08:25",
   });
   const [aiNote, setAiNote] = useState<string | null>(null);
+  const [conflictPrompt, setConflictPrompt] = useState<{ type: "sertifikasi" | "rutinitas"; message: string } | null>(null);
 
   // RBAC permissions
   const canEdit = currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList);
@@ -267,27 +268,48 @@ export default function JadwalPage() {
     setSelectedSlotDetail(null);
   };
 
-  // Submit Handler for Add or Update
-  const handleSubmitForm = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performSave = async (overrideFlags: { override_sertifikasi?: boolean; override_rutinitas?: boolean; } = {}) => {
     setIsSaving(true);
     setError(null);
     try {
+      const payload = {
+        ...formData,
+        ...overrideFlags,
+        rutinitas_slots: activePreset?.slots
+          .filter(s => s.tipe !== "KBM" && (!s.hariKhusus || s.hariKhusus.includes(formData.hari)))
+          .map(s => ({
+            hari: formData.hari,
+            jam_mulai: s.jam_mulai,
+            jam_selesai: s.jam_selesai,
+            nama: s.nama
+          })) || []
+      };
+
       if (editingJadwal) {
-        await services.jadwal.update(editingJadwal.id_jadwal, formData);
+        await services.jadwal.update(editingJadwal.id_jadwal, payload);
         setSuccessMsg(`Slot jadwal berhasil diperbarui untuk ${rombelMap[formData.id_rombel]?.nama_rombel}.`);
         setEditingJadwal(null);
       } else {
-        await services.jadwal.create(formData);
+        await services.jadwal.create(payload);
         setSuccessMsg(`Slot jadwal baru berhasil disimpan untuk ${rombelMap[formData.id_rombel]?.nama_rombel}.`);
         setShowAddForm(false);
       }
       bump();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Gagal menyimpan jadwal");
+      setConflictPrompt(null);
+    } catch (err: any) {
+      if (err.status === 409 && err.needsOverride) {
+        setConflictPrompt({ type: err.needsOverride, message: err.message });
+      } else {
+        setError(err.message || "Gagal menyimpan jadwal");
+      }
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSubmitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performSave();
   };
 
   const handleSavePresetRoutine = (updatedPresets: BellSchedulePreset[]) => {
@@ -764,6 +786,26 @@ export default function JadwalPage() {
           onClose={() => setShowPrintModal(false)}
         />
       )}
+
+      {/* Soft-Warning Conflict Dialog */}
+      <ConfirmDialog
+        isOpen={!!conflictPrompt}
+        onClose={() => setConflictPrompt(null)}
+        onConfirm={async () => {
+          if (!conflictPrompt) return;
+          const flags = {
+            override_sertifikasi: conflictPrompt.type === "sertifikasi",
+            override_rutinitas: conflictPrompt.type === "rutinitas",
+          };
+          await performSave(flags);
+        }}
+        title="Konfirmasi Peringatan Jadwal"
+        description={conflictPrompt?.message || ""}
+        confirmLabel="Ya, Paksa Simpan"
+        cancelLabel="Batal"
+        variant="danger"
+        loading={isSaving}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

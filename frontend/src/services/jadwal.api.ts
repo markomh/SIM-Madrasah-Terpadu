@@ -1,4 +1,10 @@
 import { JadwalPelajaran } from "@/types/jadwal";
+
+export type JadwalPayload = Omit<JadwalPelajaran, "id_jadwal"> & {
+  override_sertifikasi?: boolean;
+  override_rutinitas?: boolean;
+  rutinitas_slots?: { hari: string; jam_mulai: string; jam_selesai: string; nama: string }[];
+};
 import { apiClient } from "./api-client";
 
 export const jadwalApi = {
@@ -14,11 +20,11 @@ export const jadwalApi = {
     return apiClient.get<JadwalPelajaran[]>(`/jadwal?id_pegawai=${idPegawai}`);
   },
 
-  create: async (data: Omit<JadwalPelajaran, "id_jadwal">): Promise<JadwalPelajaran> => {
+  create: async (data: JadwalPayload): Promise<JadwalPelajaran> => {
     return apiClient.post<JadwalPelajaran>("/jadwal", data);
   },
 
-  update: async (id: string, data: Partial<JadwalPelajaran>): Promise<JadwalPelajaran> => {
+  update: async (id: string, data: Partial<JadwalPayload>): Promise<JadwalPelajaran> => {
     return apiClient.put<JadwalPelajaran>(`/jadwal/${id}`, data);
   },
 

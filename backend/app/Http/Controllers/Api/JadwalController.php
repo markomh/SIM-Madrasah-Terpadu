@@ -8,6 +8,9 @@ use App\Models\Pegawai;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use App\Models\AuditLog;
+use App\Models\MataPelajaran;
 
 use App\Services\PegawaiAccessService;
 
@@ -64,29 +67,91 @@ class JadwalController extends Controller
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
         ]);
 
-        // Collision Check — Guru tidak bisa mengajar 2 rombel pada hari, jam, dan semester yang sama
-        $collision = JadwalPelajaran::where('id_pegawai', $request->id_pegawai)
-            ->where('hari', $request->hari)
-            ->where('semester', $request->semester)
-            ->where('jam_mulai', '<', $request->jam_selesai)
-            ->where('jam_selesai', '>', $request->jam_mulai)
-            ->exists();
-
-        if ($collision) {
+        $rutinitasSlots = $request->input('rutinitas_slots', []);
+        $rutinitasConflict = false;
+        foreach ($rutinitasSlots as $slot) {
+            if ($slot['hari'] === $request->hari) {
+                if ($request->jam_mulai < $slot['jam_selesai'] && $request->jam_selesai > $slot['jam_mulai']) {
+                    $rutinitasConflict = true;
+                    break;
+                }
+            }
+        }
+        if ($rutinitasConflict && !$request->boolean('override_rutinitas')) {
             return response()->json([
-                'message' => 'Bentrok Jadwal: Guru ini sudah memiliki jadwal mengajar pada jam dan hari tersebut.',
-            ], 422);
+                'message' => 'Bentrok Rutinitas: Jadwal ini bertabrakan dengan rutinitas madrasah. Lanjutkan?',
+                'needs_override' => 'rutinitas'
+            ], 409);
         }
 
-        $jadwal = JadwalPelajaran::create([
-            'id_rombel'   => $request->id_rombel,
-            'id_pegawai'  => $request->id_pegawai,
-            'id_mapel'    => $request->id_mapel,
-            'semester'    => $request->semester,
-            'hari'        => $request->hari,
-            'jam_mulai'   => $request->jam_mulai,
-            'jam_selesai' => $request->jam_selesai,
-        ]);
+        $pegawai = Pegawai::find($request->id_pegawai);
+        $mataPelajaran = MataPelajaran::find($request->id_mapel);
+        $sertifikasiValid = true;
+        if ($pegawai && $mataPelajaran && !empty($pegawai->mapel_sertifikasi)) {
+            if (!in_array($mataPelajaran->nama_mapel, $pegawai->mapel_sertifikasi)) {
+                $sertifikasiValid = false;
+            }
+        }
+        if (!$sertifikasiValid && !$request->boolean('override_sertifikasi')) {
+            return response()->json([
+                'message' => 'Peringatan Sertifikasi: Mata pelajaran ini tidak sesuai dengan linearitas sertifikasi guru. Lanjutkan?',
+                'needs_override' => 'sertifikasi'
+            ], 409);
+        }
+
+        $result = DB::transaction(function () use ($request) {
+            // Collision Check — Guru atau Rombel tidak bisa dijadwalkan ganda pada jam yang sama
+            $jadwalCollision = JadwalPelajaran::where(function ($query) use ($request) {
+                    $query->where('id_pegawai', $request->id_pegawai)
+                          ->orWhere('id_rombel', $request->id_rombel);
+                })
+                ->where('hari', $request->hari)
+                ->where('semester', $request->semester)
+                ->where('jam_mulai', '<', $request->jam_selesai)
+                ->where('jam_selesai', '>', $request->jam_mulai)
+                ->lockForUpdate()
+                ->get();
+
+            if ($jadwalCollision->isNotEmpty()) {
+                foreach ($jadwalCollision as $c) {
+                    if ($c->id_rombel == $request->id_rombel) {
+                        return response()->json(['message' => 'Bentrok Jadwal: Rombel ini sudah memiliki kelas pada jam tersebut.'], 422);
+                    }
+                    if ($c->id_pegawai == $request->id_pegawai) {
+                        return response()->json(['message' => 'Bentrok Jadwal: Guru ini sudah memiliki kelas pada jam tersebut.'], 422);
+                    }
+                }
+            }
+
+            return JadwalPelajaran::create([
+                'id_rombel'   => $request->id_rombel,
+                'id_pegawai'  => $request->id_pegawai,
+                'id_mapel'    => $request->id_mapel,
+                'semester'    => $request->semester,
+                'hari'        => $request->hari,
+                'jam_mulai'   => $request->jam_mulai,
+                'jam_selesai' => $request->jam_selesai,
+            ]);
+        });
+
+        if ($result instanceof JsonResponse) {
+            return $result;
+        }
+        $jadwal = $result;
+
+        if ($request->boolean('override_sertifikasi') || $request->boolean('override_rutinitas')) {
+            $alasan = [];
+            if ($request->boolean('override_sertifikasi')) $alasan[] = 'sertifikasi tidak linier';
+            if ($request->boolean('override_rutinitas')) $alasan[] = 'bentrok rutinitas';
+            
+            AuditLog::create([
+                'id_user' => auth()->id(),
+                'nama_tabel' => 'jadwal_pelajaran',
+                'id_record' => $jadwal->id_jadwal,
+                'aksi' => 'Override Store: ' . implode(', ', $alasan),
+                'timestamp' => now(),
+            ]);
+        }
 
         return response()->json(['data' => $jadwal->load(['rombel', 'pegawai', 'mataPelajaran'])], 201);
     }
@@ -116,23 +181,88 @@ class JadwalController extends Controller
         $newJamMulai = $request->jam_mulai ?? $jadwal->jam_mulai;
         $newJamSelesai = $request->jam_selesai ?? $jadwal->jam_selesai;
 
-        $collision = JadwalPelajaran::where('id_pegawai', $newPegawai)
-            ->where('hari', $newHari)
-            ->where('semester', $newSemester)
-            ->where('id_jadwal', '!=', $id)
-            ->where('jam_mulai', '<', $newJamSelesai)
-            ->where('jam_selesai', '>', $newJamMulai)
-            ->exists();
+        $newRombel = $request->id_rombel ?? $jadwal->id_rombel;
 
-        if ($collision) {
+        $rutinitasSlots = $request->input('rutinitas_slots', []);
+        $rutinitasConflict = false;
+        foreach ($rutinitasSlots as $slot) {
+            if ($slot['hari'] === $newHari) {
+                if ($newJamMulai < $slot['jam_selesai'] && $newJamSelesai > $slot['jam_mulai']) {
+                    $rutinitasConflict = true;
+                    break;
+                }
+            }
+        }
+        if ($rutinitasConflict && !$request->boolean('override_rutinitas')) {
             return response()->json([
-                'message' => 'Bentrok Jadwal: Guru ini sudah memiliki jadwal mengajar pada jam dan hari tersebut.',
-            ], 422);
+                'message' => 'Bentrok Rutinitas: Jadwal ini bertabrakan dengan rutinitas madrasah. Lanjutkan?',
+                'needs_override' => 'rutinitas'
+            ], 409);
         }
 
-        $jadwal->update($request->only([
-            'id_rombel', 'id_pegawai', 'id_mapel', 'semester', 'hari', 'jam_mulai', 'jam_selesai'
-        ]));
+        $pegawai = Pegawai::find($newPegawai);
+        $mataPelajaran = MataPelajaran::find($request->id_mapel ?? $jadwal->id_mapel);
+        $sertifikasiValid = true;
+        if ($pegawai && $mataPelajaran && !empty($pegawai->mapel_sertifikasi)) {
+            if (!in_array($mataPelajaran->nama_mapel, $pegawai->mapel_sertifikasi)) {
+                $sertifikasiValid = false;
+            }
+        }
+        if (!$sertifikasiValid && !$request->boolean('override_sertifikasi')) {
+            return response()->json([
+                'message' => 'Peringatan Sertifikasi: Mata pelajaran ini tidak sesuai dengan linearitas sertifikasi guru. Lanjutkan?',
+                'needs_override' => 'sertifikasi'
+            ], 409);
+        }
+
+        $result = DB::transaction(function () use ($request, $jadwal, $newPegawai, $newRombel, $newHari, $newSemester, $newJamMulai, $newJamSelesai, $id) {
+            $jadwalCollision = JadwalPelajaran::where(function ($query) use ($newPegawai, $newRombel) {
+                    $query->where('id_pegawai', $newPegawai)
+                          ->orWhere('id_rombel', $newRombel);
+                })
+                ->where('hari', $newHari)
+                ->where('semester', $newSemester)
+                ->where('id_jadwal', '!=', $id)
+                ->where('jam_mulai', '<', $newJamSelesai)
+                ->where('jam_selesai', '>', $newJamMulai)
+                ->lockForUpdate()
+                ->get();
+
+            if ($jadwalCollision->isNotEmpty()) {
+                foreach ($jadwalCollision as $c) {
+                    if ($c->id_rombel == $newRombel) {
+                        return response()->json(['message' => 'Bentrok Jadwal: Rombel ini sudah memiliki kelas pada jam tersebut.'], 422);
+                    }
+                    if ($c->id_pegawai == $newPegawai) {
+                        return response()->json(['message' => 'Bentrok Jadwal: Guru ini sudah memiliki kelas pada jam tersebut.'], 422);
+                    }
+                }
+            }
+
+            $jadwal->update($request->only([
+                'id_rombel', 'id_pegawai', 'id_mapel', 'semester', 'hari', 'jam_mulai', 'jam_selesai'
+            ]));
+            
+            return $jadwal;
+        });
+
+        if ($result instanceof JsonResponse) {
+            return $result;
+        }
+        
+        if ($request->boolean('override_sertifikasi') || $request->boolean('override_rutinitas')) {
+            $alasan = [];
+            if ($request->boolean('override_sertifikasi')) $alasan[] = 'sertifikasi tidak linier';
+            if ($request->boolean('override_rutinitas')) $alasan[] = 'bentrok rutinitas';
+            
+            AuditLog::create([
+                'id_user' => auth()->id(),
+                'nama_tabel' => 'jadwal_pelajaran',
+                'id_record' => $jadwal->id_jadwal,
+                'aksi' => 'Override Update: ' . implode(', ', $alasan),
+                'timestamp' => now(),
+            ]);
+        }
 
         return response()->json(['data' => $jadwal->load(['rombel', 'pegawai', 'mataPelajaran'])]);
     }
@@ -230,7 +360,8 @@ class JadwalController extends Controller
     public function checkConflict(Request $request): JsonResponse
     {
         $request->validate([
-            'id_pegawai'  => 'required|exists:pegawai,id_pegawai',
+            'id_pegawai'  => 'nullable|exists:pegawai,id_pegawai',
+            'id_rombel'   => 'nullable|exists:rombel,id_rombel',
             'hari'        => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
             'semester'    => 'required|in:Ganjil,Genap',
             'jam_mulai'   => 'required|date_format:H:i',
@@ -238,7 +369,14 @@ class JadwalController extends Controller
             'exclude_id'  => 'nullable|string',
         ]);
 
-        $query = JadwalPelajaran::where('id_pegawai', $request->id_pegawai)
+        $query = JadwalPelajaran::where(function ($q) use ($request) {
+                if ($request->id_pegawai) {
+                    $q->orWhere('id_pegawai', $request->id_pegawai);
+                }
+                if ($request->id_rombel) {
+                    $q->orWhere('id_rombel', $request->id_rombel);
+                }
+            })
             ->where('hari', $request->hari)
             ->where('semester', $request->semester)
             ->where('jam_mulai', '<', $request->jam_selesai)

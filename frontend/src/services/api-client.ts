@@ -59,10 +59,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}, schema?: 
 
   if (!response.ok) {
     let errorMessage = `HTTP Error ${response.status}`;
+    let needsOverride: string | undefined = undefined;
     try {
       const errorJson = await response.json();
       if (errorJson.message) {
         errorMessage = errorJson.message;
+      }
+      if (errorJson.needs_override) {
+        needsOverride = errorJson.needs_override;
       }
     } catch {
       // JSON parse error — keep default message
@@ -71,12 +75,15 @@ async function request<T>(endpoint: string, options: RequestInit = {}, schema?: 
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("app-api-error", {
-          detail: { status: response.status, message: errorMessage },
+          detail: { status: response.status, message: errorMessage, needsOverride },
         })
       );
     }
 
-    throw new Error(errorMessage);
+    const err = new Error(errorMessage) as any;
+    err.status = response.status;
+    err.needsOverride = needsOverride;
+    throw err;
   }
 
   const json = await response.json();

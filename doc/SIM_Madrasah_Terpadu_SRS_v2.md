@@ -374,9 +374,11 @@ Dirancang secukupnya untuk dua kebutuhan yang sudah dijanjikan tapi belum punya 
 
 1. **Rombel & Siswa:** 1 siswa hanya di 1 rombel per tahun ajaran aktif; 1 rombel memiliki banyak siswa (*one-to-many* via tabel riwayat).
 2. **Pegawai & Rombel (Wali Kelas):** 1 rombel maksimal 1 wali kelas; 1 pegawai maksimal wali kelas di 1 rombel per tahun ajaran aktif.
-3. **Penjadwalan:** kombinasi `id_pegawai` + `hari` + `jam_mulai` + `semester` harus unik — sistem menolak otomatis jika bentrok.
+3. **Penjadwalan:** Kombinasi `id_pegawai` + `hari` + `jam_mulai` + `semester` harus unik, **dan** kombinasi `id_rombel` + `hari` + `jam_mulai` + `semester` juga harus unik — sistem menolak otomatis jika bentrok.
 4. **AI — Skor Risiko:** `skor_risiko_ai` hanya dapat ditulis oleh proses sistem/AI, tidak dapat diedit manual oleh pengguna (mencegah manipulasi data).
 5. **Audit:** setiap `UPDATE`/`DELETE` pada tabel `siswa`, `pegawai`, dan `absensi_siswa` wajib memicu entri baru di `audit_log` sebelum transaksi dianggap selesai.
+6. **Soft-Warning & Override:** Pelanggaran soft-constraint (seperti linearitas sertifikasi dan bentrok rutinitas) harus mengembalikan status HTTP 409 Conflict. Pengguna dapat memaksa simpan dengan mengirim flag (contoh: `override_sertifikasi: true`). Setiap override wajib mencatat rekaman ke tabel `audit_log`.
+7. **Preset Rutinitas (Bell Schedule):** Rutinitas madrasah divalidasi dengan mengirimkan array JSON `rutinitas_slots` dari Frontend ke Backend pada payload `POST/PUT` jadwal. Backend memvalidasi tumpang tindih secara in-memory.
 
 ### Aturan Tambahan — Kenaikan Kelas, Perpindahan Rombel & Mutasi *(baru)*
 
