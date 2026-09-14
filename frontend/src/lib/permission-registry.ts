@@ -32,7 +32,7 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
   uiClass: "executive" | "operational" | "scoped_contributor" | "shared";
 }> = {
   "core.view_dashboard": {
-    roles: ["Admin","Kamad","Operator","Guru BK","Wali Kelas","is_pengajar_aktif"],
+    roles: ["Admin","Kamad","Operator","Pembina BK","Wali Kelas","is_pengajar_aktif"],
     makerChecker: null,
     uiClass: "shared",
   },
@@ -47,7 +47,7 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
     uiClass: "executive",
   },
   "kesiswaan.crud_siswa": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Guru BK"],
+    roles: ["Admin","Kamad","Operator","Wali Kelas","Pembina BK"],
     makerChecker: null,
     uiClass: "shared",
   },
@@ -62,12 +62,12 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
     uiClass: "shared",
   },
   "kesiswaan.submit_pindah_rombel_request": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Guru BK"],
+    roles: ["Admin","Kamad","Operator","Wali Kelas","Pembina BK"],
     makerChecker: "maker",
     uiClass: "operational",
   },
   "kesiswaan.submit_mutasi": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Guru BK"],
+    roles: ["Admin","Kamad","Operator","Wali Kelas","Pembina BK"],
     makerChecker: "maker",
     uiClass: "operational",
   },
@@ -107,12 +107,12 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
     uiClass: "shared",
   },
   "bk.crud_catatan_bk": {
-    roles: ["Kamad","Guru BK"],
+    roles: ["Kamad","Pembina BK"],
     makerChecker: null,
     uiClass: "scoped_contributor",
   },
   "bk.read_catatan_bk_with_tingkat_kerahasiaan_rahasia": {
-    roles: ["Kamad","Guru BK"],
+    roles: ["Kamad","Pembina BK"],
     makerChecker: null,
     uiClass: "shared",
   },

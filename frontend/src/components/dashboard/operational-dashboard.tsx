@@ -13,7 +13,7 @@ interface OperationalDashboardProps {
   isPengajarAktif: boolean;
   isTendik: boolean;
   isAdminMadrasah: boolean;
-  isGuruBk: boolean;
+  isPembinaBk: boolean;
 }
 
 export function OperationalDashboard({
@@ -25,7 +25,7 @@ export function OperationalDashboard({
   isPengajarAktif,
   isTendik,
   isAdminMadrasah,
-  isGuruBk,
+  isPembinaBk,
 }: OperationalDashboardProps) {
   return (
     <div className="space-y-6">
@@ -121,7 +121,7 @@ export function OperationalDashboard({
       )}
 
       {/* Block: Guru BK */}
-      {isGuruBk && (
+      {isPembinaBk && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 border-b border-border pb-1">
             <span className="h-2 w-2 rounded-full bg-danger" />

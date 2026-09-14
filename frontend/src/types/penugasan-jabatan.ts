@@ -1,8 +1,7 @@
 export type JenisJabatan =
   | "Kepala Madrasah"
   | "Admin Madrasah"
-  | "Operator Kesiswaan"
-  | "Guru BK";
+  | "Operator Kesiswaan";
 
 export type StatusPenugasan = "Aktif" | "Berakhir";
 

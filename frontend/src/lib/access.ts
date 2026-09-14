@@ -1,4 +1,4 @@
-import type { PenugasanJabatan, JenisJabatan, Rombel, Ekstrakurikuler, JadwalPelajaran, AuthUser } from "@/types";
+import type { PenugasanJabatan, JenisJabatan, Rombel, Ekstrakurikuler, JadwalPelajaran, AuthUser, PlottingBKTIK, Siswa } from "@/types";
 
 export type CapabilityAction = "read" | "create" | "update" | "delete" | "approve" | "export";
 
@@ -10,7 +10,16 @@ export function hasJabatan(idPegawai: string, jenis: JenisJabatan, list?: Penuga
 export const isKepalaMadrasah = (id: string, list?: PenugasanJabatan[]) => hasJabatan(id, "Kepala Madrasah", list);
 export const isAdminMadrasah = (id: string, list?: PenugasanJabatan[]) => hasJabatan(id, "Admin Madrasah", list);
 export const isOperatorKesiswaan = (id: string, list?: PenugasanJabatan[]) => hasJabatan(id, "Operator Kesiswaan", list);
-export const isGuruBk = (id: string, list?: PenugasanJabatan[]) => hasJabatan(id, "Guru BK", list);
+
+export function isPembinaBk(idPegawai: string, plottingBkList?: PlottingBKTIK[]): boolean {
+  if (!idPegawai || !Array.isArray(plottingBkList)) return false;
+  return plottingBkList.some(p => p.id_pegawai === idPegawai);
+}
+
+export function isPembinaBkSiswa(idPegawai: string, idRombelSiswa: string, plottingBkList?: PlottingBKTIK[]): boolean {
+  if (!idPegawai || !idRombelSiswa || !Array.isArray(plottingBkList)) return false;
+  return plottingBkList.some(p => p.id_pegawai === idPegawai && p.id_rombel === idRombelSiswa);
+}
 
 export function isWaliKelas(idPegawai: string, rombelList?: Rombel[]): boolean {
   if (!idPegawai || !Array.isArray(rombelList)) return false;
@@ -58,6 +67,7 @@ export interface UserAccessContext {
   rombelList?: Rombel[];
   ekstraList?: Ekstrakurikuler[];
   jadwalList?: JadwalPelajaran[];
+  plottingBkList?: PlottingBKTIK[];
 }
 
 export function canApprove(ctx: UserAccessContext): boolean {

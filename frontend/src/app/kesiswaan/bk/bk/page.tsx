@@ -1,6 +1,6 @@
 "use client";
 
-import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isPembinaBk, isPembinaBkSiswa, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
@@ -14,8 +14,8 @@ import { ActionGuard } from "@/components/action-guard";
 import { usePermission } from "@/hooks/usePermission";
 
 export default function BkPage() {
-  const { currentUser, penugasanList } = useAuth();
-  const canAccess = (currentUser && isGuruBk(currentUser.id_pegawai, penugasanList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
+  const { currentUser, penugasanList, plottingBkList } = useAuth();
+  const canAccess = (currentUser && isPembinaBk(currentUser.id_pegawai, plottingBkList)) || (currentUser && isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
   const canWrite = usePermission("bk.crud_catatan_bk");
 
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
@@ -40,10 +40,18 @@ export default function BkPage() {
 
   useEffect(() => {
     services.siswa.getAll()
-      .then(res => setSiswaList(res))
+      .then(res => {
+        // Filter siswa list if not Kamad
+        if (currentUser && !isKepalaMadrasah(currentUser.id_pegawai, penugasanList)) {
+          const filtered = res.filter(s => isPembinaBkSiswa(currentUser.id_pegawai, (s as any).id_rombel, plottingBkList));
+          setSiswaList(filtered);
+        } else {
+          setSiswaList(res);
+        }
+      })
       .catch(err => setError(err instanceof Error ? err.message : "Gagal memuat siswa"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [currentUser, penugasanList, plottingBkList]);
 
   useEffect(() => {
     if (!selectedSiswaId || !currentUser) return;

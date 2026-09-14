@@ -25,9 +25,10 @@ import type {
   KomponenNilai,
   NilaiSiswa,
   Madrasah,
+  PlottingBKTIK,
 } from "@/types";
 
-export const STORAGE_KEY = "sim-madrasah-demo-store-v6";
+export const STORAGE_KEY = "sim-madrasah-demo-store-v7";
 export const SIMULATE_ERROR_KEY = "sim-madrasah-simulate-error";
 
 export type DemoStore = {
@@ -58,6 +59,7 @@ export type DemoStore = {
   keanggotaanEkstra: KeanggotaanEkstra[];
   absensiEkstra: AbsensiEkstra[];
   penugasanJabatan: PenugasanJabatan[];
+  plottingBk: PlottingBKTIK[];
   profilMadrasah: ProfilMadrasah;
   templateSurat: TemplateSurat[];
   catatanBk: CatatanBk[];
@@ -141,12 +143,12 @@ function buildSeed(): DemoStore {
   ];
 
   const rombel: Rombel[] = [
-    { id_rombel: "rb_7a", id_madrasah: "md_1", nama_rombel: "7-A", id_tingkat: "t_7", id_tahun: "ta_2627", id_wali_kelas: "019153a0-f8f2-777b-bb66-6b211a7e28a5" },
-    { id_rombel: "rb_7b", id_madrasah: "md_1", nama_rombel: "7-B", id_tingkat: "t_7", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
-    { id_rombel: "rb_8a", id_madrasah: "md_1", nama_rombel: "8-A", id_tingkat: "t_8", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
-    { id_rombel: "rb_8b", id_madrasah: "md_1", nama_rombel: "8-B", id_tingkat: "t_8", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
-    { id_rombel: "rb_9a", id_madrasah: "md_1", nama_rombel: "9-A", id_tingkat: "t_9", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
-    { id_rombel: "rb_9b", id_madrasah: "md_1", nama_rombel: "9-B", id_tingkat: "t_9", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a" },
+    { id_rombel: "rb_7a", id_madrasah: "md_1", nama_rombel: "7-A", id_tingkat: "t_7", id_tahun: "ta_2627", id_wali_kelas: "019153a0-f8f2-777b-bb66-6b211a7e28a5", ruangan: "R. 701", kuota: 32, kurikulum: "Merdeka" },
+    { id_rombel: "rb_7b", id_madrasah: "md_1", nama_rombel: "7-B", id_tingkat: "t_7", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a", ruangan: "R. 702", kuota: 32, kurikulum: "Merdeka" },
+    { id_rombel: "rb_8a", id_madrasah: "md_1", nama_rombel: "8-A", id_tingkat: "t_8", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a", ruangan: "R. 801", kuota: 32, kurikulum: "Merdeka" },
+    { id_rombel: "rb_8b", id_madrasah: "md_1", nama_rombel: "8-B", id_tingkat: "t_8", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a", ruangan: "R. 802", kuota: 32, kurikulum: "Merdeka" },
+    { id_rombel: "rb_9a", id_madrasah: "md_1", nama_rombel: "9-A", id_tingkat: "t_9", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a", ruangan: "R. 901", kuota: 32, kurikulum: "Kurikulum 2013" },
+    { id_rombel: "rb_9b", id_madrasah: "md_1", nama_rombel: "9-B", id_tingkat: "t_9", id_tahun: "ta_2627", id_wali_kelas: "pg_wali_a", ruangan: "R. 902", kuota: 32, kurikulum: "Kurikulum 2013" },
   ];
 
   const firstNames = [
@@ -593,8 +595,14 @@ function buildSeed(): DemoStore {
     { id_penugasan: "pj_1", id_pegawai: "pg_kepala", jenis_jabatan: "Kepala Madrasah", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
     { id_penugasan: "pj_2", id_pegawai: "pg_admin", jenis_jabatan: "Admin Madrasah", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
     { id_penugasan: "pj_3", id_pegawai: "pg_ops", jenis_jabatan: "Operator Kesiswaan", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
-    { id_penugasan: "pj_4", id_pegawai: "pg_bk", jenis_jabatan: "Guru BK", id_tahun: "ta_2627", tanggal_mulai: "2026-07-01", tanggal_selesai: null, status: "Aktif" },
   ];
+  
+  const plottingBk: PlottingBKTIK[] = [
+    { id_plotting: "pbk_1", id_pegawai: "pg_bk", id_rombel: "rb_7a", id_tahun: "ta_2627" },
+    { id_plotting: "pbk_2", id_pegawai: "pg_bk", id_rombel: "rb_7b", id_tahun: "ta_2627" },
+    { id_plotting: "pbk_3", id_pegawai: "pg_bk", id_rombel: "rb_8a", id_tahun: "ta_2627" },
+  ];
+  
   const profilMadrasah: ProfilMadrasah = {
     id_profil: "prof_01",
     npsn: "10892345",
@@ -756,6 +764,7 @@ function buildSeed(): DemoStore {
     keanggotaanEkstra,
     absensiEkstra,
     penugasanJabatan,
+    plottingBk,
     profilMadrasah,
     templateSurat,
     catatanBk,
@@ -845,6 +854,7 @@ export function loadStore(): DemoStore {
           catatanBk: mergedCatatanBk,
           komponenNilai: mergedKomponen,
           nilaiSiswa: mergedNilai,
+          plottingBk: parsed.plottingBk || seed.plottingBk,
         };
         memoryStore = store;
         return store;

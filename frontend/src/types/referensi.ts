@@ -20,6 +20,9 @@ export type Rombel = {
   id_tingkat: string;
   id_tahun: string;
   id_wali_kelas: string | null;
+  ruangan?: string;
+  kuota?: number;
+  kurikulum?: string;
 };
 
 export type HariLibur = {

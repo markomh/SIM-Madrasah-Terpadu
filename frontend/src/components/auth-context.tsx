@@ -13,14 +13,19 @@ type AuthContextValue = {
   rombelList: Rombel[];
   ekstraList: Ekstrakurikuler[];
   jadwalList: JadwalPelajaran[];
+  plottingBkList: any[];
   isLoading: boolean;
   logout: () => Promise<void>;
   isConnectionError: boolean;
+  isImpersonating: boolean;
+  impersonate: (targetUserId: string) => void;
+  stopImpersonating: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const USER_STORAGE_KEY = "sim-madrasah-userid";
+const IMPERSONATOR_STORAGE_KEY = "sim-madrasah-impersonator";
 
 /**
  * Mengecek apakah error yang terjadi adalah benar-benar network error
@@ -48,11 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     return "pg_kepala";
   });
+  const [impersonatorId, setImpersonatorId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return window.localStorage.getItem(IMPERSONATOR_STORAGE_KEY);
+    }
+    return null;
+  });
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [penugasanList, setPenugasanList] = useState<PenugasanJabatan[]>([]);
   const [rombelList, setRombelList] = useState<Rombel[]>([]);
   const [ekstraList, setEkstraList] = useState<Ekstrakurikuler[]>([]);
   const [jadwalList, setJadwalList] = useState<JadwalPelajaran[]>([]);
+  const [plottingBkList, setPlottingBkList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnectionError, setIsConnectionError] = useState(false);
 
@@ -76,7 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         services.referensi.getRombel().catch((e) => { if (isNetworkError(e)) setIsConnectionError(true); return []; }),
         services.ekstrakurikuler.getAll().catch((e) => { if (isNetworkError(e)) setIsConnectionError(true); return []; }),
         services.jadwal.getAll().catch((e) => { if (isNetworkError(e)) setIsConnectionError(true); return []; }),
-      ]).then(async ([user, penugasan, rombel, ekstra, jadwal]) => {
+        (services as any).penugasanDomain?.getPlottingBK?.().catch((e: any) => { return []; }) || Promise.resolve([]),
+      ]).then(async ([user, penugasan, rombel, ekstra, jadwal, plottingBk]) => {
         if (cancelled) return;
         const activeUser = (user || (await services.pegawai.getById("pg_kepala").catch(() => null))) as AuthUser | null;
         const activeId = activeUser?.id_pegawai || userId;
@@ -85,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const isKepalaMadrasah = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Kepala Madrasah" && j.status === "Aktif");
           const isAdminMadrasah = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Admin Madrasah" && j.status === "Aktif");
           const isOperatorKesiswaan = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Operator Kesiswaan" && j.status === "Aktif");
-          const isGuruBk = (penugasan || []).some((j) => j.id_pegawai === activeId && j.jenis_jabatan === "Guru BK" && j.status === "Aktif");
+          const isPembinaBk = (plottingBk || []).some((p: any) => p.id_pegawai === activeId);
           const isWaliKelas = (rombel || []).some((r) => r.id_wali_kelas === activeId);
           const isPembinaEkstrakurikuler = (ekstra || []).some((e) => e.id_pembina === activeId);
           const isPengajarAktif = (jadwal || []).some((j) => j.id_pegawai === activeId);
@@ -94,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isKepalaMadrasah,
             isAdminMadrasah,
             isOperatorKesiswaan,
-            isGuruBk,
+            isPembinaBk,
             isWaliKelas,
             isPembinaEkstrakurikuler,
             isPengajarAktif,
@@ -106,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRombelList(rombel || []);
         setEkstraList(ekstra || []);
         setJadwalList(jadwal || []);
+        setPlottingBkList(plottingBk || []);
         setIsLoading(false);
       });
     } else {
@@ -206,7 +220,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setCurrentUser(null);
     window.localStorage.removeItem(USER_STORAGE_KEY);
+    window.localStorage.removeItem(IMPERSONATOR_STORAGE_KEY);
+    setImpersonatorId(null);
     router.push("/auth/login");
+  };
+
+  const impersonate = (targetUserId: string) => {
+    if (!impersonatorId) {
+      setImpersonatorId(userId);
+      window.localStorage.setItem(IMPERSONATOR_STORAGE_KEY, userId);
+    }
+    setCurrentUserId(targetUserId);
+  };
+
+  const stopImpersonating = () => {
+    if (impersonatorId) {
+      setCurrentUserId(impersonatorId);
+    }
+    setImpersonatorId(null);
+    window.localStorage.removeItem(IMPERSONATOR_STORAGE_KEY);
   };
 
   const value = useMemo(
@@ -217,11 +249,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       rombelList,
       ekstraList,
       jadwalList,
+      plottingBkList,
       isLoading,
       logout,
       isConnectionError,
+      isImpersonating: !!impersonatorId,
+      impersonate,
+      stopImpersonating,
     }),
-    [currentUser, penugasanList, rombelList, ekstraList, jadwalList, isLoading, isConnectionError]
+    [currentUser, penugasanList, rombelList, ekstraList, jadwalList, plottingBkList, isLoading, isConnectionError, impersonatorId]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

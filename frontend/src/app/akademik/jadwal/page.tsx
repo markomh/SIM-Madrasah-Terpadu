@@ -6,8 +6,9 @@ import {
   isOperatorKesiswaan,
   isPengajarAktif,
 } from "@/lib/access";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Clock,
   Sparkles,
@@ -46,6 +47,7 @@ import {
   type BellSchedulePreset,
 } from "@/lib/bell-schedule";
 import type { JadwalPelajaran, MataPelajaran, Pegawai, ProfilMadrasah, Rombel } from "@/types";
+import type { RuangFasilitas, BebanMengajar } from "@/types/master-jadwal";
 import { JadwalMatrixView } from "@/components/jadwal/JadwalMatrixView";
 import { JadwalCanvasView } from "@/components/jadwal/JadwalCanvasView";
 import { JadwalJtmAuditView } from "@/components/jadwal/JadwalJtmAuditView";
@@ -53,10 +55,11 @@ import { JadwalForm } from "@/components/jadwal/JadwalForm";
 import { BellScheduleMasterModal } from "@/components/jadwal/BellScheduleMasterModal";
 import { PrintJadwalModal } from "@/components/jadwal/PrintJadwalModal";
 import { SlotDetailModal } from "@/components/jadwal/SlotDetailModal";
+import { ScheduleReadinessBar } from "@/components/jadwal/ScheduleReadinessBar";
 
 const HARI_LIST = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"] as const;
 
-export default function JadwalPage() {
+function JadwalPageContent() {
   const { currentUser, penugasanList, jadwalList } = useAuth();
   const { selected, selectedSemester } = useTahunAjaran();
   const { version, bump } = useDataVersion();
@@ -66,6 +69,8 @@ export default function JadwalPage() {
   const [pegawai, setPegawai] = useState<Pegawai[]>([]);
   const [mapel, setMapel] = useState<MataPelajaran[]>([]);
   const [profilMadrasah, setProfilMadrasah] = useState<ProfilMadrasah | null>(null);
+  const [ruangFasilitas, setRuangFasilitas] = useState<RuangFasilitas[]>([]);
+  const [bebanMengajar, setBebanMengajar] = useState<BebanMengajar[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,11 +94,56 @@ export default function JadwalPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // View Mode: Timetable Matrix vs Tabular List vs Audit JTM
-  const [viewMode, setViewMode] = useState<"canvas" | "matrix" | "table" | "jtm">("canvas");
-  const [selectedRombelFilter, setSelectedRombelFilter] = useState<string>("all");
-  const [selectedGuruFilter, setSelectedGuruFilter] = useState<string>("all");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [viewMode, setViewMode] = useState<"canvas" | "matrix" | "table" | "jtm">(
+    (searchParams?.get("view") as any) || "canvas"
+  );
+  const [selectedRombelFilter, setSelectedRombelFilter] = useState<string>(
+    searchParams?.get("rombel") || "all"
+  );
+  const [selectedGuruFilter, setSelectedGuruFilter] = useState<string>(
+    searchParams?.get("guru") || "all"
+  );
   const [onlyMySchedule, setOnlyMySchedule] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams?.get("q") || ""
+  );
+
+  // Sync filters to URL without full reload
+  const updateUrlParams = useCallback((updates: Record<string, string | null>) => {
+    if (!searchParams) return;
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    for (const [key, value] of Object.entries(updates)) {
+      if (!value || value === "all") current.delete(key);
+      else current.set(key, value);
+    }
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.replace(`/akademik/jadwal${query}`, { scroll: false });
+  }, [searchParams, router]);
+
+  // Wrappers to update state and URL
+  const setViewModeWithUrl = (mode: "canvas" | "matrix" | "table" | "jtm") => {
+    setViewMode(mode);
+    updateUrlParams({ view: mode === "canvas" ? null : mode });
+  };
+
+  const setRombelFilterWithUrl = (val: string) => {
+    setSelectedRombelFilter(val);
+    updateUrlParams({ rombel: val === "all" ? null : val });
+  };
+
+  const setGuruFilterWithUrl = (val: string) => {
+    setSelectedGuruFilter(val);
+    updateUrlParams({ guru: val === "all" ? null : val });
+  };
+
+  const setSearchQueryWithUrl = (val: string) => {
+    setSearchQuery(val);
+    updateUrlParams({ q: val || null });
+  };
 
   // Form State (Add / Edit)
   const [formData, setFormData] = useState<{
@@ -104,6 +154,8 @@ export default function JadwalPage() {
     hari: string;
     jam_mulai: string;
     jam_selesai: string;
+    id_ruang?: string;
+    id_pengajar_tambahan?: string[];
   }>({
     id_rombel: "",
     id_pegawai: "",
@@ -112,9 +164,11 @@ export default function JadwalPage() {
     hari: "Senin",
     jam_mulai: "07:45",
     jam_selesai: "08:25",
+    id_ruang: "",
+    id_pengajar_tambahan: [],
   });
   const [aiNote, setAiNote] = useState<string | null>(null);
-  const [conflictPrompt, setConflictPrompt] = useState<{ type: "sertifikasi" | "rutinitas"; message: string } | null>(null);
+  const [conflictPrompt, setConflictPrompt] = useState<{ type: "sertifikasi" | "rutinitas" | "ketersediaan"; message: string } | null>(null);
 
   // RBAC permissions
   const canEdit = currentUser && isAdminMadrasah(currentUser.id_pegawai, penugasanList);
@@ -145,13 +199,17 @@ export default function JadwalPage() {
       services.pegawai.getAll(),
       services.referensi.getMapel(),
       services.lembaga.getProfil(),
+      services.ruangFasilitas.getAll(),
+      services.bebanMengajar.getAll(),
     ])
-      .then(([j, r, p, m, prof]) => {
+      .then(([j, r, p, m, prof, rf, bm]) => {
         setJadwal(j);
         setRombel(r);
         setPegawai(p);
         setMapel(m);
         setProfilMadrasah(prof as ProfilMadrasah);
+        setRuangFasilitas(rf as RuangFasilitas[]);
+        setBebanMengajar(bm as BebanMengajar[]);
         
         // Tenant-based preset initialization
         const loadedPresets = loadBellPresets();
@@ -264,11 +322,13 @@ export default function JadwalPage() {
       hari: j.hari,
       jam_mulai: j.jam_mulai,
       jam_selesai: j.jam_selesai,
+      id_ruang: (j as any).id_ruang || "",
+      id_pengajar_tambahan: (j as any).pengajarTambahan?.map((pt: any) => pt.id_pegawai) || [],
     });
     setSelectedSlotDetail(null);
   };
 
-  const performSave = async (overrideFlags: { override_sertifikasi?: boolean; override_rutinitas?: boolean; } = {}) => {
+  const performSave = async (overrideFlags: { override_sertifikasi?: boolean; override_rutinitas?: boolean; override_ketersediaan?: boolean; } = {}) => {
     setIsSaving(true);
     setError(null);
     try {
@@ -347,6 +407,18 @@ export default function JadwalPage() {
               <Clock size={14} className="text-primary" />
               <span>Struktur Master Jam</span>
             </Button>
+            {canEdit && (
+              <Link href={`/akademik/jadwal/master-data${selectedRombelFilter !== 'all' ? `?rombel=${selectedRombelFilter}` : ''}`}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center gap-1.5 shadow-xs"
+                >
+                  <ClipboardCheck size={14} className="text-indigo-600" />
+                  <span>Data Acuan Penjadwalan</span>
+                </Button>
+              </Link>
+            )}
             <Button
               variant="secondary"
               size="sm"
@@ -453,6 +525,13 @@ export default function JadwalPage() {
         )}
       </div>
 
+      <ScheduleReadinessBar
+        rombel={rombel}
+        bebanMengajar={bebanMengajar}
+        jadwal={jadwal}
+        selectedSemester={selectedSemester}
+      />
+
       {/* FORM: Tambah / Edit Slot Jadwal */}
       {(showAddForm || editingJadwal) && canEdit && (
         <SurfaceCard
@@ -465,6 +544,8 @@ export default function JadwalPage() {
             rombel={rombel}
             pegawai={pegawai}
             mapel={mapel}
+            ruangFasilitas={ruangFasilitas}
+            bebanMengajar={bebanMengajar}
             presets={presets}
             activePresetId={activePresetId}
             editingJadwal={editingJadwal}
@@ -485,28 +566,28 @@ export default function JadwalPage() {
           <div className="inline-flex rounded-md border border-border bg-paper p-0.5">
             <Button
               type="button"
-              variant={viewMode === "canvas" ? "primary" : "ghost"}
+              variant={viewMode === "canvas" ? "primary" : "secondary"}
               size="sm"
-              onClick={() => setViewMode("canvas")}
-              className="text-xs font-semibold py-1 px-2.5 h-auto"
+              onClick={() => setViewModeWithUrl("canvas")}
+              className="flex-1 justify-center sm:flex-none text-xs font-semibold py-1 px-2.5 h-auto"
             >
               Kanvas Kalender
             </Button>
             <Button
               type="button"
-              variant={viewMode === "matrix" ? "primary" : "ghost"}
+              variant={viewMode === "matrix" ? "primary" : "secondary"}
               size="sm"
-              onClick={() => setViewMode("matrix")}
-              className="text-xs font-semibold py-1 px-2.5 h-auto"
+              onClick={() => setViewModeWithUrl("matrix")}
+              className="flex-1 justify-center sm:flex-none text-xs font-semibold py-1 px-2.5 h-auto"
             >
               Matriks Mingguan
             </Button>
             <Button
               type="button"
-              variant={viewMode === "table" ? "primary" : "ghost"}
+              variant={viewMode === "table" ? "primary" : "secondary"}
               size="sm"
-              onClick={() => setViewMode("table")}
-              className="text-xs font-semibold py-1 px-2.5 h-auto"
+              onClick={() => setViewModeWithUrl("table")}
+              className="flex-1 justify-center sm:flex-none text-xs font-semibold py-1 px-2.5 h-auto"
             >
               Daftar Tabular (EMIS)
             </Button>
@@ -515,10 +596,10 @@ export default function JadwalPage() {
             {canAuditJtm && (
               <Button
                 type="button"
-                variant={viewMode === "jtm" ? "primary" : "ghost"}
+                variant={viewMode === "jtm" ? "primary" : "secondary"}
                 size="sm"
-                onClick={() => setViewMode("jtm")}
-                className="text-xs font-semibold py-1 px-2.5 h-auto"
+                onClick={() => setViewModeWithUrl("jtm")}
+                className="flex-1 justify-center sm:flex-none text-xs font-semibold py-1 px-2.5 h-auto text-ai border-ai/20 bg-ai-soft"
               >
                 Audit JTM Terjadwal
               </Button>
@@ -529,9 +610,9 @@ export default function JadwalPage() {
           {viewMode !== "jtm" && (
             <div className="flex items-center gap-2">
               <Select
-                className="min-w-[140px]"
                 value={selectedRombelFilter}
-                onChange={(e) => setSelectedRombelFilter(e.target.value)}
+                onChange={(e) => setRombelFilterWithUrl(e.target.value)}
+                className="min-w-[150px] w-full sm:w-auto text-sm"
               >
                 <option value="all">Semua Rombel ({currentSemesterJadwal.length} Slot)</option>
                 {rombel.map((r) => (
@@ -542,9 +623,9 @@ export default function JadwalPage() {
               </Select>
               
               <Select
-                className="min-w-[140px]"
                 value={selectedGuruFilter}
-                onChange={(e) => setSelectedGuruFilter(e.target.value)}
+                onChange={(e) => setGuruFilterWithUrl(e.target.value)}
+                className="min-w-[180px] w-full sm:w-auto text-sm"
               >
                 <option value="all">Semua Guru Pengajar</option>
                 {pegawai
@@ -579,7 +660,7 @@ export default function JadwalPage() {
             placeholder="Cari guru / mapel / rombel..."
             className="w-full sm:w-64 rounded-md border border-border bg-surface px-3 py-1.5 text-xs text-ink placeholder:text-muted"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQueryWithUrl(e.target.value)}
           />
         )}
       </div>
@@ -796,6 +877,7 @@ export default function JadwalPage() {
           const flags = {
             override_sertifikasi: conflictPrompt.type === "sertifikasi",
             override_rutinitas: conflictPrompt.type === "rutinitas",
+            override_ketersediaan: conflictPrompt.type === "ketersediaan",
           };
           await performSave(flags);
         }}
@@ -833,5 +915,13 @@ export default function JadwalPage() {
         loading={isDeleting}
       />
     </AppShell>
+  );
+}
+
+export default function JadwalPage() {
+  return (
+    <Suspense fallback={<AppShell title="Jadwal KBM"><div className="flex items-center justify-center p-12 text-sm text-muted">Memuat jadwal...</div></AppShell>}>
+      <JadwalPageContent />
+    </Suspense>
   );
 }

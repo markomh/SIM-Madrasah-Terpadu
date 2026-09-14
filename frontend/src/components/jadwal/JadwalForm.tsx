@@ -16,6 +16,7 @@ import {
   type BellSchedulePreset,
 } from "@/lib/bell-schedule";
 import type { MataPelajaran, Pegawai, Rombel, JadwalPelajaran } from "@/types";
+import type { RuangFasilitas, BebanMengajar } from "@/types/master-jadwal";
 
 const HARI_LIST = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"] as const;
 
@@ -27,6 +28,8 @@ interface JadwalFormData {
   hari: string;
   jam_mulai: string;
   jam_selesai: string;
+  id_ruang?: string;
+  id_pengajar_tambahan?: string[];
 }
 
 interface JadwalFormProps {
@@ -35,6 +38,8 @@ interface JadwalFormProps {
   rombel: Rombel[];
   pegawai: Pegawai[];
   mapel: MataPelajaran[];
+  ruangFasilitas?: RuangFasilitas[];
+  bebanMengajar?: BebanMengajar[];
   presets: BellSchedulePreset[];
   activePresetId: string;
   editingJadwal: JadwalPelajaran | null;
@@ -49,6 +54,8 @@ export function JadwalForm({
   rombel,
   pegawai,
   mapel,
+  ruangFasilitas = [],
+  bebanMengajar = [],
   presets,
   activePresetId,
   editingJadwal,
@@ -66,6 +73,24 @@ export function JadwalForm({
   const formQuickOptions = useMemo(() => {
     return getQuickKbmOptions(formPreset, formData.hari);
   }, [formPreset, formData.hari]);
+
+  const { pegSk, pegLain, mapelSk, mapelLain, hasAnySk } = useMemo(() => {
+    if (!formData.id_rombel || !bebanMengajar.length) {
+      return { pegSk: [], pegLain: pegawai, mapelSk: [], mapelLain: mapel, hasAnySk: false };
+    }
+    const skForRombel = bebanMengajar.filter(bm => bm.id_rombel === formData.id_rombel && bm.semester === formData.semester);
+    
+    const guruWithSk = new Set(skForRombel.map(bm => bm.id_pegawai));
+    const mapelWithSkSet = new Set(skForRombel.map(bm => bm.id_mapel));
+
+    return {
+      pegSk: pegawai.filter(p => guruWithSk.has(p.id_pegawai)),
+      pegLain: pegawai.filter(p => !guruWithSk.has(p.id_pegawai)),
+      mapelSk: mapel.filter(m => mapelWithSkSet.has(m.id_mapel)),
+      mapelLain: mapel.filter(m => !mapelWithSkSet.has(m.id_mapel)),
+      hasAnySk: skForRombel.length > 0,
+    };
+  }, [formData.id_rombel, formData.semester, bebanMengajar, pegawai, mapel]);
 
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
@@ -167,11 +192,30 @@ export function JadwalForm({
           value={formData.id_pegawai}
           onChange={(e) => setFormData({ ...formData, id_pegawai: e.target.value })}
         >
-          {pegawai.map((p) => (
-            <option key={p.id_pegawai} value={p.id_pegawai}>
-              {p.nama_lengkap_gelar}
-            </option>
-          ))}
+          {hasAnySk && pegSk.length > 0 && (
+            <optgroup label="★ SK Beban Mengajar">
+              {pegSk.map((p) => (
+                <option key={p.id_pegawai} value={p.id_pegawai}>
+                  {p.nama_lengkap_gelar}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {hasAnySk && pegLain.length > 0 ? (
+            <optgroup label="── Guru Lainnya ──">
+              {pegLain.map((p) => (
+                <option key={p.id_pegawai} value={p.id_pegawai}>
+                  {p.nama_lengkap_gelar}
+                </option>
+              ))}
+            </optgroup>
+          ) : (
+            pegLain.map((p) => (
+              <option key={p.id_pegawai} value={p.id_pegawai}>
+                {p.nama_lengkap_gelar}
+              </option>
+            ))
+          )}
         </Select>
 
         <Select
@@ -179,11 +223,30 @@ export function JadwalForm({
           value={formData.id_mapel}
           onChange={(e) => setFormData({ ...formData, id_mapel: e.target.value })}
         >
-          {mapel.map((m) => (
-            <option key={m.id_mapel} value={m.id_mapel}>
-              {m.nama_mapel} ({m.kode_mapel})
-            </option>
-          ))}
+          {hasAnySk && mapelSk.length > 0 && (
+            <optgroup label="★ SK Beban Mengajar">
+              {mapelSk.map((m) => (
+                <option key={m.id_mapel} value={m.id_mapel}>
+                  {m.nama_mapel} ({m.kode_mapel})
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {hasAnySk && mapelLain.length > 0 ? (
+            <optgroup label="── Mapel Lainnya ──">
+              {mapelLain.map((m) => (
+                <option key={m.id_mapel} value={m.id_mapel}>
+                  {m.nama_mapel} ({m.kode_mapel})
+                </option>
+              ))}
+            </optgroup>
+          ) : (
+            mapelLain.map((m) => (
+              <option key={m.id_mapel} value={m.id_mapel}>
+                {m.nama_mapel} ({m.kode_mapel})
+              </option>
+            ))
+          )}
         </Select>
 
         <Select
@@ -197,6 +260,42 @@ export function JadwalForm({
             </option>
           ))}
         </Select>
+
+        <Select
+          label="Ruang/Fasilitas (Opsional)"
+          value={formData.id_ruang || ""}
+          onChange={(e) => setFormData({ ...formData, id_ruang: e.target.value || undefined })}
+        >
+          <option value="">-- Bebas (Home Room) --</option>
+          {ruangFasilitas.map((r) => (
+            <option key={r.id_ruang} value={r.id_ruang}>
+              {r.nama_ruang} {r.tipe_fasilitas === "Terbatas" ? "(Kapasitas Tunggal)" : ""}
+            </option>
+          ))}
+        </Select>
+
+        <div className="col-span-1 sm:col-span-2 md:col-span-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Guru Pendamping / Team Teaching (Opsional)
+            </label>
+            <select
+              multiple
+              size={3}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm text-sm"
+              value={formData.id_pengajar_tambahan || []}
+              onChange={(e) => {
+                const values = Array.from(e.target.selectedOptions, option => option.value);
+                setFormData({ ...formData, id_pengajar_tambahan: values });
+              }}
+            >
+              {pegawai.filter(p => p.id_pegawai !== formData.id_pegawai).map((p) => (
+                <option key={p.id_pegawai} value={p.id_pegawai}>
+                  {p.nama_lengkap_gelar}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Tahan tombol Ctrl (Windows) / Cmd (Mac) untuk memilih lebih dari satu guru.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 items-end">

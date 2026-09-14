@@ -60,7 +60,7 @@ export const authApi = {
       const isKepalaMadrasah = activePenugasan.some((j) => j.jenis_jabatan === "Kepala Madrasah");
       const isAdminMadrasah = activePenugasan.some((j) => j.jenis_jabatan === "Admin Madrasah");
       const isOperatorKesiswaan = activePenugasan.some((j) => j.jenis_jabatan === "Operator Kesiswaan");
-      const isGuruBk = activePenugasan.some((j) => j.jenis_jabatan === "Guru BK");
+      const isPembinaBk = storeData.plottingBk?.some((p) => p.id_pegawai === userObj.id_pegawai) || false;
       const isWaliKelas = storeData.rombel.some((r) => r.id_wali_kelas === userObj.id_pegawai);
       const isPembinaEkstrakurikuler = storeData.ekstrakurikuler.some((e) => e.id_pembina === userObj.id_pegawai);
       const isPengajarAktif = storeData.jadwal.some((j) => j.id_pegawai === userObj.id_pegawai);
@@ -79,7 +79,7 @@ export const authApi = {
           isKepalaMadrasah,
           isAdminMadrasah,
           isOperatorKesiswaan,
-          isGuruBk,
+          isPembinaBk,
           isWaliKelas,
           isPembinaEkstrakurikuler,
           isPengajarAktif,

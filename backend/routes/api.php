@@ -151,6 +151,27 @@ Route::prefix('v1')->group(function () {
             Route::get('check-conflict', 'checkConflict');
         });
 
+        Route::prefix('beban-mengajar')->controller(\App\Http\Controllers\Api\BebanMengajarController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::put('{id}', 'update');
+            Route::delete('{id}', 'destroy');
+        });
+
+        Route::prefix('ruang-fasilitas')->controller(\App\Http\Controllers\Api\RuangFasilitasController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::put('{id}', 'update');
+            Route::delete('{id}', 'destroy');
+        });
+
+        Route::prefix('ketersediaan-guru')->controller(\App\Http\Controllers\Api\KetersediaanGuruController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::put('{id}', 'update');
+            Route::delete('{id}', 'destroy');
+        });
+
         // ============================================================
         // KEHADIRAN
         // ============================================================

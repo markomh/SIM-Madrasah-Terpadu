@@ -17,6 +17,7 @@ import { mockEkstrakurikulerService } from "./ekstrakurikuler.mock";
 import { mockBkService } from "./bk.mock";
 import { mockPenugasanJabatanService } from "./penugasan-jabatan.mock";
 import { lembagaMock } from "./lembaga.mock";
+import { bebanMengajarMock, ketersediaanGuruMock, ruangFasilitasMock } from "./master-jadwal.mock";
 
 import { siswaApi } from "./siswa.api";
 import { pegawaiApi } from "./pegawai.api";
@@ -36,6 +37,9 @@ import { penugasanJabatanApi } from "./penugasan-jabatan.api";
 import { lembagaApi } from "./lembaga.api";
 import { mutasiApi } from "./mutasi.api";
 import { keanggotaanApi } from "./keanggotaan.api";
+import { bebanMengajarApi, ketersediaanGuruApi, ruangFasilitasApi } from "./master-jadwal.api";
+import { penugasanDomainApi } from "./penugasan-domain.api";
+import { mockPenugasanDomainService } from "./penugasan-domain.mock";
 import { loadStore, resetStore, SIMULATE_ERROR_KEY } from "./store";
 
 import { madrasahMock } from "./madrasah.mock";
@@ -81,6 +85,10 @@ export const services = {
   bk: USE_MOCK ? mockBkService : bkApi,
   penugasanJabatan: USE_MOCK ? (mockPenugasanJabatanService as typeof penugasanJabatanService) : (penugasanJabatanApi as typeof penugasanJabatanService),
   lembaga: USE_MOCK ? (lembagaMock as LembagaServiceInterface) : (lembagaApi as LembagaServiceInterface),
+  bebanMengajar: USE_MOCK ? bebanMengajarMock : bebanMengajarApi,
+  ketersediaanGuru: USE_MOCK ? ketersediaanGuruMock : ketersediaanGuruApi,
+  ruangFasilitas: USE_MOCK ? ruangFasilitasMock : ruangFasilitasApi,
+  penugasanDomain: USE_MOCK ? mockPenugasanDomainService : penugasanDomainApi,
 };
 
 export function getAuditLog() {

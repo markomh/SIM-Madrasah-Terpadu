@@ -1,7 +1,7 @@
 import type { SesiTatapMuka, AbsensiSiswa, StatusKehadiranGuru } from "@/types";
 import type { SesiTatapMukaService, RekapKehadiranDetail } from "./sesi-tatap-muka.service";
 import { mutateStore, loadStore, createId, maybeThrowSimulatedError, simulateLatency, nowIso } from "./store";
-import { isKepalaMadrasah, isGuruBk } from "@/lib/access";
+import { isKepalaMadrasah, isPembinaBk } from "@/lib/access";
 
 const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -200,7 +200,7 @@ export const sesiTatapMukaMock: SesiTatapMukaService = {
       }
       
       // 2. Guru BK: hanya dievaluasi jika memiliki jadwal mengajar mapel
-      if (isGuruBk(p.id_pegawai, store.penugasanJabatan)) {
+      if (isPembinaBk(p.id_pegawai, store.plottingBk || [])) {
         const hasJadwal = store.jadwal.some(j => j.id_pegawai === p.id_pegawai);
         if (!hasJadwal) return false;
       }

@@ -4,7 +4,7 @@ import {
   isAdminMadrasah,
   isKepalaMadrasah,
   isOperatorKesiswaan,
-  isGuruBk,
+  isPembinaBk,
   isWaliKelas,
   isPembinaEkstrakurikuler,
   isPengajarAktif,
@@ -21,7 +21,7 @@ export function usePermission(key: PermissionKey): boolean {
   const admin = caps?.isAdminMadrasah ?? isAdminMadrasah(id, ctx.penugasanList);
   const kamad = caps?.isKepalaMadrasah ?? isKepalaMadrasah(id, ctx.penugasanList);
   const ops = caps?.isOperatorKesiswaan ?? isOperatorKesiswaan(id, ctx.penugasanList);
-  const bk = caps?.isGuruBk ?? isGuruBk(id, ctx.penugasanList);
+  const bk = caps?.isPembinaBk ?? isPembinaBk(id, ctx.plottingBkList);
   const wali = caps?.isWaliKelas ?? isWaliKelas(id, ctx.rombelList);
   const pembina = caps?.isPembinaEkstrakurikuler ?? isPembinaEkstrakurikuler(id, ctx.ekstraList);
   const pengajar = caps?.isPengajarAktif ?? isPengajarAktif(id, ctx.jadwalList);

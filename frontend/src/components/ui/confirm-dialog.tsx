@@ -14,6 +14,7 @@ export interface ConfirmDialogProps {
   cancelLabel?: string;
   variant?: ButtonVariant;
   loading?: boolean;
+  children?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -26,6 +27,7 @@ export function ConfirmDialog({
   cancelLabel = "Batal",
   variant = "danger",
   loading = false,
+  children,
 }: ConfirmDialogProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="sm">
@@ -36,6 +38,7 @@ export function ConfirmDialog({
         <div>
           <h3 className="text-base font-semibold text-ink">{title}</h3>
           <p className="mt-1 text-sm text-muted">{description}</p>
+          {children && <div className="mt-4">{children}</div>}
         </div>
       </div>
       <div className="mt-6 flex justify-end gap-2">

@@ -9,6 +9,7 @@ import {
   CalendarDays,
   ChevronRight,
   ClipboardCheck,
+  ClipboardList,
   FileText,
   Home,
   Menu,
@@ -33,8 +34,8 @@ import {
   isKepalaMadrasah,
   isOperatorKesiswaan,
   isWaliKelas,
+  isPembinaBk,
   isPembinaEkstrakurikuler,
-  isGuruBk,
   isPengajarAktif,
 } from "@/lib/access";
 
@@ -58,46 +59,49 @@ const navigation: NavGroup[] = [
   {
     group: "KESISWAAN",
     items: [
-      { href: "/kesiswaan/siswa", label: "Data Siswa Induk", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isGuruBk(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kesiswaan/siswa", label: "Data Siswa", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPembinaBk(ctx.currentUser?.id_pegawai ?? "", ctx.plottingBkList) },
       { href: "/kesiswaan/kenaikan-kelas", label: "Kenaikan Kelas", icon: BookOpen, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
       { href: "/kesiswaan/pindah-rombel", label: "Pindah Rombel", icon: ArrowLeftRight, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
       { href: "/kesiswaan/mutasi", label: "Mutasi", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kesiswaan/rombel", label: "Rombel", icon: School, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kesiswaan/bk", label: "Bimbingan Konseling", icon: Shield, visible: (ctx) => isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isPembinaBk(ctx.currentUser?.id_pegawai ?? "", ctx.plottingBkList) },
     ],
   },
   {
     group: "AKADEMIK",
     items: [
-      { href: "/akademik/jadwal", label: "Penjadwalan", icon: CalendarDays, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
-      { href: "/akademik/presensi-siswa", label: "Presensi Siswa", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
-      { href: "/akademik/rekap-presensi", label: "Rekap Presensi", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
-      { href: "/akademik/nilai", label: "Nilai Harian", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/jadwal", label: "Jadwal", icon: CalendarDays, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/presensi-siswa", label: "Absensi", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/rekap-presensi", label: "Rekap Kehadiran", icon: ClipboardCheck, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/nilai", label: "Penilaian", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) || isPengajarAktif(ctx.currentUser?.id_pegawai ?? "", ctx.jadwalList) },
+      { href: "/akademik/ekstrakurikuler", label: "Ekstrakurikuler", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isPembinaEkstrakurikuler(ctx.currentUser?.id_pegawai ?? "", ctx.ekstraList) },
     ],
   },
   {
     group: "KEPEGAWAIAN",
     items: [
-      { href: "/kepegawaian/pegawai", label: "Data Pegawai", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
-      { href: "/kepegawaian/izin", label: "Izin Guru", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
-      { href: "/kepegawaian/kedisiplinan", label: "Kedisiplinan & Jam Mengajar", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kepegawaian/pegawai", label: "Data PTK", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/penugasan", label: "Penugasan", icon: ClipboardList, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kepegawaian/kedisiplinan", label: "Kedisiplinan", icon: Shield, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/kepegawaian/izin", label: "Izin PTK", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
-    group: "EKSTRAKURIKULER & BK",
+    group: "ADMINISTRASI",
     items: [
-      { href: "/ekstrakurikuler", label: "Ekstrakurikuler", icon: Users, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isPembinaEkstrakurikuler(ctx.currentUser?.id_pegawai ?? "", ctx.ekstraList) },
-      { href: "/bk", label: "Bimbingan Konseling", icon: Shield, visible: (ctx) => isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isGuruBk(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/persuratan", label: "Persuratan", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
   {
-    group: "PERSURATAN",
+    group: "MONTITORING",
     items: [
-      { href: "/persuratan", label: "Buat & Arsip Surat", icon: FileText, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isOperatorKesiswaan(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/wawasan", label: "Laporan", icon: Sparkles, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) },
     ],
   },
   {
-    group: "WAWASAN",
+    group: "LAYANAN PUBLIK",
     items: [
-      { href: "/wawasan", label: "Dashboard AI", icon: Sparkles, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isKepalaMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) || isWaliKelas(ctx.currentUser?.id_pegawai ?? "", ctx.rombelList) },
+      { href: "/portal-ortu", label: "Wali Murid", icon: School, visible: () => process.env.NEXT_PUBLIC_PHASE_4_ENABLED === "true" },
     ],
   },
   {
@@ -107,10 +111,10 @@ const navigation: NavGroup[] = [
     ],
   },
   {
-    group: "AKUN",
+    group: "PENGATURAN",
     items: [
-      { href: "/akun", label: "Kelola Akun & Penugasan", icon: UserCog, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
-      { href: "/portal-ortu", label: "Portal Orang Tua", icon: School, visible: () => process.env.NEXT_PUBLIC_PHASE_4_ENABLED === "true" },
+      { href: "/akun", label: "Manajemen Akun", icon: UserCog, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
+      { href: "/pengaturan/sistem", label: "Log Sistem", icon: Settings2, visible: (ctx) => isAdminMadrasah(ctx.currentUser?.id_pegawai ?? "", ctx.penugasanList) },
     ],
   },
 ];
@@ -120,7 +124,7 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
 export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
   const pathname = usePathname() || "/";
   const authCtx = useAuth();
-  const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList, logout, isConnectionError } = authCtx;
+  const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList, plottingBkList, logout, isConnectionError, isImpersonating, stopImpersonating } = authCtx;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [allPegawai, setAllPegawai] = useState<Pegawai[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -178,16 +182,17 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
           if (j.jenis_jabatan === "Kepala Madrasah") return "Kamad";
           if (j.jenis_jabatan === "Admin Madrasah") return "Admin";
           if (j.jenis_jabatan === "Operator Kesiswaan") return "Ops";
-          if (j.jenis_jabatan === "Guru BK") return "BK";
           return j.jenis_jabatan;
         });
       const isWK = isWaliKelas(p.id_pegawai, rombelList);
       const isPembina = isPembinaEkstrakurikuler(p.id_pegawai, ekstraList);
+      const isGuruBk = isPembinaBk(p.id_pegawai, plottingBkList);
 
       const parts: string[] = [];
       if (jabatanStruktural.length > 0) parts.push(...jabatanStruktural);
       if (isWK) parts.push("WK");
       if (isPembina) parts.push("Pembina");
+      if (isGuruBk) parts.push("BK");
 
       if (parts.length === 0) {
         parts.push(p.tugas_utama === "Tendik" ? "Tendik" : "Guru Mapel");
@@ -210,16 +215,17 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         if (j.jenis_jabatan === "Kepala Madrasah") return "Kamad";
         if (j.jenis_jabatan === "Admin Madrasah") return "Admin";
         if (j.jenis_jabatan === "Operator Kesiswaan") return "Ops";
-        if (j.jenis_jabatan === "Guru BK") return "BK";
         return j.jenis_jabatan;
       });
     const isWK = isWaliKelas(currentUser.id_pegawai, rombelList);
     const isPembina = isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList);
+    const isGuruBk = isPembinaBk(currentUser.id_pegawai, plottingBkList);
 
     const parts: string[] = [];
     if (jabatans.length > 0) parts.push(...jabatans);
     if (isWK) parts.push("WK");
     if (isPembina) parts.push("Pembina");
+    if (isGuruBk) parts.push("BK");
 
     if (parts.length === 0) {
       parts.push(currentUser.tugas_utama === "Tendik" ? "Tendik" : "Guru Mapel");
@@ -246,9 +252,8 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center justify-between rounded-[4px] px-3 py-2 text-sm transition ${
-                    active ? "bg-primary text-white" : "text-ink hover:bg-primary-soft"
-                  }`}
+                  className={`flex items-center justify-between rounded-[4px] px-3 py-2 text-sm transition ${active ? "bg-primary text-white" : "text-ink hover:bg-primary-soft"
+                    }`}
                 >
                   <span className="flex items-center gap-2.5">
                     <Icon size={16} />
@@ -386,8 +391,21 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
         </header>
 
         {/* Main Canvas Container (Margin left lg:ml-64, margin top mt-16, bg-paper) */}
-        <main id="main-content" className="lg:ml-64 mt-16 min-h-[calc(100vh-4rem)] bg-paper p-4 sm:p-6 text-ink overflow-y-auto">
+        <main id="main-content" className="lg:ml-64 mt-16 min-h-[calc(100vh-4rem)] bg-paper p-4 sm:p-6 text-ink overflow-y-auto relative">
           <div className="max-w-7xl mx-auto w-full">
+            {isImpersonating && (
+              <div className="mb-4 flex items-center justify-between rounded-[6px] bg-amber-soft border border-amber/30 p-3 text-xs text-amber shadow-sm">
+                <div className="flex items-center gap-2 font-medium">
+                  <span>⚠️ Anda sedang login sebagai {currentUser?.nama_lengkap_gelar}. Segala aktivitas akan dicatat atas nama Anda (Impersonasi).</span>
+                </div>
+                <button
+                  onClick={stopImpersonating}
+                  className="rounded-[4px] bg-amber px-3 py-1 font-bold text-white hover:bg-amber-hover transition"
+                >
+                  Kembali ke Akun Admin
+                </button>
+              </div>
+            )}
             {isConnectionError && (
               <div className="mb-4 flex items-center justify-between rounded-[6px] bg-danger-soft border border-danger/30 p-3 text-xs text-danger">
                 <span>Gagal terhubung ke server, sebagian data mungkin tidak akurat</span>

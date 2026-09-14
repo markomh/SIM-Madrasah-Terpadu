@@ -25,11 +25,13 @@ import {
   services,
 } from "@/services";
 import type { AuditLog, PenugasanJabatan, Pegawai, JenisJabatan } from "@/types";
-import { Plus, RotateCcw, RefreshCw } from "lucide-react";
+import { Plus, RotateCcw, RefreshCw, LogIn } from "lucide-react";
 
 export default function AkunPage() {
-  const { currentUser, penugasanList, setCurrentUserId } = useAuth();
+  const { currentUser, penugasanList, setCurrentUserId, impersonate } = useAuth();
   const { bump, version } = useDataVersion();
+  
+  const [activeTab, setActiveTab] = useState<"penugasan" | "pengguna">("penugasan");
   
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [simulate, setSimulate] = useState(false);
@@ -109,8 +111,30 @@ export default function AkunPage() {
       />
       {msg ? <Alert variant="primary" className="mb-4" onClose={() => setMsg(null)}>{msg}</Alert> : null}
 
+      <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-md">
+        <strong>Info:</strong> Penugasan jabatan yang berkaitan dengan beban kerja/SK ditampilkan juga di halaman <a href="/penugasan?tab=tugas-lain" className="font-semibold underline text-blue-900">Pembagian Tugas & SK</a>.
+      </div>
+
+      <div className="mb-6 border-b border-border">
+        <div className="flex gap-4">
+          <button
+            onClick={() => setActiveTab("penugasan")}
+            className={`pb-2 text-sm font-semibold transition ${activeTab === "penugasan" ? "border-b-2 border-primary text-primary" : "text-muted hover:text-ink"}`}
+          >
+            Hak Akses & Role
+          </button>
+          <button
+            onClick={() => setActiveTab("pengguna")}
+            className={`pb-2 text-sm font-semibold transition ${activeTab === "pengguna" ? "border-b-2 border-primary text-primary" : "text-muted hover:text-ink"}`}
+          >
+            Daftar Pengguna
+          </button>
+        </div>
+      </div>
+
       <div className="mb-6 grid gap-4 lg:grid-cols-2 items-start">
-        <SurfaceCard title="Daftar Penugasan Jabatan" className="lg:col-span-2">
+        {activeTab === "penugasan" ? (
+          <SurfaceCard title="Daftar Penugasan Jabatan" className="lg:col-span-2">
           <div className="mb-4 flex flex-wrap gap-3 items-end rounded-[6px] bg-paper p-3 border border-border">
             <Select
               label="Pegawai"
@@ -132,7 +156,6 @@ export default function AkunPage() {
               <option value="Admin Madrasah">Admin Madrasah</option>
               <option value="Kepala Madrasah">Kepala Madrasah</option>
               <option value="Operator Kesiswaan">Operator Kesiswaan</option>
-              <option value="Guru BK">Guru BK</option>
             </Select>
             <div>
               <Button
@@ -164,6 +187,33 @@ export default function AkunPage() {
             ]}
           />
         </SurfaceCard>
+        ) : (
+          <SurfaceCard title="Daftar Pengguna (PTK)" className="lg:col-span-2">
+            <div className="mb-4 text-sm text-muted">
+              Di tab ini Anda dapat melihat semua pegawai dan melakukan aksi masuk ke dalam sistem sebagai mereka (Impersonasi).
+            </div>
+            <DataTable
+              data={pegawais}
+              pageSize={10}
+              columns={[
+                { key: "nik", header: "NIK/NIP", render: (p) => p.nik || "-" },
+                { key: "nama", header: "Nama Lengkap", render: (p) => p.nama_lengkap_gelar },
+                { key: "tugas", header: "Tugas Utama", render: (p) => p.tugas_utama },
+                { key: "status", header: "Status", render: (p) => <StatusBadge status={p.status_kepegawaian} /> },
+                { key: "aksi", header: "Aksi Keamanan", render: (p) => (
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    iconLeft={<LogIn className="h-4 w-4" />}
+                    onClick={() => impersonate(p.id_pegawai)}
+                  >
+                    Login Sebagai
+                  </Button>
+                ) },
+              ]}
+            />
+          </SurfaceCard>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 items-start">

@@ -3,6 +3,7 @@ import { JadwalPelajaran } from "@/types/jadwal";
 export type JadwalPayload = Omit<JadwalPelajaran, "id_jadwal"> & {
   override_sertifikasi?: boolean;
   override_rutinitas?: boolean;
+  override_ketersediaan?: boolean;
   rutinitas_slots?: { hari: string; jam_mulai: string; jam_selesai: string; nama: string }[];
 };
 import { apiClient } from "./api-client";

@@ -1,6 +1,6 @@
 "use client";
 
-import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isGuruBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
+import { isAdminMadrasah, isKepalaMadrasah, isOperatorKesiswaan, isPembinaBk, isWaliKelas, isPembinaEkstrakurikuler, isPengajar } from "@/lib/access";
 import { useState, useEffect } from "react";
 
 import { useRouter } from "next/navigation";

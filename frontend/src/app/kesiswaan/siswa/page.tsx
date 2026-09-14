@@ -15,7 +15,7 @@ import {
   isKepalaMadrasah,
   isOperatorKesiswaan,
   isWaliKelas,
-  isGuruBk,
+  isPembinaBk,
 } from "@/lib/access";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -59,7 +59,7 @@ function rowTone(row: Row): string {
 }
 
 export default function SiswaListPage() {
-  const { currentUser, penugasanList, rombelList } = useAuth();
+  const { currentUser, penugasanList, rombelList, plottingBkList } = useAuth();
   const { selected } = useTahunAjaran();          // Tahun Ajaran dari top-bar (app-shell)
   const { version } = useDataVersion();
 
@@ -81,7 +81,7 @@ export default function SiswaListPage() {
 
   const isWK = currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false;
   const isKamad = currentUser ? isKepalaMadrasah(currentUser.id_pegawai, penugasanList) : false;
-  const isBK = currentUser ? isGuruBk(currentUser.id_pegawai, penugasanList) : false;
+  const isBK = currentUser ? isPembinaBk(currentUser.id_pegawai, plottingBkList) : false;
   
   const canAccess = canEdit || isWK || isKamad || isBK;
   const isOnlyWK = isWK && !canEdit && !isKamad;

@@ -4,7 +4,7 @@ import {
   isAdminMadrasah,
   isKepalaMadrasah,
   isOperatorKesiswaan,
-  isGuruBk,
+  isPembinaBk,
   isWaliKelas,
   isPembinaEkstrakurikuler,
   isPengajarAktif,
@@ -46,7 +46,7 @@ function EmptyAssignmentState() {
 }
 
 export default function DashboardPage() {
-  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList, isLoading: authLoading } = useAuth();
+  const { currentUser, penugasanList, rombelList, ekstraList, jadwalList, plottingBkList, isLoading: authLoading } = useAuth();
   const { version } = useDataVersion();
   
   const [loading, setLoading] = useState(true);
@@ -124,7 +124,7 @@ export default function DashboardPage() {
   const hasOperational = currentUser && (
     isAdminMadrasah(currentUser.id_pegawai, penugasanList) ||
     isOperatorKesiswaan(currentUser.id_pegawai, penugasanList) ||
-    isGuruBk(currentUser.id_pegawai, penugasanList) ||
+    isPembinaBk(currentUser.id_pegawai, plottingBkList) ||
     isWaliKelas(currentUser.id_pegawai, rombelList) ||
     isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList) ||
     isPengajarAktif(currentUser.id_pegawai, jadwalList) ||
@@ -192,7 +192,7 @@ export default function DashboardPage() {
                 isPembinaEkstrakurikuler={currentUser ? isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList) : false}
                 isPengajarAktif={currentUser ? isPengajarAktif(currentUser.id_pegawai, jadwalList) : false}
                 isTendik={currentUser?.tugas_utama === "Tendik"}
-                isGuruBk={currentUser ? isGuruBk(currentUser.id_pegawai, penugasanList) : false}
+                isPembinaBk={currentUser ? isPembinaBk(currentUser.id_pegawai, plottingBkList) : false}
               />
             )}
           </>

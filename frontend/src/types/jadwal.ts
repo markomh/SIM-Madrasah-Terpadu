@@ -7,4 +7,6 @@ export type JadwalPelajaran = {
   hari: string;
   jam_mulai: string;
   jam_selesai: string;
+  id_ruang?: string;
+  id_pengajar_tambahan?: string[];
 };
