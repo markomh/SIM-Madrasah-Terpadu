@@ -11,6 +11,7 @@ import type { PeriodePembagianTugas, RekapBebanKerjaGuru, PlottingBKTIK } from "
 import type { Pegawai, Rombel, MataPelajaran } from "@/types";
 import TugasMengajarTab from "./components/TugasMengajarTab";
 import PlottingBKTab from "./components/PlottingBKTab";
+import PlottingEkskulTab from "./components/PlottingEkskulTab";
 import TugasLainTab from "./components/TugasLainTab";
 import RekapValidasiSKTab from "./components/RekapValidasiSKTab";
 import CetakSKModal from "./components/CetakSKModal";
@@ -142,13 +143,18 @@ export default function PenugasanPage() {
           {activeTab === "tugas-tambahan" && (
             <div className="space-y-6">
               <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
-                <h3 className="text-base font-bold text-gray-900 mb-4">Plotting Bimbingan Konseling (BK)</h3>
+                <h3 className="text-base font-bold text-gray-900 mb-4">1. Plotting Bimbingan Konseling (BK)</h3>
                 {tahunAktif && <PlottingBKTab tahunAktif={tahunAktif} canEdit={!!(canEdit && isDraft)} />}
               </div>
 
               <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
-                <h3 className="text-base font-bold text-gray-900 mb-4">Tugas Tambahan Jabatan</h3>
-                <TugasLainTab />
+                <h3 className="text-base font-bold text-gray-900 mb-4">2. Plotting Pembina Ekstrakurikuler</h3>
+                <PlottingEkskulTab canEdit={!!(canEdit && isDraft)} />
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                <h3 className="text-base font-bold text-gray-900 mb-4">3. Tugas Tambahan Jabatan</h3>
+                <TugasLainTab canEdit={!!(canEdit && isDraft)} />
               </div>
             </div>
           )}

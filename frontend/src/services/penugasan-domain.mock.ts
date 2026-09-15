@@ -54,9 +54,6 @@ export async function createPlottingBK(data: { id_pegawai: string; id_rombel: st
     id_pegawai: data.id_pegawai,
     id_rombel: data.id_rombel,
     id_tahun: data.id_tahun,
-    jenis: "BK",
-    jumlah_konseli: 30,
-    ekuivalensi_jtm: 0
   };
   store.plottingBk.push(newItem);
   saveStore(store);
@@ -136,9 +133,9 @@ export async function hitungRekapBebanKerja(id_tahun: string): Promise<RekapBeba
     }
   });
 
-  // 3. Tugas Tambahan
+  // 3. Tugas Tambahan Jabatan
   store.penugasanJabatan.forEach(pj => {
-    if (pj.status === "Aktif") { // In a real app we'd check date range overlaps with id_tahun
+    if (pj.status === "Aktif" && pj.jenis_jabatan !== "Admin Madrasah" && pj.jenis_jabatan !== "Operator Kesiswaan") {
       const param = parameters.find(p => p.jenis === pj.jenis_jabatan);
       if (param) {
         const p = rekapMap.get(pj.id_pegawai);
@@ -146,6 +143,17 @@ export async function hitungRekapBebanKerja(id_tahun: string): Promise<RekapBeba
           p.jtm_tugas_tambahan += param.nilai_jtm;
           p.detail_tugas_tambahan.push({ jenis: pj.jenis_jabatan, jtm_ekuivalen: param.nilai_jtm });
         }
+      }
+    }
+  });
+
+  // 3b. Pembina Ekstrakurikuler (+2 JTM)
+  (store.ekstrakurikuler || []).forEach(e => {
+    if (e.id_pembina) {
+      const p = rekapMap.get(e.id_pembina);
+      if (p) {
+        p.jtm_tugas_tambahan += 2;
+        p.detail_tugas_tambahan.push({ jenis: `Pembina Ekskul: ${e.nama_ekstra}`, jtm_ekuivalen: 2 });
       }
     }
   });

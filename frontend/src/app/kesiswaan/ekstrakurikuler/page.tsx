@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 export default function EkstrakurikulerRedirectPage() {
   useEffect(() => {
-    redirect("/ekstrakurikuler");
+    redirect("/akademik/ekstrakurikuler");
   }, []);
 
   return null;
