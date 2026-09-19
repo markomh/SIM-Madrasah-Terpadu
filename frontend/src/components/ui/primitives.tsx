@@ -18,6 +18,8 @@ export * from "./modal";
 export * from "./confirm-dialog";
 export * from "./drawer";
 export * from "./tabs";
+export * from "./breadcrumb";
+import { Breadcrumb, type BreadcrumbItem } from "./breadcrumb";
 export * from "./alert";
 export * from "./progress";
 export * from "./avatar";
@@ -119,18 +121,25 @@ export function PageHeader({
   title,
   description,
   action,
+  showBreadcrumb = true,
+  customBreadcrumbs,
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
+  showBreadcrumb?: boolean;
+  customBreadcrumbs?: BreadcrumbItem[];
 }) {
   return (
-    <div className="mb-4 min-h-[48px] flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">{title}</h1>
-        {description ? <p className="mt-1 text-sm text-muted leading-relaxed">{description}</p> : null}
+    <div className="mb-4 flex flex-col gap-1">
+      {showBreadcrumb && <Breadcrumb customItems={customBreadcrumbs} />}
+      <div className="min-h-[44px] flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-ink">{title}</h1>
+          {description ? <p className="mt-1 text-sm text-muted leading-relaxed">{description}</p> : null}
+        </div>
+        {action ? <div className="flex flex-wrap gap-2">{action}</div> : null}
       </div>
-      {action ? <div className="flex flex-wrap gap-2">{action}</div> : null}
     </div>
   );
 }
@@ -140,14 +149,16 @@ export function SurfaceCard({
   className = "",
   title,
   action,
+  onClick,
 }: {
   children: ReactNode;
   className?: string;
   title?: string;
   action?: ReactNode;
+  onClick?: () => void;
 }) {
   return (
-    <section className={`rounded-[6px] border border-border bg-surface ${className}`}>
+    <section onClick={onClick} className={`rounded-[6px] border border-border bg-surface ${className}`}>
       {title ? (
         <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
@@ -247,5 +258,9 @@ export function Field({
 }
 
 export const inputClass =
-  "w-full rounded-[4px] border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary";
+  "w-full rounded-[4px] border border-border bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60";
+
+export * from "./table-cell-input";
+export * from "./header-select";
+export * from "./command-search-input";
 

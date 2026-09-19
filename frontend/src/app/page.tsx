@@ -16,16 +16,21 @@ import { useDataVersion } from "@/components/app-providers";
 import {
   ErrorBlock,
   LoadingBlock,
-  PageHeader,
   SurfaceCard,
-  Button,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import type { PersetujuanItem } from "@/services/persetujuan.service";
 import type { Siswa } from "@/types";
 
-import { ExecutiveDashboard } from "@/components/dashboard/executive-dashboard";
-import { OperationalDashboard } from "@/components/dashboard/operational-dashboard";
+import { ContextualIdentityStrip } from "@/components/dashboard/ContextualIdentityStrip";
+import { ContextFilterBar, type PresentationContextFilter } from "@/components/dashboard/ContextFilterBar";
+import { AdaptiveMetricsRegion } from "@/components/dashboard/AdaptiveMetricsRegion";
+import { QuickActionBar } from "@/components/dashboard/QuickActionBar";
+import { UniversalAnnouncement } from "@/components/dashboard/UniversalAnnouncement";
+import { DashboardDrawers } from "@/components/dashboard/DashboardDrawers";
+import { MultiRoleWorkAreaHub } from "@/components/dashboard/MultiRoleWorkAreaHub";
+import { resolvePriorityTasks, type CapabilitiesMap } from "@/components/dashboard/widget-registry";
+
 
 function EmptyAssignmentState() {
   return (
@@ -48,17 +53,16 @@ function EmptyAssignmentState() {
 export default function DashboardPage() {
   const { currentUser, penugasanList, rombelList, ekstraList, jadwalList, plottingBkList, isLoading: authLoading } = useAuth();
   const { version } = useDataVersion();
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [pending, setPending] = useState<PersetujuanItem[]>([]);
   const [risiko, setRisiko] = useState<Siswa[]>([]);
   const [siswaCount, setSiswaCount] = useState(0);
   const [rekapPagi, setRekapPagi] = useState<Awaited<ReturnType<typeof services.sesiTatapMuka.getRekapTanggal>> | null>(null);
-  const [flaggedCount, setFlaggedCount] = useState(0);
-  
-  const [activeTab, setActiveTab] = useState<"eksekutif" | "administrasi">("eksekutif");
+  const [flaggedCount, setFlaggedCount] = useState(0);  const [activeContextFilter, setActiveContextFilter] = useState<PresentationContextFilter>("semua");
+  const [activeDrawer, setActiveDrawer] = useState<"presensi" | "bk" | "approval" | "izin" | "rekap-pagi" | "ai-risiko" | "jadwal-hari-ini" | null>(null);
 
   useEffect(() => {
     if (authLoading || !currentUser) return;
@@ -94,20 +98,30 @@ export default function DashboardPage() {
     };
   }, [version, authLoading, currentUser]);
 
-  // Set default tab based on role
-  useEffect(() => {
-    if (currentUser && !authLoading) {
-      const isExec = isKepalaMadrasah(currentUser.id_pegawai, penugasanList) || isAdminMadrasah(currentUser.id_pegawai, penugasanList);
-      if (!isExec) {
-        setActiveTab("administrasi");
-      }
-    }
-  }, [currentUser, authLoading, penugasanList]);
+  // Derive Capabilities Map from SSoT authorization helpers
+  const capabilities: CapabilitiesMap = {
+    isAdminMadrasah: currentUser ? isAdminMadrasah(currentUser.id_pegawai, penugasanList) : false,
+    isKepalaMadrasah: currentUser ? isKepalaMadrasah(currentUser.id_pegawai, penugasanList) : false,
+    isOperatorKesiswaan: currentUser ? isOperatorKesiswaan(currentUser.id_pegawai, penugasanList) : false,
+    isWaliKelas: currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false,
+    isPembinaEkstrakurikuler: currentUser ? isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList) : false,
+    isPengajar: currentUser ? isPengajarAktif(currentUser.id_pegawai, jadwalList) : false,
+    isGuruBk: currentUser ? isPembinaBk(currentUser.id_pegawai, plottingBkList) : false,
+    isTendik: currentUser?.tugas_utama === "Tendik",
+  };
+
+  const priorityTasks = resolvePriorityTasks(capabilities, pending.length, risiko.length, flaggedCount);
+
+  // Filter tasks based on active context filter
+  const filteredTasks =
+    activeContextFilter === "semua"
+      ? priorityTasks
+      : priorityTasks.filter((t) => t.contextCategory === activeContextFilter);
 
   if (loading) {
     return (
       <AppShell title="Beranda">
-        <LoadingBlock />
+        <LoadingBlock label="Menyiapkan Beranda Unified Adaptive..." />
       </AppShell>
     );
   }
@@ -120,84 +134,111 @@ export default function DashboardPage() {
     );
   }
 
-  const hasExecutive = currentUser && (isAdminMadrasah(currentUser.id_pegawai, penugasanList) || isKepalaMadrasah(currentUser.id_pegawai, penugasanList));
-  const hasOperational = currentUser && (
-    isAdminMadrasah(currentUser.id_pegawai, penugasanList) ||
-    isOperatorKesiswaan(currentUser.id_pegawai, penugasanList) ||
-    isPembinaBk(currentUser.id_pegawai, plottingBkList) ||
-    isWaliKelas(currentUser.id_pegawai, rombelList) ||
-    isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList) ||
-    isPengajarAktif(currentUser.id_pegawai, jadwalList) ||
-    (currentUser.tugas_utama === "Tendik" && !isKepalaMadrasah(currentUser.id_pegawai, penugasanList))
-  );
+  const hasAnyCapability =
+    capabilities.isAdminMadrasah ||
+    capabilities.isKepalaMadrasah ||
+    capabilities.isOperatorKesiswaan ||
+    capabilities.isGuruBk ||
+    capabilities.isWaliKelas ||
+    capabilities.isPembinaEkstrakurikuler ||
+    capabilities.isPengajar ||
+    capabilities.isTendik;
+
 
   return (
     <AppShell title="Beranda">
-      <PageHeader
-        title={`Halo, ${currentUser?.nama_lengkap_gelar ?? "Pegawai"}`}
-        description="Dashboard analitik & ringkasan operasional sesuai jabatan & penugasan aktif."
-      />
+      {!hasAnyCapability ? (
+        <EmptyAssignmentState />
+      ) : (
+        <>
+          {/* ZONA 2: USER ORIENTATION & IDENTITY STRIP */}
+          <ContextualIdentityStrip
+            nama={currentUser?.nama_lengkap_gelar ?? "Pegawai"}
+            nip={currentUser?.nip}
+            capabilities={capabilities}
+          />
 
-      {/* Tabs */}
-      {hasExecutive && hasOperational && (
-        <div className="mb-6 border-b border-border flex gap-4">
-          <Button
-            variant="ghost"
-            onClick={() => setActiveTab("eksekutif")}
-            className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors rounded-none border-b-2 h-auto px-1 ${
-              activeTab === "eksekutif"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted hover:text-ink"
-            }`}
-          >
-            Ringkasan Eksekutif
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setActiveTab("administrasi")}
-            className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors rounded-none border-b-2 h-auto px-1 ${
-              activeTab === "administrasi"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted hover:text-ink"
-            }`}
-          >
-            Operasional & Tugas
-          </Button>
-        </div>
-      )}
+          {/* ZONA 2: PRESENTATION CONTEXT FILTER BAR & QUICK ACTIONS */}
+          <ContextFilterBar
+            capabilities={capabilities}
+            activeFilter={activeContextFilter}
+            onFilterChange={setActiveContextFilter}
+            jadwalCount={
+              jadwalList.filter(
+                (j) =>
+                  (j.id_pegawai === currentUser?.id_pegawai ||
+                    (j.id_pengajar_tambahan && j.id_pengajar_tambahan.includes(currentUser?.id_pegawai ?? ""))) &&
+                  j.hari === ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][new Date().getDay()]
+              ).length
+            }
+            rombelLabel={rombelList.find((r) => r.id_wali_kelas === currentUser?.id_pegawai)?.nama_rombel}
+            ekstraLabel={ekstraList.find((e) => e.id_pembina === currentUser?.id_pegawai)?.nama_ekstra}
+            risikoBkCount={risiko.length}
+          />
 
-      {/* Content */}
-      <div className="mt-4">
-        {!hasExecutive && !hasOperational ? (
-          <EmptyAssignmentState />
-        ) : (
-          <>
-            {activeTab === "eksekutif" && hasExecutive && (
-              <ExecutiveDashboard
-                pending={pending}
+          <QuickActionBar
+            capabilities={capabilities}
+            activeFilter={activeContextFilter}
+            onOpenDrawer={(type) => setActiveDrawer(type)}
+          />
+
+          {/* ZONA 3: ADAPTIVE METRICS REGION */}
+          <AdaptiveMetricsRegion
+            capabilities={capabilities}
+            activeFilter={activeContextFilter}
+            pending={pending}
+            risiko={risiko}
+            siswaCount={siswaCount}
+            rekapPagi={rekapPagi}
+            flaggedCount={flaggedCount}
+            currentUserId={currentUser?.id_pegawai}
+            rombelList={rombelList}
+            jadwalList={jadwalList}
+            ekstraList={ekstraList}
+            onOpenDrawer={setActiveDrawer}
+          />
+
+          {/* ZONA 4: PRIMARY WORK AREA (65%) & SECONDARY UTILITIES (35%) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Primary Work Area (Col-span 8 / ~65%) */}
+            <div className="lg:col-span-8 space-y-6">
+              <MultiRoleWorkAreaHub
+                capabilities={capabilities}
+                activeFilter={activeContextFilter}
+                onFilterChange={setActiveContextFilter}
+                filteredTasks={filteredTasks}
+                jadwalList={jadwalList}
+                rombelList={rombelList}
+                ekstraList={ekstraList}
                 risiko={risiko}
                 siswaCount={siswaCount}
-                rekapPagi={rekapPagi}
-                flaggedCount={flaggedCount}
+                currentUserId={currentUser?.id_pegawai}
+                onOpenDrawer={(drawer) => setActiveDrawer(drawer)}
               />
-            )}
+            </div>
 
-            {activeTab === "administrasi" && hasOperational && (
-              <OperationalDashboard
-                pending={pending}
-                risiko={risiko}
-                isAdminMadrasah={currentUser ? isAdminMadrasah(currentUser.id_pegawai, penugasanList) : false}
-                isOperatorKesiswaan={currentUser ? isOperatorKesiswaan(currentUser.id_pegawai, penugasanList) : false}
-                isWaliKelas={currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false}
-                isPembinaEkstrakurikuler={currentUser ? isPembinaEkstrakurikuler(currentUser.id_pegawai, ekstraList) : false}
-                isPengajarAktif={currentUser ? isPengajarAktif(currentUser.id_pegawai, jadwalList) : false}
-                isTendik={currentUser?.tugas_utama === "Tendik"}
-                isPembinaBk={currentUser ? isPembinaBk(currentUser.id_pegawai, plottingBkList) : false}
-              />
-            )}
-          </>
-        )}
-      </div>
+            {/* Secondary Utilities Area (Col-span 4 / ~35%) */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Universal Announcement & Information */}
+              <UniversalAnnouncement />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Frictionless In-place Drawers */}
+      <DashboardDrawers
+        activeDrawer={activeDrawer}
+        onClose={() => setActiveDrawer(null)}
+        pendingItems={pending}
+        rekapPagi={rekapPagi}
+        risiko={risiko}
+        jadwalList={jadwalList}
+        ekstraList={ekstraList}
+        rombelList={rombelList}
+        currentUserId={currentUser?.id_pegawai}
+        onOpenPresensi={() => setActiveDrawer("presensi")}
+      />
     </AppShell>
   );
 }

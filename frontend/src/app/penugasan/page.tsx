@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useTahunAjaran } from "@/components/app-providers";
-import { ErrorBlock } from "@/components/ui/primitives";
+import { ErrorBlock, PageHeader } from "@/components/ui/primitives";
 import { isAdminMadrasah, isKepalaMadrasah } from "@/lib/access";
 import { services } from "@/services";
 import type { PeriodePembagianTugas, RekapBebanKerjaGuru, PlottingBKTIK } from "@/types/penugasan";
@@ -88,30 +88,19 @@ export default function PenugasanPage() {
   return (
     <AppShell title="Penugasan & SK Beban Kerja">
       <div className="space-y-6 pb-20">
-        {/* BREADCRUMB */}
-        <div className="text-xs text-gray-500 flex items-center gap-1.5">
-          <span className="hover:text-gray-700">Kepegawaian</span>
-          <span>/</span>
-          <span className="font-medium text-gray-800">Penugasan & SK</span>
-        </div>
-
         {/* HEADER TITLE & STATUS */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-              PENUGASAN & SK BEBAN KERJA
-            </h1>
-            <p className="text-xs text-gray-500 mt-1">
-              Tahun Ajaran: <strong className="font-semibold text-gray-800">{tahunAktif?.nama_tahun || "2026/2027 Ganjil"}</strong>
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Status Dokumen:</span>
-            <span className="px-3 py-1 bg-primary-100 text-primary-800 border border-primary-300 font-extrabold text-xs rounded-md shadow-2xs">
-              {periode?.status_sk || "DRAFT"}
-            </span>
-          </div>
-        </div>
+        <PageHeader
+          title="Penugasan & SK Beban Kerja"
+          description={`Tahun Ajaran: ${tahunAktif?.nama_tahun || "2026/2027 Ganjil"}`}
+          action={
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Status Dokumen:</span>
+              <span className="px-3 py-1 bg-primary-100 text-primary-800 border border-primary-300 font-extrabold text-xs rounded-md shadow-2xs">
+                {periode?.status_sk || "DRAFT"}
+              </span>
+            </div>
+          }
+        />
 
         {/* 3 MAIN NAVIGATION TABS */}
         <div className="border-b border-gray-200 bg-white px-2 rounded-t-xl">

@@ -16,6 +16,7 @@ import {
   SearchInput,
   Badge,
   Modal,
+  PageHeader,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
 import type { HariLibur, MataPelajaran, Pegawai, Rombel, TingkatPendidikan } from "@/types";
@@ -255,22 +256,11 @@ export default function ReferensiPage() {
   return (
     <AppShell title="Referensi Master Data">
       <div className="space-y-6 pb-20">
-        {/* BREADCRUMB */}
-        <div className="text-xs text-gray-500 flex items-center gap-1.5">
-          <span className="hover:text-gray-700">Referensi</span>
-          <span>/</span>
-          <span className="font-medium text-gray-800">Master Kurikulum</span>
-        </div>
-
         {/* PAGE HEADER */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Referensi Master Data
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Kelola kurikulum &amp; mapel, parameter ekuivalensi JTM, serta kalender akademik sesuai standar EMIS.
-          </p>
-        </div>
+        <PageHeader
+          title="Referensi Master Data"
+          description="Kelola kurikulum & mapel, parameter ekuivalensi JTM, serta kalender akademik sesuai standar EMIS."
+        />
 
         {/* 3 DOMAIN TABS */}
         <div className="border-b border-gray-200 bg-white px-2 rounded-t-xl">

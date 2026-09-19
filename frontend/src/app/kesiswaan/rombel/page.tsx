@@ -15,6 +15,7 @@ import {
   Modal,
   Drawer,
   Tooltip,
+  PageHeader,
 } from "@/components/ui/primitives";
 import { isAdminMadrasah } from "@/lib/access";
 import { services } from "@/services";
@@ -238,30 +239,21 @@ export default function RombelPage() {
   return (
     <AppShell title="Rombongan Belajar">
       <div className="space-y-6 pb-20">
-        {/* BREADCRUMB */}
-        <div className="text-xs text-gray-500 flex items-center gap-1.5">
-          <span className="hover:text-gray-700">Kesiswaan</span>
-          <span>/</span>
-          <span className="font-medium text-gray-800">Rombongan Belajar</span>
-        </div>
-
         {/* PAGE HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Rombongan Belajar</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Kelola data rombel, daya tampung kelas, dan pemetaan wali kelas tahun ajaran aktif.
-            </p>
-          </div>
-          <Button
-            variant="primary"
-            onClick={handleOpenAddModal}
-            iconLeft={<Plus className="h-4 w-4" />}
-            className="shadow-xs self-start md:self-auto"
-          >
-            Tambah Rombel
-          </Button>
-        </div>
+        <PageHeader
+          title="Rombongan Belajar"
+          description="Kelola data rombel, daya tampung kelas, dan pemetaan wali kelas tahun ajaran aktif."
+          action={
+            <Button
+              variant="primary"
+              onClick={handleOpenAddModal}
+              iconLeft={<Plus className="h-4 w-4" />}
+              className="shadow-xs self-start md:self-auto"
+            >
+              Tambah Rombel
+            </Button>
+          }
+        />
 
         {/* STATISTIK RINGKAS CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -307,23 +299,22 @@ export default function RombelPage() {
         </div>
 
         {/* ACTION & FILTER TOOLBAR */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-2xs">
-          <div className="flex-1 min-w-[220px] relative">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-3 rounded-xl border border-border shadow-2xs">
+          <div className="flex-1 min-w-[220px]">
+            <Input
               type="text"
               placeholder="Cari rombel / wali..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-primary-500"
+              startIcon={<Search className="h-4 w-4" />}
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            <Select
               value={selectedTingkatFilter}
               onChange={(e) => setSelectedTingkatFilter(e.target.value)}
-              className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-hidden focus:ring-2 focus:ring-primary-500"
+              containerClassName="w-auto"
             >
               <option value="ALL">Semua Tingkat</option>
               {tingkat.map((t) => (
@@ -331,17 +322,17 @@ export default function RombelPage() {
                   {t.nama_tingkat}
                 </option>
               ))}
-            </select>
+            </Select>
 
-            <select
+            <Select
               value={selectedKurikulumFilter}
               onChange={(e) => setSelectedKurikulumFilter(e.target.value)}
-              className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-hidden focus:ring-2 focus:ring-primary-500"
+              containerClassName="w-auto"
             >
               <option value="ALL">Kurikulum</option>
               <option value="Merdeka">Merdeka</option>
               <option value="Kurikulum 2013">Kurikulum 2013</option>
-            </select>
+            </Select>
           </div>
         </div>
 

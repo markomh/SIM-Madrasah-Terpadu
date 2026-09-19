@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Search, Command, ArrowRight, Shield, Users, CalendarDays, FileText, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/components/auth-context";
 
+import { CommandSearchInput } from "./command-search-input";
+
 interface CommandItem {
   id: string;
   title: string;
@@ -87,7 +89,7 @@ export function CommandPalette() {
         {/* Search Input Bar */}
         <div className="flex items-center border-b border-border px-3.5 py-3">
           <Search className="mr-2.5 h-4 w-4 shrink-0 text-muted" />
-          <input
+          <CommandSearchInput
             type="text"
             value={query}
             onChange={(e) => {
@@ -95,7 +97,6 @@ export function CommandPalette() {
               setSelectedIndex(0);
             }}
             placeholder="Ketik perintah atau cari navigasi (mis. 'Siswa', 'Presensi')..."
-            className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted"
             autoFocus
           />
           <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-border bg-paper px-1.5 text-[10px] font-semibold text-muted">

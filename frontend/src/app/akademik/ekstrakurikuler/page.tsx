@@ -11,6 +11,7 @@ import {
   Drawer,
   LoadingBlock,
   Modal,
+  PageHeader,
   Pagination,
   SearchInput,
   Select,
@@ -723,33 +724,28 @@ export default function EkstrakurikulerPage() {
         {/* ========================================================================= */}
         {viewMode === "admin_master" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-                  Kelola Master Program Ekstrakurikuler
-                </h1>
-                <p className="text-xs text-gray-500 mt-1">
-                  Buat dan kelola daftar kegiatan ekstrakurikuler madrasah beserta jadwal utamanya.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="primary"
-                  iconLeft={<Plus className="h-4 w-4" />}
-                  onClick={() => setIsAddProgramOpen(true)}
-                >
-                  Tambah
-                </Button>
-                <Button
-                  variant="secondary"
-                  iconLeft={<Printer className="h-4 w-4 text-gray-600" />}
-                  onClick={() => window.print()}
-                >
-                  Cetak
-                </Button>
-              </div>
-            </div>
+            <PageHeader
+              title="Kelola Master Program Ekstrakurikuler"
+              description="Buat dan kelola daftar kegiatan ekstrakurikuler madrasah beserta jadwal utamanya."
+              action={
+                <>
+                  <Button
+                    variant="primary"
+                    iconLeft={<Plus className="h-4 w-4" />}
+                    onClick={() => setIsAddProgramOpen(true)}
+                  >
+                    Tambah
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    iconLeft={<Printer className="h-4 w-4 text-gray-600" />}
+                    onClick={() => window.print()}
+                  >
+                    Cetak
+                  </Button>
+                </>
+              }
+            />
 
             {/* INFO BANNER SSoT */}
             <div className="bg-blue-50 border border-blue-200 text-blue-900 p-4 rounded-xl flex items-start gap-3 text-xs leading-relaxed">

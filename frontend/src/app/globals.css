@@ -694,3 +694,23 @@ body {
   border-radius: 50%;
   background-color: var(--color-danger);
 }
+
+/* Base layer override untuk menyeragamkan rounded dan fokus ring seluruh elemen form standar tanpa mengganggu control khusus (checkbox, command palette, persona selector) */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
+  select:not(.bg-transparent),
+  textarea:not(.bg-transparent) {
+    outline: none;
+    border-radius: 4px;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent):focus,
+  select:not(.bg-transparent):focus,
+  textarea:not(.bg-transparent):focus,
+  input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent):focus-visible,
+  select:not(.bg-transparent):focus-visible,
+  textarea:not(.bg-transparent):focus-visible {
+    outline: none;
+    border-color: var(--color-primary, #1f5d4c);
+    box-shadow: 0 0 0 1px var(--color-primary, #1f5d4c);
+  }
+}

@@ -19,6 +19,9 @@ import {
   LoadingBlock,
   StatusBadge,
   Field,
+  Input,
+  Select,
+  TableCellInput,
   inputClass,
 } from "@/components/ui/primitives";
 import { services } from "@/services";
@@ -351,8 +354,7 @@ export function GradebookInputPanel({
             {/* Kartu Filter Selector */}
             <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs flex flex-col justify-between">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-1">Penugasan KBM / Rombel</p>
-              <select
-                className={`${inputClass} text-xs font-bold py-1 px-1.5 border border-border rounded bg-surface text-ink w-full`}
+              <Select
                 value={selectedJadwalKey}
                 onChange={(e) => setSelectedJadwalKey(e.target.value)}
               >
@@ -365,7 +367,7 @@ export function GradebookInputPanel({
                     </option>
                   );
                 })}
-              </select>
+              </Select>
             </div>
 
             <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs">
@@ -504,13 +506,13 @@ export function GradebookInputPanel({
                           const currentVal = row.scores[k.id_komponen];
                           return (
                             <td key={k.id_komponen} className="p-2 text-center border-l border-border/50">
-                              <input
+                              <TableCellInput
                                 type="number"
                                 min={0}
                                 max={100}
                                 step={1}
                                 placeholder="—"
-                                className={`w-16 rounded border border-border bg-surface px-2 py-1 text-center font-bold text-ink text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ${!isPengajarMatrix ? "bg-paper/80 cursor-not-allowed text-muted" : ""}`}
+                                className={`w-16 text-center ${!isPengajarMatrix ? "bg-paper/80 cursor-not-allowed text-muted" : ""}`}
                                 value={currentVal !== null && currentVal !== undefined ? currentVal : ""}
                                 readOnly={!isPengajarMatrix}
                                 onChange={(e) => handleScoreChange(row.siswa.id_siswa, k.id_komponen, e.target.value)}

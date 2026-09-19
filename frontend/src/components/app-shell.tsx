@@ -121,7 +121,15 @@ const navigation: NavGroup[] = [
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
 
-export function AppShell({ children, title }: { children: ReactNode; title?: string }) {
+import { HeaderSelect } from "@/components/ui/header-select";
+
+export function AppShell({
+  title,
+  children,
+}: {
+  title?: string;
+  children: ReactNode;
+}) {
   const pathname = usePathname() || "/";
   const authCtx = useAuth();
   const { currentUser, setCurrentUserId, penugasanList, rombelList, ekstraList, plottingBkList, logout, isConnectionError, isImpersonating, stopImpersonating } = authCtx;
@@ -199,9 +207,14 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
       }
 
       const cleanName = p.nama_lengkap_gelar.replace(" (Demo Terpadu)", "");
+      const nameParts = cleanName.replace(/,.*$/, "").trim().split(" ");
+      const firstName = nameParts[0] || "Pegawai";
+      const lastInitial = nameParts.length > 1 ? ` ${nameParts[nameParts.length - 1][0]}.` : "";
+      const shortName = `${firstName}${lastInitial}`;
 
       return {
         id_pegawai: p.id_pegawai,
+        shortName,
         label: `${cleanName} (${parts.join(", ")})`,
       };
     });
@@ -328,29 +341,30 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
           <button
             type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))}
-            className="hidden md:flex items-center gap-2 rounded-[6px] border border-border bg-paper px-2.5 py-1.5 text-xs text-muted hover:border-primary hover:text-ink transition cursor-pointer"
+            className="hidden md:flex w-44 lg:w-52 items-center justify-between rounded-lg border border-border bg-paper px-2.5 py-1.5 text-xs text-muted hover:border-primary hover:text-ink transition cursor-pointer shrink-0"
           >
-            <Search size={14} />
-            <span>Pencarian / Perintah...</span>
+            <div className="flex items-center gap-1.5 truncate">
+              <Search size={14} />
+              <span className="truncate">Cari...</span>
+            </div>
             <kbd className="rounded border border-border bg-surface px-1 py-0.5 text-[10px] font-semibold text-muted">Ctrl K</kbd>
           </button>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
             {/* Persona Simulator */}
-            <label className="flex h-9 items-center gap-1.5 rounded-[6px] border border-amber/40 bg-amber-soft px-2 py-1 min-w-[140px] sm:min-w-[220px] max-w-[240px] shrink-0">
-              <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wide text-amber shrink-0">Simulasi:</span>
-              <select
-                className="bg-transparent text-xs outline-none truncate w-full cursor-pointer font-medium text-ink"
+            <label className="flex h-9 items-center gap-1.5 rounded-lg border border-amber/40 bg-amber-soft px-2 py-1 max-w-[170px] sm:max-w-[200px] shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-amber shrink-0">Simulasi:</span>
+              <HeaderSelect
                 value={currentUser?.id_pegawai ?? ""}
                 onChange={(e) => setCurrentUserId(e.target.value)}
               >
                 {personaOptions.map((opt) => (
                   <option key={opt.id_pegawai} value={opt.id_pegawai}>
-                    {opt.label}
+                    {opt.shortName} ({opt.label.split("(")[1] ?? opt.label}
                   </option>
                 ))}
-              </select>
+              </HeaderSelect>
             </label>
 
             {/* Notifications Button */}
