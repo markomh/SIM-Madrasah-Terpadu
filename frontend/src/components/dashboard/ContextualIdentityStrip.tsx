@@ -26,14 +26,14 @@ export function ContextualIdentityStrip({ nama, nip, capabilities }: ContextualI
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1.5 font-bold text-ink">
           <User size={14} className="text-primary" />
-          <span>{nama}</span>
+          <span>{nama} </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 ml-1">| Penugasan
+        <div className="flex flex-wrap items-center gap-1 ml-1">
           {activeRoles.map((role, idx) => (
             <span
               key={idx}
-              className="rounded bg-primary-soft px-2 py-0.5 text-[10px] font-semibold text-primary border border-primary/20"
+              className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-primary border border-primary/20"
             >
               {role}
             </span>

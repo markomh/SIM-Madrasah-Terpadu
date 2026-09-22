@@ -29,25 +29,16 @@ export function GuruBkKasusWidget({
           </div>
           <div>
             <h3 className="text-sm font-bold text-ink flex items-center gap-2">
-              Buku Kasus & Layanan BK
-              <span className="rounded-md bg-paper px-2 py-0.5 text-[11px] font-medium text-muted border border-border/60">
-                {risiko.length} Siswa Perhatian
+              Bimbingan Konseling
+              <span className="rounded-md bg-paper px-2 py-0.5 text-xs font-medium text-muted border border-border/60">
+                {risiko.length} Siswa
               </span>
             </h3>
-            <p className="text-xs text-muted">Bimbingan konseling & pemantauan indikator risiko kedisiplinan</p>
+            <p className="text-xs text-muted">Pemantauan indikator risiko oleh AI</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="primary"
-            onClick={onOpenBkDrawer}
-            className="py-1.5 px-3 text-xs font-bold shadow-2xs"
-          >
-            <Plus size={13} className="mr-1" /> Catat BK
-          </Button>
           <button
             type="button"
             onClick={onOpenAiDrawer}

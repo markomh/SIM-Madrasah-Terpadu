@@ -7,6 +7,12 @@
   --color-primary: #1f5d4c;
   --color-primary-soft: #e4eee9;
   --color-primary-border: #1f5d4c4d;
+  /* BARU (Layer 9 TODO #5) — state interaktif tombol utama. Diturunkan dari
+     --color-primary dengan menggelapkan bertahap (bukan opacity/alpha,
+     supaya tetap solid di atas background apa pun). Dipakai Button Layer 8;
+     JANGAN dipakai untuk makna lain (bukan token status). */
+  --color-primary-hover: #184a3d;
+  --color-primary-active: #123829;
   --color-amber: #b8722a;
   --color-amber-soft: #f5eadf;
   --color-amber-border: #b8722a4d;
@@ -48,15 +54,87 @@
      di atas halaman biasa. Jangan pernah menyamakan kedua token ini. */
   --color-neutral-soft: #eef0ef;
 
+  /* BARU — makna "akses dibatasi/rahasia" (bukan status, bukan peringatan,
+     bukan kegagalan). SATU-SATUNYA pemakaian resmi: catatan_bk dengan
+     tingkat_kerahasiaan = "Rahasia" (SRS Bab 9N, Bab 10 poin 19, Bab 12) —
+     entri yang hanya boleh dibaca Guru BK penulisnya dan Kepala Madrasah.
+     SENGAJA dibuat warna & pola berbeda dari:
+       - "danger"  = kegagalan/ditolak/kritis (bukan soal akses)
+       - "ai"      = perlu verifikasi manusia (bukan soal kerahasiaan)
+     supaya penanda "Rahasia" tidak pernah tertukar visual dengan status
+     lain apa pun. DILARANG dipakai untuk makna lain selain penanda akses
+     terbatas. Lihat .badge-restricted (Layer 4) — border-nya sengaja
+     dashed, bukan solid, sebagai pembeda pola tambahan dari badge status. */
+  --color-restricted: #6b2140;
+  --color-restricted-soft: #f4e8ee;
+  --color-restricted-border: #6b21404d;
+
+  /* BARU (Layer 9 TODO #4) — warna backdrop modal/dialog. Dibuat sebagai
+     token TERSENDIRI (bukan var(--color-ink) + opacity inline di JSX)
+     supaya nilai alpha-nya konsisten di seluruh app dan mudah diubah satu
+     tempat. Dasar warnanya sengaja dari --color-ink (bukan hitam pekat
+     #000) supaya masih terasa "sewarna" dengan palet, bukan generic
+     overlay abu-abu netral. */
+  --color-overlay: rgb(28 43 51 / 0.5);
+
+  /* -----------------------------------------------------------------------
+       Z-INDEX SCALE — BARU (menutup gap: sebelumnya angka z-index di Layer 7
+       kalender ditulis mentah 1/2/5/10/15 tanpa skala terdokumentasi, rawan
+       tabrakan begitu modal/dialog approval — Bab 10 poin 9-11 — dibangun
+       dan ternyata perlu tampil di atas kalender.
+       -----------------------------------------------------------------------
+       Aturan: overlay/modal SELALU di atas konten halaman manapun, termasuk
+       kalender. Jangan menambah lapisan z-index baru dengan angka mentah —
+       tambahkan token baru di skala ini dulu kalau butuh level baru.
+
+       | Token               | Nilai | Pemakaian                                |
+       |---------------------|-------|--------------------------------------------|
+       | z-grid-line         | 1     | Garis grid kalender (30 menit)             |
+       | z-routine-band      | 2     | Pita rutinitas (Upacara/Dhuha/dst)         |
+       | z-slot-card         | 5     | Kartu slot KBM, posisi normal              |
+       | z-slot-card-hover   | 10    | Kartu slot KBM saat hover/aktif            |
+       | z-now-line          | 15    | Garis waktu sekarang di kalender           |
+       | z-sticky-header     | 20    | Filter Konteks Global (Bab 8 poin 1), header tabel sticky |
+       | z-dropdown          | 30    | Dropdown, popover, command palette         |
+       | z-modal-backdrop    | 40    | Backdrop di belakang modal/dialog          |
+       | z-modal             | 50    | Modal/dialog konfirmasi (approval, kenaikan kelas massal) |
+       | z-toast             | 60    | Notifikasi toast — selalu paling atas      |
+       ----------------------------------------------------------------------- */
+  --z-grid-line: 1;
+  --z-routine-band: 2;
+  --z-slot-card: 5;
+  --z-slot-card-hover: 10;
+  --z-now-line: 15;
+  --z-sticky-header: 20;
+  --z-dropdown: 30;
+  --z-modal-backdrop: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  /* -----------------------------------------------------------------------
+       RADIUS SCALE — RESOLVED (sebelumnya open question, sekarang final)
+       -----------------------------------------------------------------------
+       KEPUTUSAN: token ini didaftarkan ULANG di dalam "@theme inline" di
+       bawah. Pada Tailwind v4 (CSS-first config), variabel --radius-* yang
+       didaftarkan lewat @theme OTOMATIS menjadi nilai utility bawaan
+       "rounded-sm" / "rounded-md" / "rounded-lg" — bukan dua sistem
+       terpisah lagi. Artinya:
+         - className="rounded-sm"                → SAH, sama dengan --radius-sm
+         - className="rounded-[var(--radius-sm)]" → SAH juga, tapi TIDAK PERLU lagi
+       Tidak ada lagi celah "Tailwind mana yang boleh dipakai" untuk radius.
+       Agent/junior boleh langsung pakai utility rounded-sm/md/lg Tailwind
+       standar tanpa perlu tahu token ini ada.
+
+       | Token       | Nilai | Pemakaian                                    |
+       |-------------|-------|-----------------------------------------------|
+       | radius-sm   | 4px   | Input, badge kotak, slot kalender             |
+       | radius-md   | 6px   | Card standar, calendar-canvas, dropdown       |
+       | radius-lg   | 12px  | Modal, dialog konfirmasi, panel besar         |
+       | radius-full | 999px | Pill/badge bulat penuh (dipakai langsung, tidak lewat token — lihat .badge) |
+       ----------------------------------------------------------------------- */
   --radius-sm: 4px;
   --radius-md: 6px;
-  /* OPEN QUESTION untuk tim: Tailwind punya utility bawaan "rounded-sm"/
-     "rounded-md" dengan nilai default yang mungkin TIDAK SAMA dengan kedua
-     token di atas (tergantung versi Tailwind). Sebelum dipakai meluas,
-     verifikasi manual: apakah tim akan SELALU memakai var(--radius-sm)/
-     var(--radius-md) via arbitrary value (rounded-[var(--radius-sm)]), atau
-     mengubah konfigurasi Tailwind agar "rounded-sm"/"rounded-md" bawaan
-     benar-benar disamakan ke nilai ini? Jangan asumsikan otomatis sama. */
+  --radius-lg: 12px;
 
   /* -----------------------------------------------------------------------
        2.2 — TYPOGRAPHY SCALE (5 ukuran tetap — jangan tambah ukuran baru
@@ -78,6 +156,10 @@
        ----------------------------------------------------------------------- */
   --text-display-size: 28px;
   --text-display-leading: 1.2;
+  --text-display-tracking: -0.01em;
+  /* Satu-satunya tempat tracking non-default dipakai secara sengaja — angka
+     KPI besar di Dashboard Eksekutif (Bab 8 poin 5). Bukan token baru per
+     ukuran lain; jangan disalin ke .text-heading/.text-body. */
   --text-heading-size: 20px;
   --text-heading-leading: 1.3;
   --text-label-size: 13px;
@@ -113,7 +195,8 @@
        ATURAN PEMAKAIAN DI JSX (menutup celah "Tailwind mana yang boleh"):
        - Tailwind utility LAYOUT (flex, grid, items-*, justify-*, w-*, h-*,
          rounded-*) TETAP BOLEH dipakai bebas — token di atas TIDAK
-         menggantikan ini.
+         menggantikan ini. Khusus rounded-*: lihat blok RADIUS SCALE di
+         atas — sudah dipetakan otomatis, tidak perlu arbitrary value lagi.
        - Tailwind utility SPACING NUMERIK BAWAAN (p-4, gap-2, m-6, space-x-3,
          dst) DILARANG. Untuk padding/margin/gap, WAJIB pakai salah satu:
            (a) class siap pakai (.density-row, .form-stack, dst di bawah), atau
@@ -121,6 +204,11 @@
        - Tailwind utility TIPOGRAFI (text-xs, font-bold, dll) dan WARNA
          (text-emerald-600, bg-blue-50, dll) DILARANG — pakai class Layer 3
          dan Layer 4 di bawah.
+       - Untuk KOMBINASI warna/status siap pakai (badge, alert), JANGAN
+         menyusun sendiri dari Layer 3+4 di JSX — pakai komponen Layer 8
+         (components/ui/badge.tsx, alert.tsx) yang membungkus kombinasi
+         itu jadi satu prop `variant`. Layer 3+4 tetap ada sebagai lapisan
+         dasar untuk kasus yang belum punya komponen, bukan cara utama.
        ----------------------------------------------------------------------- */
   --space-2xs: 2px;
   --space-xs: 4px;
@@ -130,6 +218,16 @@
   --space-xl: 24px;
   --space-2xl: 32px;
   --space-3xl: 48px;
+
+  /* BARU (Layer 9 TODO #6) — ukuran minimum target sentuh, khusus untuk
+     Portal Orang Tua/Wali (PWA, Bab 4D/Bab 13) yang menyasar audiens
+     dengan variasi literasi digital (syarat usability Bab 6: "operator
+     literasi digital dasar... tanpa pelatihan lebih dari 1 hari"). Nilai
+     44px mengikuti rekomendasi umum WCAG 2.5.5/aksesibilitas mobile.
+     TIDAK wajib dipakai di dashboard internal (Admin/Operator/Kamad) yang
+     memang dipakai di desktop dengan mouse — pakai secukupnya, bukan di
+     semua tombol tanpa pandang konteks. */
+  --touch-target-min: 44px;
 }
 
 @theme inline {
@@ -138,6 +236,8 @@
   --color-surface: var(--color-surface);
   --color-primary: var(--color-primary);
   --color-primary-soft: var(--color-primary-soft);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-active: var(--color-primary-active);
   --color-amber: var(--color-amber);
   --color-amber-soft: var(--color-amber-soft);
   --color-danger: var(--color-danger);
@@ -149,9 +249,21 @@
   --color-info: var(--color-info);
   --color-info-soft: var(--color-info-soft);
   --color-neutral-soft: var(--color-neutral-soft);
+  --color-restricted: var(--color-restricted);
+  --color-restricted-soft: var(--color-restricted-soft);
+  --color-overlay: var(--color-overlay);
   --color-border: var(--color-border);
   --color-muted: var(--color-muted);
   --font-sans: var(--font-plus-jakarta);
+
+  /* Memetakan skala radius kustom ke variabel tema Tailwind v4 — inilah
+     yang membuat utility bawaan "rounded-sm"/"rounded-md"/"rounded-lg"
+     otomatis sama dengan token di :root, tanpa konfigurasi terpisah dan
+     tanpa arbitrary value. Lihat blok RADIUS SCALE di :root untuk tabel
+     nilai dan alasannya. */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
 }
 
 body {
@@ -171,6 +283,22 @@ body {
 ::selection {
   background: var(--color-primary-soft);
   color: var(--color-ink);
+}
+
+/* Menghormati preferensi sistem reduced-motion secara global — berlaku
+   untuk SELURUH transisi/animasi di app, bukan cuma yang didaftar manual
+   satu-satu di komponen. Komponen tetap boleh punya transition/animation
+   normal; blok ini yang menonaktifkannya saat user minta. */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* =============================================================================
@@ -196,6 +324,10 @@ body {
       Contoh SALAH  : className="text-emerald-600"  (warna dipilih karena "bagus")
       Contoh BENAR  : className="text-success"       (warna dipilih karena makna)
    3. Satu warna = satu makna, di SELURUH app, tanpa kecuali.
+   4. Untuk badge/alert/status siap pakai: prioritaskan komponen Layer 8
+      (components/ui/*.tsx, prop `variant`) di atas menyusun class Layer 4
+      manual — komponen itulah yang membuat kombinasi warna+bg+border ini
+      mustahil salah, bahkan oleh agent yang tidak membaca dokumen ini.
    ============================================================================= */
 
 /* -----------------------------------------------------------------------
@@ -222,6 +354,63 @@ body {
      memakai primary di satu halaman dan success di halaman lain).
      ----------------------------------------------------------------------- */
 
+/* -----------------------------------------------------------------------
+     2.1b — PEMETAAN ENUM SRS → TOKEN WARNA (BARU, wajib dipatuhi)
+     -----------------------------------------------------------------------
+     Tabel 2.1 di atas menjelaskan MAKNA generik tiap warna. Tabel di bawah
+     ini yang menjawab pertanyaan konkret "field X di SRS pakai warna apa" —
+     supaya tidak ada dua developer/agent yang menebak sendiri-sendiri untuk
+     enum yang SAMA. Kalau field/enum baru ditambah ke SRS, tambahkan
+     baris baru di sini SEBELUM dipakai di komponen manapun — jangan
+     menebak dulu, baru didokumentasikan belakangan.
+
+     `status_kehadiran_guru` (sesi_tatap_muka, Bab 9K / Bab 10 poin 12-13):
+       Tepat Waktu          → success
+       Terlambat            → amber
+       Digantikan Terjadwal → info     (sudah dilaporkan sesuai SOP, BUKAN
+                                         pelanggaran — Bab 10 poin 15 —
+                                         makanya bukan amber/danger)
+       Digantikan Mendadak  → danger   (anomali, perlu ditinjau Kamad)
+       Tidak Terlaksana     → danger   (beda label teks dari baris di atas,
+                                         severity sama; JANGAN dibedakan
+                                         lewat warna baru — cukup teks/ikon)
+
+     `status_persetujuan` (anggota_rombel Bab 9E, riwayat_mutasi Bab 9G):
+       Tidak Perlu           → neutral  (khusus anggota_rombel; riwayat_mutasi
+                                          TIDAK punya nilai ini, lihat Bab 10
+                                          poin 11 — mutasi selalu wajib approval)
+       Menunggu Persetujuan  → amber
+       Disetujui              → success
+       Ditolak                → danger
+
+     `status_keanggotaan` (anggota_rombel, Bab 9E):
+       Aktif           → success
+       Pindah Rombel    → info      (perpindahan administratif netral)
+       Naik Kelas       → success
+       Tinggal Kelas    → amber     (perlu perhatian, bukan kegagalan)
+       Lulus            → primary   (milestone arsip, bukan status berjalan)
+       Keluar           → neutral   (arsip, bukan status aktif negatif)
+
+     `status_siswa` (siswa, Bab 9A):
+       Aktif          → success
+       Lulus          → primary
+       Mutasi Keluar  → neutral    (diarsipkan, bukan negatif — Bab 7 retensi)
+       Drop Out       → danger     (butuh perhatian/pemantauan — Bab 5)
+
+     `surat.status` (persuratan, Bab 9O):
+       Draf          → neutral
+       Menunggu TTD  → amber
+       Diterbitkan   → success
+
+     `status_rekonsiliasi` (izin_guru, Bab 9L / Bab 10 poin 14):
+       Tepat Waktu  → success
+       Terlambat    → amber   (transparansi pola telat, BUKAN penalti otomatis)
+
+     `tingkat_kerahasiaan` (catatan_bk, Bab 9N): BUKAN status — pakai
+       .badge-restricted (Layer 4), bukan salah satu warna status di atas.
+       Lihat token --color-restricted di :root untuk alasan pemisahan ini.
+     ----------------------------------------------------------------------- */
+
 /* =============================================================================
    LAYER 3 — TYPOGRAPHY UTILITY CLASSES
    =============================================================================
@@ -239,6 +428,7 @@ body {
   font-size: var(--text-display-size);
   line-height: var(--text-display-leading);
   font-weight: 700;
+  letter-spacing: var(--text-display-tracking);
 }
 
 .text-heading {
@@ -280,10 +470,12 @@ body {
    Class di bawah ini mengatur TIGA hal secara terpisah: warna teks, warna
    ikon (memakai properti color yang sama seperti teks), dan warna
    background. Setiap badge status dan indikator sistem di aplikasi WAJIB
-   memakai salah satu class siap pakai (.badge-*) di bawah — DILARANG
-   menyusun kombinasi bg+text+border sendiri secara manual di JSX seperti
-   yang terjadi di app-shell.tsx (itulah sebabnya token "success" sempat
-   dipakai padahal belum pernah didefinisikan).
+   memakai komponen Layer 8 (<Badge variant="..."/>) yang membungkus class
+   .badge-* di bawah — DILARANG menyusun kombinasi bg+text+border sendiri
+   secara manual di JSX seperti yang terjadi di app-shell.tsx (itulah
+   sebabnya token "success" sempat dipakai padahal belum pernah
+   didefinisikan). Class .badge-* di bawah tetap ada sebagai implementasi
+   internal komponen tersebut, bukan API yang dipakai langsung di JSX.
    ============================================================================= */
 /* --- Teks & ikon --- */
 .text-ink {
@@ -316,6 +508,21 @@ body {
 
 .text-info {
   color: var(--color-info);
+}
+
+/* SENGAJA memakai nilai warna yang SAMA dengan .text-muted (var(--color-muted))
+   — bukan duplikasi tanpa alasan, tapi dua class dengan MAKSUD beda:
+   .text-muted = "teks ini sekunder/kurang penting" (hierarki visual),
+   .text-neutral = "teks ini adalah status tanpa polaritas" (makna status,
+   Tabel 2.1). Dua sumber kebenaran yang kebetulan sama nilainya hari ini —
+   kalau suatu saat perlu dibedakan visualnya, ubah di sini tanpa menyentuh
+   .text-muted, dan sebaliknya. */
+.text-neutral {
+  color: var(--color-muted);
+}
+
+.text-restricted {
+  color: var(--color-restricted);
 }
 
 /* --- Background permukaan --- */
@@ -353,6 +560,10 @@ body {
 
 .bg-neutral-soft {
   background-color: var(--color-neutral-soft);
+}
+
+.bg-restricted-soft {
+  background-color: var(--color-restricted-soft);
 }
 
 /* --- Badge / indikator status siap pakai (satu class = selesai) ---
@@ -419,7 +630,24 @@ body {
    proses AI (SRS Bab 5 poin 4) WAJIB memakai .badge-ai + teks
    "Hasil AI — perlu verifikasi" atau ikon Sparkles — tidak boleh dicampur
    ke .badge-primary/.badge-neutral/.badge-info meski datanya terlihat
-   "baik-baik saja" secara sekilas. */
+   "baik-baik saja" secara sekilas. Di level komponen, ini ditegakkan oleh
+   <AIBadge> (Layer 8) yang mewajibkan label tersebut secara otomatis —
+   bukan mengandalkan developer mengetik teksnya sendiri tiap kali. */
+
+/* BARU — satu-satunya badge yang BUKAN status, tapi penanda akses
+   terbatas: WAJIB dipakai untuk catatan_bk dengan tingkat_kerahasiaan =
+   "Rahasia" (SRS Bab 9N, Bab 10 poin 19, Bab 12), dan TIDAK BOLEH dipakai
+   untuk makna lain apa pun. border-style dashed (bukan solid seperti
+   .badge-* status lain) adalah pembeda visual yang disengaja — supaya
+   dari bentuknya saja sudah terlihat beda dari badge status biasa, bukan
+   cuma dari warnanya. Sertakan ikon gembok pada pemakaian nyata (di
+   komponen Layer 8, bukan di CSS ini). */
+.badge-restricted {
+  background-color: var(--color-restricted-soft);
+  color: var(--color-restricted);
+  border-color: var(--color-restricted-border);
+  border-style: dashed;
+}
 
 /* =============================================================================
    LAYER 5 — DENSITY UTILITY CLASSES
@@ -614,7 +842,7 @@ body {
   background-color: var(--color-border);
   opacity: 0.5;
   pointer-events: none;
-  z-index: 1;
+  z-index: var(--z-grid-line);
 }
 
 /* Garis grid jam penuh (lebih tebal) */
@@ -622,7 +850,12 @@ body {
   opacity: 0.8;
 }
 
-/* Pita rutinitas (Upacara, Dhuha, Istirahat, Ishoma, Senam) */
+/* Pita rutinitas (Upacara, Dhuha, Istirahat, Ishoma, Senam). SEBELUMNYA
+   class ini tidak punya background-color sama sekali — warnanya harus
+   ditentukan lewat salah satu modifier di bawah, BUKAN inline style hex
+   mentah, supaya tetap patuh aturan "SEMUA warna memakai token semantik"
+   di kepala Layer 7. Default memakai neutral (rutinitas = netral, bukan
+   status); pakai modifier lain hanya kalau memang perlu menonjolkan. */
 .calendar-routine-band {
   position: absolute;
   left: 0;
@@ -634,8 +867,20 @@ body {
   border-radius: var(--radius-sm);
   opacity: 0.85;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-routine-band);
   overflow: hidden;
+  background-color: var(--color-neutral-soft);
+  color: var(--color-muted);
+}
+
+.calendar-routine-band--primary {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.calendar-routine-band--amber {
+  background-color: var(--color-amber-soft);
+  color: var(--color-amber);
 }
 
 /* Kartu slot KBM (posisi absolut) */
@@ -643,7 +888,7 @@ body {
   position: absolute;
   left: 2px;
   right: 2px;
-  z-index: 5;
+  z-index: var(--z-slot-card);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -657,20 +902,54 @@ body {
 .calendar-slot-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: scale(1.01);
-  z-index: 10;
+  z-index: var(--z-slot-card-hover);
 }
 
 .calendar-slot-card:active {
   transform: scale(0.98);
 }
 
-/* Indikator kiri tebal pada kartu */
+/* prefers-reduced-motion global di atas sudah menonaktifkan transition
+   durasinya, tapi transform akhir (scale) tetap akan "melompat" tanpa
+   animasi jika tidak di-nol-kan eksplisit — blok ini yang menghilangkan
+   pergeseran ukuran itu sepenuhnya untuk user yang minta reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+
+  .calendar-slot-card:hover,
+  .calendar-slot-card:active {
+    transform: none;
+    box-shadow: 0 0 0 1px var(--color-primary-border);
+  }
+}
+
+/* Indikator kiri tebal pada kartu. Warna WAJIB diisi lewat salah satu
+   modifier di bawah, sesuai pemetaan status_kehadiran_guru di Tabel 2.1b —
+   JANGAN pernah diisi lewat inline style hex mentah. Default (tanpa
+   modifier) memakai border-color biasa supaya kartu tanpa status jelas
+   tetap terlihat netral, bukan "kosong tak sengaja". */
 .calendar-slot-card-accent {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   width: 3px;
+  background-color: var(--color-border);
+}
+
+.calendar-slot-card-accent--success {
+  background-color: var(--color-success);
+}
+
+.calendar-slot-card-accent--amber {
+  background-color: var(--color-amber);
+}
+
+.calendar-slot-card-accent--info {
+  background-color: var(--color-info);
+}
+
+.calendar-slot-card-accent--danger {
+  background-color: var(--color-danger);
 }
 
 /* Garis waktu sekarang (now line) */
@@ -680,7 +959,7 @@ body {
   right: 0;
   height: 2px;
   background-color: var(--color-danger);
-  z-index: 15;
+  z-index: var(--z-now-line);
   pointer-events: none;
 }
 
@@ -697,12 +976,14 @@ body {
 
 /* Base layer override untuk menyeragamkan rounded dan fokus ring seluruh elemen form standar tanpa mengganggu control khusus (checkbox, command palette, persona selector) */
 @layer base {
+
   input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
   select:not(.bg-transparent),
   textarea:not(.bg-transparent) {
     outline: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
+
   input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent):focus,
   select:not(.bg-transparent):focus,
   textarea:not(.bg-transparent):focus,
@@ -713,4 +994,516 @@ body {
     border-color: var(--color-primary, #1f5d4c);
     box-shadow: 0 0 0 1px var(--color-primary, #1f5d4c);
   }
+}
+
+/* =============================================================================
+   LAYER 8 — KOMPONEN (SUDAH DIIMPLEMENTASIKAN)
+   =============================================================================
+   Layer 1–7 & 9–15 di file ini adalah PRIMITIF (class CSS). Kombinasi
+   warna+bg+border/ikon+label yang tidak boleh dirakit salah oleh agent
+   murah/junior developer dibungkus di file TERPISAH berikut:
+
+     lib/utils.ts                       → helper cn() (clsx + tailwind-merge)
+     components/ui/badge.tsx            → <Badge variant="primary|success|
+                                            amber|danger|info|neutral|restricted">
+     components/ui/ai-badge.tsx         → <AIBadge> — satu-satunya jalan
+                                            menampilkan badge AI, label
+                                            "Hasil AI — perlu verifikasi"
+                                            dipaksa otomatis (SRS Bab 5 poin 4)
+     components/ui/confidential-badge.tsx → <ConfidentialBadge> — satu-satunya
+                                            jalan menampilkan penanda
+                                            catatan_bk "Rahasia" (Bab 9N,
+                                            Bab 10 poin 19), ikon gembok
+                                            dipaksa otomatis
+     components/ui/button.tsx           → <Button variant="primary|
+                                            secondary|danger" touch?>
+     components/ui/alert.tsx            → <Alert variant="primary|success|
+                                            amber|danger|info">
+     components/ui/ai-alert.tsx         → <AIAlert> — versi banner dari
+                                            AIBadge, dipakai untuk "Alert &
+                                            Peringatan Dini" (Bab 8 poin 3)
+
+   ATURAN: variant "ai" dan "restricted" SENGAJA TIDAK ADA di tipe
+   TypeScript <Badge>/<Alert> generik — bukan lupa didaftarkan, tapi
+   penjagaan yang disengaja. Kalau agent murah menulis
+   `<Badge variant="ai">`, TypeScript menolak sebelum kode itu sempat
+   dijalankan; satu-satunya jalan yang valid adalah <AIBadge>/<AIAlert>/
+   <ConfidentialBadge>, yang sudah memaksa label & ikon wajibnya sendiri.
+   JSX baru WAJIB memakai komponen-komponen ini, bukan menyusun className
+   Layer 3+4 manual.
+   ============================================================================= */
+
+/* =============================================================================
+   LAYER 9 — BUTTON PRIMITIVE (menutup TODO #5: state hover/active primary)
+   =============================================================================
+   Primitif dasar, dipakai LANGSUNG di layer-layer baru di bawah (Modal,
+   Split-Screen) sebelum components/ui/button.tsx (Layer 8) sungguh dibuat.
+   Begitu Button Layer 8 dibangun, ia WAJIB memakai class-class di bawah
+   sebagai target CVA-nya, bukan mengarang ulang.
+   ============================================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  height: var(--form-input-height);
+  padding-inline: var(--space-lg);
+  border-radius: var(--radius-sm);
+  border-width: 1px;
+  border-style: solid;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+.btn-secondary {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-paper);
+}
+
+.btn-danger {
+  background-color: var(--color-surface);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--color-danger-soft);
+}
+
+/* Dipakai lewat komposisi bersama .btn (mis. className="btn btn-primary
+   btn-touch") — bukan varian ukuran baru, cukup penambah min-height/width
+   untuk konteks Portal Ortu/PWA (Layer 9 TODO #6, lihat --touch-target-min
+   di :root). Dipasang di komponen SECARA SADAR, bukan default semua tombol. */
+.btn-touch {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+}
+
+/* =============================================================================
+   LAYER 10 — DATA TABLE (menutup TODO #1)
+   =============================================================================
+   Komponen standar #2 di Bab 8 ("Tabel Data Interaktif"), dipakai di
+   hampir seluruh modul (Data Siswa Induk, Rekap Kedisiplinan, Audit Log,
+   Antrean Persetujuan, dst). Dipasangkan dengan .density-dense/
+   .density-comfortable (Layer 5) di container pembungkus — table ini TIDAK
+   mengatur padding barisnya sendiri, ia MEWARISI var(--row-padding-y/x)
+   dari parent density, konsisten dengan pola .density-row yang sudah ada.
+   ============================================================================= */
+.data-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  padding-block: var(--row-padding-y, var(--space-md));
+  padding-inline: var(--row-padding-x, var(--space-lg));
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+/* Header sticky — memakai var(--z-sticky-header) dari skala Z-INDEX di
+   :root, BUKAN angka baru. Kalau table dipakai di dalam modal (Layer 13),
+   header-nya tetap di bawah modal karena stacking context modal lebih
+   tinggi — tidak perlu penyesuaian manual. */
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-header);
+  background-color: var(--color-paper);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table tbody tr:hover {
+  background-color: var(--color-primary-soft);
+}
+
+/* Opsional — pakai HANYA kalau baris benar-benar butuh dipindai cepat
+   tanpa hover (mis. Audit Log yang sangat panjang). Jangan campur dengan
+   :hover di atas pada baris yang sama secara visual membingungkan; pilih
+   salah satu strategi per tabel. */
+.data-table-zebra tbody tr:nth-child(even) {
+  background-color: var(--color-paper);
+}
+
+/* Header kolom yang bisa diurutkan (sort). Ikon panah TIDAK disediakan di
+   sini (pakai icon set React, mis. lucide-react ChevronUp/Down) — class
+   ini hanya mengatur interaktivitas & state visualnya. */
+.data-table-sortable {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table-sort-icon {
+  opacity: 0.4;
+}
+
+/* Set aria-sort="ascending"/"descending" di elemen <th> — jangan pakai
+   class terpisah untuk state ini, aria-sort SUDAH wajib ada untuk
+   aksesibilitas, jadi styling numpang di attribute yang sama, bukan
+   menduplikasi info lewat class. */
+th[aria-sort="ascending"] .data-table-sort-icon,
+th[aria-sort="descending"] .data-table-sort-icon {
+  opacity: 1;
+  color: var(--color-primary);
+}
+
+.data-table-empty {
+  padding: var(--space-3xl) var(--space-lg);
+  text-align: center;
+  color: var(--color-muted);
+}
+
+/* =============================================================================
+   LAYER 11 — SPLIT-SCREEN LAYOUT (menutup TODO #2)
+   =============================================================================
+   Khusus Bab 8 poin 4: Kenaikan Kelas massal (drag-and-drop/seleksi antar-
+   rombel). Dua panel berdampingan — kiri = rombel asal, kanan = rombel
+   tujuan. Drag/drop sesungguhnya (HTML5 DnD atau library) diatur lewat
+   JS/atribut ARIA; CSS ini hanya menyediakan state visualnya.
+   ============================================================================= */
+.split-screen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  min-height: 480px;
+}
+
+@media (max-width: 768px) {
+  .split-screen {
+    grid-template-columns: 1fr;
+  }
+}
+
+.split-screen-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.split-screen-pane-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-paper);
+}
+
+.split-screen-pane-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm);
+}
+
+/* Kartu siswa yang bisa diseret. draggable="true" + atribut aria-grabbed
+   diatur di JS; class ini murni visual. */
+.drag-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  padding: var(--space-sm) var(--space-md);
+  cursor: grab;
+  transition: opacity 0.12s ease, box-shadow 0.12s ease;
+}
+
+.drag-item:active {
+  cursor: grabbing;
+}
+
+.drag-item[aria-grabbed="true"] {
+  opacity: 0.5;
+}
+
+.drop-zone {
+  min-height: 80px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+/* Toggle lewat JS saat drag berada di atas drop-zone ini (dragover) */
+.drop-zone--active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .drag-item,
+  .drop-zone {
+    transition: none;
+  }
+}
+
+/* =============================================================================
+   LAYER 12 — STICKY CONTEXT FILTER BAR (menutup TODO #3)
+   =============================================================================
+   Bab 8 poin 1: "Filter Konteks Global (Tahun Ajaran & Semester) di bagian
+   atas — mencegah kesalahan edit data lampau." Fungsinya safety-critical,
+   makanya WAJIB selalu terlihat (sticky), bukan sekadar dekorasi di atas.
+   ============================================================================= */
+.context-filter-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-header);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-md) var(--space-xl);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Toggle lewat JS (scroll listener, threshold kecil mis. >4px) — memberi
+   isyarat tambahan bahwa bar ini "mengambang" di atas konten yang sudah
+   discroll, tanpa mengandalkan warna semata (prinsip aksesibilitas). */
+.context-filter-bar--elevated {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Badge kecil di dalam filter bar untuk menandai konteks tahun ajaran yang
+   SUDAH BERAKHIR (bukan tahun ajaran aktif) — dipakai bersama .badge-amber
+   (Layer 4) supaya operator sadar sedang melihat/mengedit data historis. */
+.context-filter-archived-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* =============================================================================
+   LAYER 13 — MODAL / OVERLAY (menutup TODO #4)
+   =============================================================================
+   Dipakai untuk seluruh dialog konfirmasi & approval di SRS: approval
+   mutasi masuk/keluar (Bab 10 poin 10-11), approval pindah rombel lintas
+   tingkat (Bab 10 poin 9), dan modal konfirmasi Proses Kenaikan Kelas
+   massal (Bab 8 poin 4 — dampak besar, makanya WAJIB memakai
+   .modal-panel--comfortable, bukan varian padat, supaya operator sempat
+   membaca ulang sebelum klik, sesuai panduan density Layer 5).
+   ============================================================================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-backdrop);
+  background-color: var(--color-overlay);
+}
+
+.modal-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-modal);
+  width: calc(100% - var(--space-xl) * 2);
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  padding: var(--space-xl);
+}
+
+/* Wajib untuk aksi berdampak besar/tidak reversibel (Kenaikan Kelas
+   massal, approval mutasi) — padding lebih lega, konsisten dengan makna
+   .density-comfortable di Layer 5, BUKAN token spacing baru. */
+.modal-panel--comfortable {
+  padding: var(--space-2xl);
+  max-width: 640px;
+}
+
+.modal-panel-header {
+  margin-bottom: var(--space-lg);
+}
+
+.modal-panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+}
+
+@media (max-width: 640px) {
+  .modal-panel {
+    width: calc(100% - var(--space-lg) * 2);
+    padding: var(--space-lg);
+  }
+
+  .modal-panel--comfortable {
+    padding: var(--space-xl);
+  }
+}
+
+/* =============================================================================
+   LAYER 14 — PRINT STYLES (menutup TODO #7)
+   =============================================================================
+   Utama untuk modul Persuratan (Bab 4C, Bab 9O — SK, Surat Tugas, Surat
+   Keterangan Aktif): dokumen ini realistis tetap dicetak untuk arsip fisik
+   meski ada e-Signature. Class .no-print/.print-only bersifat GENERIK
+   (boleh dipakai di luar Persuratan juga, mis. mencetak Rekap Kedisiplinan
+   untuk rapat), bukan spesifik satu modul.
+   ============================================================================= */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  /* Dokumen legal dicetak hitam-putih murni — jangan mengandalkan warna
+     status (badge, dsb) di atas kertas, karena printer umum di madrasah
+     kemungkinan besar tidak berwarna. Ini konsisten dengan prinsip
+     aksesibilitas file ini: makna tidak boleh bergantung warna semata. */
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* Chrome interaktif (tombol, badge status, sidebar, modal) tidak relevan
+     di kertas — sembunyikan secara default di area cetak surat, kecuali
+     elemen yang eksplisit ditandai .print-only. */
+  .btn,
+  .badge,
+  .modal-backdrop,
+  .modal-panel {
+    display: none !important;
+  }
+
+  .surat-print-area {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 2cm;
+  }
+}
+
+/* =============================================================================
+   LAYER 9 (LAMA) — STATUS: SELESAI
+   =============================================================================
+   Ketujuh TODO yang sebelumnya dicatat di sini sudah diimplementasikan:
+     1. Data Table          → Layer 10
+     2. Split-Screen         → Layer 11
+     3. Sticky Context Filter → Layer 12
+     4. Modal/Overlay        → Layer 13
+     5. Primary hover/active → --color-primary-hover/active (:root) + Layer 9 (Button)
+     6. Touch target minimum → --touch-target-min (:root) + .btn-touch
+     7. Print styles          → Layer 14
+   ============================================================================= */
+
+/* =============================================================================
+   LAYER 15 — ALERT BANNER (BARU — celah yang ketemu saat membangun Layer 8)
+   =============================================================================
+   Berbeda dari .badge-* (Layer 4, inline kecil di dalam baris/tabel), Alert
+   adalah BANNER block-level. Ini komponen standar #3 di Bab 8 ("Alert &
+   Peringatan Dini") — contoh persis dari wireframe SRS Bab 15:
+   "⚠️ AI: 3 siswa terindikasi berisiko — perlu tinjauan Wali Kelas", yang
+   tampil sebagai kotak terpisah DI ATAS tabel, bukan disisipkan diam-diam
+   ke dalam data.
+
+   SENGAJA tidak ada .alert-ai di sini sebagai variant lepas — sama seperti
+   .badge-ai yang aksesnya dipaksa lewat <AIBadge> (bukan <Badge variant=
+   "ai">), variant "ai" untuk Alert HANYA boleh diakses lewat komponen
+   <AIAlert> (components/ui/ai-alert.tsx) supaya label "Hasil AI — perlu
+   verifikasi" tidak pernah bisa terlewat. Class .alert-ai TETAP
+   didefinisikan di CSS ini (dipakai AIAlert), hanya tidak diekspos lewat
+   prop variant di komponen <Alert> generik.
+   ============================================================================= */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  border-width: 1px;
+  border-style: solid;
+}
+
+.alert-primary {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+}
+
+.alert-success {
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+  border-color: var(--color-success-border);
+}
+
+.alert-amber {
+  background-color: var(--color-amber-soft);
+  color: var(--color-amber);
+  border-color: var(--color-amber-border);
+}
+
+.alert-danger {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+}
+
+.alert-info {
+  background-color: var(--color-info-soft);
+  color: var(--color-info);
+  border-color: var(--color-info-border);
+}
+
+.alert-ai {
+  background-color: var(--color-ai-soft);
+  color: var(--color-ai);
+  border-color: var(--color-ai-border);
 }

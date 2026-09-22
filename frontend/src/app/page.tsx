@@ -10,7 +10,7 @@ import {
   isPengajarAktif,
 } from "@/lib/access";
 import { useEffect, useState } from "react";
-import { AppShell } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell"; 
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion } from "@/components/app-providers";
 import {

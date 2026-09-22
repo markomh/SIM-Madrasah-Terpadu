@@ -32,7 +32,7 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
   uiClass: "executive" | "operational" | "scoped_contributor" | "shared";
 }> = {
   "core.view_dashboard": {
-    roles: ["Admin","Kamad","Operator","Pembina BK","Wali Kelas","is_pengajar_aktif"],
+    roles: ["Admin", "Kamad", "Operator", "Pembina BK", "Wali Kelas", "is_pengajar_aktif"],
     makerChecker: null,
     uiClass: "shared",
   },
@@ -46,88 +46,106 @@ export const PERMISSION_REGISTRY: Record<PermissionKey, {
     makerChecker: "approver",
     uiClass: "executive",
   },
+
+  //------- uji coba menyamakan nama role di permission-registry dengan nama role di access.ts ---
+  // karena Kamad adalah singkatan dari Kepala Madrasah, maka di sini kita pakai Kamad saja, agar konsisten dengan nama role di access.ts
+
+
+  // "persetujuan.approve_reject_pindah_rombel": {
+  //   roles: ["Kamad"],
+  //   makerChecker: "approver",
+  //   uiClass: "executive",
+  // },
+  // "persetujuan.approve_reject_mutasi": {
+  //   roles: ["Kamad"],
+  //   makerChecker: "approver",
+  //   uiClass: "executive",
+  // },
+
+
+  //----------
   "kesiswaan.crud_siswa": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Pembina BK"],
+    roles: ["Admin", "Kamad", "Operator", "Wali Kelas", "Pembina BK"],
     makerChecker: null,
     uiClass: "shared",
   },
   "kesiswaan.kenaikan_kelas.view": {
-    roles: ["Admin","Operator","Kamad"],
+    roles: ["Admin", "Operator", "Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "kesiswaan.process_execute_kenaikan_kelas": {
-    roles: ["Admin","Operator","Kamad"],
+    roles: ["Admin", "Operator", "Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "kesiswaan.submit_pindah_rombel_request": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Pembina BK"],
+    roles: ["Admin", "Kamad", "Operator", "Wali Kelas", "Pembina BK"],
     makerChecker: "maker",
     uiClass: "operational",
   },
   "kesiswaan.submit_mutasi": {
-    roles: ["Admin","Kamad","Operator","Wali Kelas","Pembina BK"],
+    roles: ["Admin", "Kamad", "Operator", "Wali Kelas", "Pembina BK"],
     makerChecker: "maker",
     uiClass: "operational",
   },
   "akademik.view_crud_jadwal": {
-    roles: ["Admin","Kamad","Wali Kelas","is_pengajar_aktif"],
+    roles: ["Admin", "Kamad", "Wali Kelas", "is_pengajar_aktif"],
     makerChecker: null,
     uiClass: "shared",
   },
   "akademik.submit_batch_attendance": {
-    roles: ["Admin","Kamad","Wali Kelas","is_pengajar_aktif"],
+    roles: ["Admin", "Kamad", "Wali Kelas", "is_pengajar_aktif"],
     makerChecker: null,
     uiClass: "shared",
   },
   "akademik.input_nilai": {
-    roles: ["Admin","Kamad","Wali Kelas","is_pengajar_aktif"],
+    roles: ["Admin", "Kamad", "Wali Kelas", "is_pengajar_aktif"],
     makerChecker: null,
     uiClass: "shared",
   },
   "kepegawaian.crud_pegawai_hr_nik_data_": {
-    roles: ["Admin","Kamad"],
+    roles: ["Admin", "Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "kepegawaian.record_izin_guru": {
-    roles: ["Admin","Kamad"],
+    roles: ["Admin", "Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "kepegawaian.manage_kedisiplinan": {
-    roles: ["Admin","Kamad"],
+    roles: ["Admin", "Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "ekstrakurikuler.crud_ekskul_keanggotaan_absensi": {
-    roles: ["Admin","Pembina Ekstrakurikuler"],
+    roles: ["Admin", "Pembina Ekstrakurikuler"],
     makerChecker: null,
     uiClass: "shared",
   },
   "bk.crud_catatan_bk": {
-    roles: ["Kamad","Pembina BK"],
+    roles: ["Kamad", "Pembina BK"],
     makerChecker: null,
     uiClass: "scoped_contributor",
   },
   "bk.read_catatan_bk_with_tingkat_kerahasiaan_rahasia": {
-    roles: ["Kamad","Pembina BK"],
+    roles: ["Kamad", "Pembina BK"],
     makerChecker: null,
     uiClass: "shared",
   },
   "persuratan.create_manage_surat": {
-    roles: ["Admin","Operator","Kamad"],
+    roles: ["Admin", "Operator", "Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "persuratan (sub-feature).create_surat_template": {
-    roles: ["Admin","Operator","Kamad"],
+    roles: ["Admin", "Operator", "Kamad"],
     makerChecker: null,
     uiClass: "shared",
   },
   "wawasan.view_ai_insights": {
-    roles: ["Admin","Kamad","Wali Kelas"],
+    roles: ["Admin", "Kamad", "Wali Kelas"],
     makerChecker: null,
     uiClass: "shared",
   },

@@ -426,7 +426,7 @@ function JadwalPageContent() {
               onClick={() => setShowPrintModal(true)}
             >
               <Printer size={14} className="text-ink" />
-              <span>Cetak Matriks</span>
+              <span>Cetak Jadwal</span>
             </Button>
             <Button
               variant="secondary"
