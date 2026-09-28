@@ -208,22 +208,18 @@ export function PresensiSesiForm({
         {/* Student Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {students.map((s, idx) => {
-            let badgeBg =
-              "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200";
-            let dotColor = "bg-emerald-500";
+            let badgeBg = "border-[var(--color-primary-border)] bg-primary-soft text-primary";
+            let dotColor = "bg-primary";
 
             if (s.status === "Sakit") {
-              badgeBg =
-                "border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200";
-              dotColor = "bg-blue-500";
+              badgeBg = "border-[var(--color-info-border)] bg-info-soft text-info";
+              dotColor = "bg-info";
             } else if (s.status === "Izin") {
-              badgeBg =
-                "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200";
-              dotColor = "bg-amber-500";
+              badgeBg = "border-[var(--color-amber-border)] bg-amber-soft text-amber";
+              dotColor = "bg-amber";
             } else if (s.status === "Alpa") {
-              badgeBg =
-                "border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200";
-              dotColor = "bg-red-500";
+              badgeBg = "border-[var(--color-danger-border)] bg-danger-soft text-danger";
+              dotColor = "bg-danger";
             }
 
             return (

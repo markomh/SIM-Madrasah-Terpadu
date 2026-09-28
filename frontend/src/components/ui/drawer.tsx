@@ -73,7 +73,7 @@ export function Drawer({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-[4px] p-1 text-muted hover:bg-paper hover:text-ink focus:outline-none"
+              className="rounded-sm p-1 text-muted hover:bg-paper hover:text-ink focus:outline-none"
               aria-label="Close drawer"
             >
               <X className="h-4 w-4" />

@@ -105,7 +105,7 @@ export function KenaikanAsalPanel({
                 Pilih Semua ({asalSiswa.length} Siswa)
               </label>
               {selectedCount > 0 && (
-                <span className="text-[10px] bg-primary-soft text-primary px-2 py-0.5 rounded font-bold">
+                <span className="text-body bg-primary-soft text-primary px-2 py-0.5 rounded font-bold">
                   {selectedCount} Terpilih
                 </span>
               )}
@@ -122,9 +122,8 @@ export function KenaikanAsalPanel({
               searchFilteredAsalSiswa.map((s) => (
                 <label
                   key={s.id_siswa}
-                  className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-paper transition-colors ${
-                    s.selected ? "bg-primary-soft/30" : ""
-                  }`}
+                  className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-paper transition-colors ${s.selected ? "bg-primary-soft/30" : ""
+                    }`}
                 >
                   <input
                     type="checkbox"

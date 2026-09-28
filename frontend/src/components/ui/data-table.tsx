@@ -62,25 +62,26 @@ export function DataTable<T>({
     return data.slice(start, start + pageSize);
   }, [data, safePage, pageSize]);
 
+
   if (loading) {
     return (
-      <div className="overflow-x-auto rounded-[6px] border border-border">
-        <table className="min-w-full divide-y divide-border text-sm">
-          <thead className="bg-paper text-left text-xs font-semibold uppercase tracking-wide text-muted">
+      <div className="overflow-x-auto rounded-md border border-[var(--color-border)]">
+        <table className="min-w-full divide-y divide-[var(--color-border)] text-body">
+          <thead className="bg-[var(--color-paper)] text-left text-label-caps text-[var(--color-muted)]">
             <tr>
               {columns.map((col) => (
-                <th key={col.key} className={`px-3 py-2.5 ${col.className ?? ""}`}>
+                <th key={col.key} className={`px-[var(--space-md)] py-[var(--space-sm)] ${col.className ?? ""}`}>
                   {col.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border bg-surface">
+          <tbody className="divide-y divide-[var(--color-border)] bg-[var(--color-surface)]">
             {Array.from({ length: Math.min(pageSize, 5) }).map((_, idx) => (
               <tr key={idx} className="animate-pulse">
                 {columns.map((col) => (
-                  <td key={col.key} className="px-3 py-3">
-                    <div className="h-4 w-3/4 rounded bg-muted/20"></div>
+                  <td key={col.key} className="px-[var(--space-md)] py-[var(--space-sm)]">
+                    <div className="h-4 w-3/4 rounded-sm bg-[var(--color-paper)]"></div>
                   </td>
                 ))}
               </tr>
@@ -100,27 +101,30 @@ export function DataTable<T>({
   return (
     <div>
       {/* ── Tabel ──────────────────────────────────────────────────────── */}
-      <div className="overflow-x-auto rounded-[6px] border border-border">
-        <table className="min-w-full divide-y divide-border text-sm">
-          <thead className="bg-paper text-left text-xs font-semibold uppercase tracking-wide text-muted">
+
+      <div className="overflow-x-auto rounded-md border border-[var(--color-border)]">
+        <table className="min-w-full divide-y divide-[var(--color-border)] text-body">
+          <thead className="bg-[var(--color-paper)] text-left text-label-caps text-[var(--color-muted)]">
             <tr>
               {columns.map((col) => (
-                <th key={col.key} className={`px-3 py-2.5 ${col.className ?? ""}`}>
+                <th key={col.key} className={`px-[var(--space-md)] py-[var(--space-sm)] ${col.className ?? ""}`}>
                   {col.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border bg-surface">
+          <tbody className="divide-y divide-[var(--color-border)] bg-[var(--color-surface)]">
             {slice.map((row, idx) => (
               <tr
                 key={idx}
-                className={`hover:bg-paper/80 ${rowClassName ? rowClassName(row, idx) : ""}`}
+                className={`hover:bg-[var(--color-paper)] transition-colors ${rowClassName ? rowClassName(row, idx) : ""
+                  }`}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className={`px-3 py-2.5 align-middle ${col.className ?? ""}`}
+                    className={`px-[var(--space-md)] py-[var(--space-sm)] align-middle ${col.className ?? ""
+                      }`}
                   >
                     {col.render(row)}
                   </td>

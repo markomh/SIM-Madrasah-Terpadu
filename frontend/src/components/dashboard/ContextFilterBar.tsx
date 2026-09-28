@@ -36,8 +36,8 @@ export function ContextFilterBar({
     icon: React.ElementType;
     badge?: string | number;
   }[] = [
-    { id: "semua", label: "Semua Ringkasan", icon: Layers },
-  ];
+      { id: "semua", label: "Semua Ringkasan", icon: Layers },
+    ];
 
   // 1. Tugas Utama / Kesiswaan / Struktural
   if (capabilities.isWaliKelas) {
@@ -104,21 +104,19 @@ export function ContextFilterBar({
               key={filter.id}
               type="button"
               onClick={() => onFilterChange(filter.id)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-xs font-bold"
-                  : "bg-surface-subtle text-muted hover:text-ink hover:bg-surface-subtle/80 border border-border/40"
-              }`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${isActive
+                ? "color-primary text-primary-foreground shadow-xs font-bold"
+                : "bg-surface-subtle text-muted hover:text-ink hover:bg-surface-subtle/80 border border-border/40"
+                }`}
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{filter.label}</span>
               {filter.badge !== undefined && (
                 <span
-                  className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    isActive
-                      ? "bg-white/25 text-white"
-                      : "bg-primary-soft text-primary border border-primary/20"
-                  }`}
+                  className={`ml-0.5 px-1.5 py-0.2 rounded-full text.caption font-bold ${isActive
+                    ? "bg-white/25 text-white"
+                    : "bg-primary-soft text-primary border border-primary/20"
+                    }`}
                 >
                   {filter.badge}
                 </span>

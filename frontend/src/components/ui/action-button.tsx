@@ -15,6 +15,7 @@ export interface ActionButtonProps extends ButtonProps {
    * Mode yang digunakan saat pengguna tidak memiliki otoritas (`!capability`).
    * - "disabled": Tombol tetap dirender namun di-disable (cocok untuk Supervisory Read-Only context).
    * - "hidden": Tombol tidak dirender sama sekali di DOM (cocok untuk aksi di luar domain peran pengguna).
+   *    
    */
   unauthorizedMode?: "disabled" | "hidden";
 

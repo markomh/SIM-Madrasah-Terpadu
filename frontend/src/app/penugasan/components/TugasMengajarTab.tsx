@@ -177,13 +177,13 @@ export default function TugasMengajarTab({ initialRombelId }: { initialRombelId?
   return (
     <div className="space-y-6">
       {/* FILTER & MATRIX HEADER BAR */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-paper p-4 rounded-xl border border-border shadow-2xs">
         <div className="flex items-center gap-3">
-          <label className="text-sm font-semibold text-gray-800 shrink-0">Filter Rombel:</label>
+          <label className="text-sm font-semibold text-ink shrink-0">Filter Rombel:</label>
           <select
             value={selectedRombelId}
             onChange={(e) => setSelectedRombelId(e.target.value)}
-            className="text-sm font-bold border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-hidden focus:ring-2 focus:ring-primary-500 shadow-2xs min-w-[200px]"
+            className="text-sm font-bold border border-border rounded-lg px-3 py-2 bg-surface focus:outline-hidden focus:ring-2 focus:ring-primary/50 shadow-2xs min-w-[200px]"
           >
             {rombelList.map((r) => (
               <option key={r.id_rombel} value={r.id_rombel}>
@@ -194,12 +194,12 @@ export default function TugasMengajarTab({ initialRombelId }: { initialRombelId?
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-xs font-semibold shadow-2xs">
-            Status: <span className="text-primary-700 font-extrabold">{terisiCount}/{curItems.length} Mapel Terisi</span>
+          <div className="px-3 py-1.5 rounded-lg bg-surface border border-border text-xs font-semibold shadow-2xs">
+            Status: <span className="text-primary font-extrabold">{terisiCount}/{curItems.length} Mapel Terisi</span>
           </div>
 
           {saveSuccess ? (
-            <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+            <span className="text-xs font-bold text-success flex items-center gap-1">
               <CheckCircle2 className="h-4 w-4" /> Plotting Tersimpan!
             </span>
           ) : null}
@@ -207,10 +207,10 @@ export default function TugasMengajarTab({ initialRombelId }: { initialRombelId?
       </div>
 
       {/* MATRIX TABLE */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
+      <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50 text-gray-600 font-semibold">
+          <table className="min-w-full divide-y divide-border text-sm">
+            <thead className="bg-paper text-muted font-semibold">
               <tr>
                 <th className="px-4 py-3 text-left">MATA PELAJARAN (Sesuai Kurikulum)</th>
                 <th className="px-4 py-3 text-center w-28">JTM WAJIB</th>
@@ -218,14 +218,14 @@ export default function TugasMengajarTab({ initialRombelId }: { initialRombelId?
                 <th className="px-4 py-3 text-center w-28">STATUS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-border bg-surface">
               {curItems.map((item) => {
                 const assignedGuruId = matrixAssignments[item.id_mapel] || "";
 
                 return (
-                  <tr key={item.id_mapel} className="hover:bg-gray-50/70 transition-colors">
-                    <td className="px-4 py-3.5 font-medium text-gray-900">{item.nama_mapel}</td>
-                    <td className="px-4 py-3.5 text-center font-mono font-bold text-gray-700">
+                  <tr key={item.id_mapel} className="hover:bg-paper/70 transition-colors">
+                    <td className="px-4 py-3.5 font-medium text-ink">{item.nama_mapel}</td>
+                    <td className="px-4 py-3.5 text-center font-mono font-bold text-muted">
                       {item.jtm_wajib} JTM
                     </td>
                     <td className="px-4 py-3.5">
@@ -234,8 +234,8 @@ export default function TugasMengajarTab({ initialRombelId }: { initialRombelId?
                         onChange={(e) => handleAssignGuru(item.id_mapel, e.target.value)}
                         className={`w-full max-w-md text-sm border rounded-lg p-2 ${
                           assignedGuruId
-                            ? "border-emerald-300 bg-emerald-50/30 text-gray-900 font-medium"
-                            : "border-amber-300 bg-amber-50/30 text-amber-900"
+                            ? "border-success/40 bg-success-soft/30 text-ink font-medium"
+                            : "border-amber/40 bg-amber-soft/30 text-amber"
                         }`}
                       >
                         <option value="">-- Pilih Guru Pengampu --</option>
@@ -248,12 +248,12 @@ export default function TugasMengajarTab({ initialRombelId }: { initialRombelId?
                     </td>
                     <td className="px-4 py-3.5 text-center">
                       {assignedGuruId ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md bg-success-soft text-success border border-success/30">
                           <Check className="h-3.5 w-3.5" /> Terisi
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md bg-amber-100 text-amber-800 border border-amber-300">
-                          <AlertCircle className="h-3.5 w-3.5 text-amber-600" /> Kosong
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold rounded-md bg-amber-soft text-amber border border-amber/30">
+                          <AlertCircle className="h-3.5 w-3.5 text-amber" /> Kosong
                         </span>
                       )}
                     </td>
@@ -266,7 +266,7 @@ export default function TugasMengajarTab({ initialRombelId }: { initialRombelId?
       </div>
 
       {/* MATRIX FOOTER ACTIONS */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-paper rounded-xl border border-border">
         <button
           onClick={() => alert("Fitur Tambah Muatan Lokal: Dapat ditambahkan pada pengaturan kurikulum.")}
           className="text-xs font-semibold text-primary-700 hover:text-primary-800 flex items-center gap-1.5"

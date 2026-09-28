@@ -75,17 +75,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
         ref={ref}
         id={selectId}
         disabled={disabled}
-        className={`w-full rounded-[4px] border bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${
-          error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
-        } ${selectClass}`}
+        className={`w-full rounded-sm border bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
+          } ${selectClass}`}
         {...props}
       >
         {options
           ? options.map((opt) => (
-              <option key={String(opt.value)} value={opt.value} disabled={opt.disabled}>
-                {opt.label}
-              </option>
-            ))
+            <option key={String(opt.value)} value={opt.value} disabled={opt.disabled}>
+              {opt.label}
+            </option>
+          ))
           : children}
       </select>
       {error ? (

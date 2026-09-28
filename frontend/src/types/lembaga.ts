@@ -1,6 +1,17 @@
 import type { Madrasah } from "./madrasah";
 export type { Madrasah };
 
+/*Belum ada pemetaan jenjang pendidikan ke level tingkat kelas di Madrasah. 
+Berikut ini adalah asumsi sementara untuk jenjang pendidikan dan rombelnya:
+
+"MI"  -> Dari kelas 1 - 6 -> rombel 1A, 1B, 2A, 2B, 3A, 3B, 4A, 4B, 5A, 5B, 6A, 6B
+"MTs" -> Dari kelas 7 - 9 -> rombel 7A, 7B, 8A, 8B, 9A, 9B
+"MA"  -> Dari kelas 10 - 12 -> rombel 10A, 10B, 11A, 11B, 12A, 12B
+"MAK" -> Dari kelas 13 - 15 -> rombel 13A, 13B, 14A, 14B, 15A, 15B
+  
+*/
+
+
 export type JenjangMadrasah = "MI" | "MTs" | "MA" | "MAK";
 export type StatusAkreditasi = "A" | "B" | "C" | "Belum Akreditasi";
 

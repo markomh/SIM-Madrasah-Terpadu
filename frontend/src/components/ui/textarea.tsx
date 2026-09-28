@@ -37,9 +37,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         id={textareaId}
         rows={rows}
         disabled={disabled}
-        className={`w-full rounded-[4px] border bg-surface p-3 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${
-          error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
-        } ${tabular ? "tabular" : ""} ${className}`}
+        className={`w-full rounded-sm border bg-surface p-3 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
+          } ${tabular ? "tabular" : ""} ${className}`}
         {...props}
       />
       {error ? (

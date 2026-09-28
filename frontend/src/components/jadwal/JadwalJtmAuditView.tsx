@@ -42,13 +42,13 @@ export function JadwalJtmAuditView({
             </p>
           </div>
           <div className="flex items-center gap-3 text-xs font-bold">
-            <span className="flex items-center gap-1 text-emerald-600">
+            <span className="flex items-center gap-1 text-success">
               <CheckCircle size={13} /> Ideal (24–37.5 JTM)
             </span>
-            <span className="flex items-center gap-1 text-amber-600">
+            <span className="flex items-center gap-1 text-amber">
               <AlertCircle size={13} /> Kurang (&lt; 24 JTM)
             </span>
-            <span className="flex items-center gap-1 text-red-600">
+            <span className="flex items-center gap-1 text-danger">
               <XCircle size={13} /> Overload (&gt; 37.5 JTM)
             </span>
           </div>
@@ -79,7 +79,7 @@ export function JadwalJtmAuditView({
                 <td className="p-3 text-center font-extrabold text-sm text-primary">{t.totalJtm} JTM</td>
                 <td className="p-3 text-center">
                   {t.statusJtm === "IDEAL" ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success">
                       <CheckCircle size={12} /> Memenuhi (24+ JTM)
                     </span>
                   ) : t.statusJtm === "UNDERLOAD" ? (

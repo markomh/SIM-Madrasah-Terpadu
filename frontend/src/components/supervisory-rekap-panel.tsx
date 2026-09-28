@@ -101,35 +101,35 @@ export function SupervisoryRekapPanel({ tanggal }: SupervisoryRekapPanelProps) {
           </div>
         </div>
 
-        <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">Sudah Diinput</span>
+        <div className="bg-success-soft border border-success/30 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-bold text-success tracking-wider">Sudah Diinput</span>
           <div className="flex items-baseline gap-1 mt-2">
-            <span className="text-2xl font-bold text-emerald-600">{rekap.diinput}</span>
-            <span className="text-xs text-emerald-700">sesi</span>
+            <span className="text-2xl font-bold text-success">{rekap.diinput}</span>
+            <span className="text-xs text-success">sesi</span>
           </div>
         </div>
 
-        <div className="bg-amber-50/50 border border-amber-100 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Belum Diinput</span>
+        <div className="bg-amber-soft border border-amber/30 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-bold text-amber tracking-wider">Belum Diinput</span>
           <div className="flex items-baseline gap-1 mt-2">
-            <span className="text-2xl font-bold text-amber-600">{belumDiinput}</span>
-            <span className="text-xs text-amber-700">sesi</span>
+            <span className="text-2xl font-bold text-amber">{belumDiinput}</span>
+            <span className="text-xs text-amber">sesi</span>
           </div>
         </div>
 
-        <div className="bg-rose-50/50 border border-rose-100 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-rose-800 tracking-wider">Terlambat</span>
+        <div className="bg-danger-soft border border-danger/30 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-bold text-danger tracking-wider">Terlambat</span>
           <div className="flex items-baseline gap-1 mt-2">
-            <span className="text-2xl font-bold text-rose-600">{rekap.terlambat}</span>
-            <span className="text-xs text-rose-700">sesi</span>
+            <span className="text-2xl font-bold text-danger">{rekap.terlambat}</span>
+            <span className="text-xs text-danger">sesi</span>
           </div>
         </div>
 
-        <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
-          <span className="text-[10px] uppercase font-bold text-blue-800 tracking-wider">Digantikan</span>
+        <div className="bg-primary-soft border border-primary/30 p-4 rounded-[6px] shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] uppercase font-bold text-primary tracking-wider">Digantikan</span>
           <div className="flex items-baseline gap-1 mt-2">
-            <span className="text-2xl font-bold text-blue-600">{rekap.digantikan}</span>
-            <span className="text-xs text-blue-700">sesi</span>
+            <span className="text-2xl font-bold text-primary">{rekap.digantikan}</span>
+            <span className="text-xs text-primary">sesi</span>
           </div>
         </div>
       </div>
@@ -160,25 +160,25 @@ export function SupervisoryRekapPanel({ tanggal }: SupervisoryRekapPanelProps) {
 
                   if (detail.status === "Tidak Terlaksana") {
                     statusBadge = (
-                      <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 px-2 py-0.5 rounded text-[10px] font-bold border border-rose-200">
+                      <span className="inline-flex items-center gap-1 bg-danger-soft text-danger px-2 py-0.5 rounded text-[10px] font-bold border border-danger/30">
                         <AlertTriangle size={11} /> Belum Diinput
                       </span>
                     );
                   } else if (detail.status === "Tepat Waktu") {
                     statusBadge = (
-                      <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
+                      <span className="inline-flex items-center gap-1 bg-success-soft text-success px-2 py-0.5 rounded text-[10px] font-bold border border-success/30">
                         <CheckCircle2 size={11} /> Tepat Waktu
                       </span>
                     );
                   } else if (detail.status === "Terlambat") {
                     statusBadge = (
-                      <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">
+                      <span className="inline-flex items-center gap-1 bg-amber-soft text-amber px-2 py-0.5 rounded text-[10px] font-bold border border-amber/30">
                         <Clock size={11} /> Terlambat
                       </span>
                     );
                   } else {
                     statusBadge = (
-                      <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-200">
+                      <span className="inline-flex items-center gap-1 bg-primary-soft text-primary px-2 py-0.5 rounded text-[10px] font-bold border border-primary/30">
                         <HelpCircle size={11} /> {detail.status}
                       </span>
                     );

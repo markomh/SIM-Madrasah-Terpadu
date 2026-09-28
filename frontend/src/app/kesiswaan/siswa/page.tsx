@@ -82,7 +82,7 @@ export default function SiswaListPage() {
   const isWK = currentUser ? isWaliKelas(currentUser.id_pegawai, rombelList) : false;
   const isKamad = currentUser ? isKepalaMadrasah(currentUser.id_pegawai, penugasanList) : false;
   const isBK = currentUser ? isPembinaBk(currentUser.id_pegawai, plottingBkList) : false;
-  
+
   const canAccess = canEdit || isWK || isKamad || isBK;
   const isOnlyWK = isWK && !canEdit && !isKamad;
 
@@ -227,8 +227,8 @@ export default function SiswaListPage() {
           <div className="mb-4 flex flex-wrap gap-2">
             <SearchInput
               id="siswa-search"
-              className="max-w-xs"
-              placeholder="Cari Nama Lengkap / NISN / Rombel..."
+              className="max-w-4xl flex-1"
+              placeholder="Cari siswa berdasarkan Nama Lengkap, NISN, atau Rombel..."
               value={query}
               onChange={setQuery}
             />
@@ -238,7 +238,7 @@ export default function SiswaListPage() {
               value={tingkatFilter}
               onChange={(e) => setTingkatFilter(e.target.value)}
             >
-              <option value="all">— Semua Tingkat —</option>
+              <option value="all">Semua Tingkat</option>
               {tingkat.map((t) => (
                 <option key={t.id_tingkat} value={t.id_tingkat}>
                   {t.nama_tingkat}
@@ -247,11 +247,11 @@ export default function SiswaListPage() {
             </Select>
             <Select
               id="siswa-filter-rombel"
-              className="max-w-[160px]"
+              className="max-w-auto"
               value={rombelFilter}
               onChange={(e) => setRombelFilter(e.target.value)}
             >
-              <option value="all">— Semua Rombel —</option>
+              <option value="all">Semua Rombel</option>
               {rombel.map((r) => (
                 <option key={r.id_rombel} value={r.id_rombel}>
                   {r.nama_rombel}
@@ -265,7 +265,7 @@ export default function SiswaListPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">Semua Status</option>
+              {/* <option value="all">Semua Status</option> */}
               <option value="Aktif">Aktif</option>
               <option value="Lulus">Lulus</option>
               <option value="Mutasi Keluar">Mutasi Keluar</option>
@@ -274,7 +274,7 @@ export default function SiswaListPage() {
           </div>
 
           {/* ── Legenda signature element ────────────────────────────────── */}
-          <div className="mb-3 flex flex-wrap gap-3 text-[10px] text-muted">
+          {/* <div className="mb-3 flex flex-wrap gap-3 text-[10px] text-muted">
             <span className="flex items-center gap-1.5">
               <span className="h-3 w-[3px] rounded-sm bg-primary inline-block" />
               Aktif
@@ -291,7 +291,7 @@ export default function SiswaListPage() {
               <span className="h-3 w-[3px] rounded-sm bg-ai inline-block" />
               Risiko AI
             </span>
-          </div>
+          </div> */}
 
           {/* ── DataTable (dengan footer paginasi Prev/Next bawaan) ──────── */}
           <DataTable
@@ -309,12 +309,12 @@ export default function SiswaListPage() {
                     <p className="font-semibold text-ink">{s.nama_lengkap}</p>
                     <p className="tabular text-xs text-muted">NIK {maskNik(s.nik)}</p>
                     {s.jalur_masuk === "Mutasi Masuk" && (
-                      <span className="mt-0.5 inline-block rounded-sm bg-amber/10 px-1 py-0.5 text-[10px] font-medium text-amber">
+                      <span className="mt-0.5 inline-block rounded-sm bg-amber/10 px-1 py-0.5 text-body font-medium text-amber">
                         Mutasi Masuk
                       </span>
                     )}
                     {s.pending_approval && (
-                      <span className="mt-0.5 ml-1 inline-block rounded-sm bg-amber/10 px-1 py-0.5 text-[10px] font-medium text-amber">
+                      <span className="mt-0.5 ml-1 inline-block rounded-sm bg-amber/10 px-1 py-0.5 text-body font-medium text-amber">
                         Menunggu
                       </span>
                     )}
@@ -343,9 +343,8 @@ export default function SiswaListPage() {
                 render: (s) =>
                   s.skor_risiko_ai != null ? (
                     <span
-                      className={`tabular text-sm font-semibold ${
-                        s.skor_risiko_ai >= 50 ? "text-ai" : "text-muted"
-                      }`}
+                      className={`tabular text-sm font-semibold ${s.skor_risiko_ai >= 50 ? "text-ai" : "text-muted"
+                        }`}
                     >
                       {s.skor_risiko_ai}
                     </span>

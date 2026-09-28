@@ -5,6 +5,8 @@
  *
  * Mengadopsi prinsip Context Inheritance (guru tidak memilih ulang rombel/mapel saat konteks terbawa dari jadwal),
  * Moodle/ManageBac activity-based assessment matrix, dan Open edX / Rapor Digital Madrasah (RDM) export engine.
+ * 
+ * Guru tidak perlu tulis ulang nilai di aplikasi eksternal, data gradebook yang di download/ekstport bisa di upload ulang ke aplikasi Raport Digital Madrasah (RDM)
  */
 
 import {
@@ -55,7 +57,7 @@ function NilaiPageContent() {
     <AppShell title="Gradebook & Penilaian Operasional">
       <PageHeader
         title="Gradebook & Penilaian Operasional"
-        description="Pencatatan nilai harian KBM (Tugas, UH, Praktik, UTS, UAS) terintegrasi RDM & EMIS."
+        description="Pencatatan nilai harian KBM (Tugas, UH, Praktik) terintegrasi RDM"
       />
 
       <div className="space-y-8">
@@ -63,7 +65,7 @@ function NilaiPageContent() {
         {showInput && (
           <section>
             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4">
-              <span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />
+              <span className="h-2.5 w-2.5 rounded-full bg-primary" />
               <h2 className="text-xs font-bold uppercase tracking-wider text-ink">
                 Gradebook Pembelajaran (Activity-Based Assessment Matrix)
               </h2>
@@ -82,7 +84,7 @@ function NilaiPageContent() {
         {showRekap && (
           <section>
             <div className="flex items-center gap-2 border-b border-border pb-2 mb-4">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <span className="h-2.5 w-2.5 rounded-full bg-success" />
               <h2 className="text-xs font-bold uppercase tracking-wider text-ink">
                 Rekapitulasi Kelengkapan Nilai Rombel (Wali Kelas & Monitoring)
               </h2>

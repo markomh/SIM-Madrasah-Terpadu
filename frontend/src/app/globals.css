@@ -54,21 +54,6 @@
      di atas halaman biasa. Jangan pernah menyamakan kedua token ini. */
   --color-neutral-soft: #eef0ef;
 
-  /* BARU — makna "akses dibatasi/rahasia" (bukan status, bukan peringatan,
-     bukan kegagalan). SATU-SATUNYA pemakaian resmi: catatan_bk dengan
-     tingkat_kerahasiaan = "Rahasia" (SRS Bab 9N, Bab 10 poin 19, Bab 12) —
-     entri yang hanya boleh dibaca Guru BK penulisnya dan Kepala Madrasah.
-     SENGAJA dibuat warna & pola berbeda dari:
-       - "danger"  = kegagalan/ditolak/kritis (bukan soal akses)
-       - "ai"      = perlu verifikasi manusia (bukan soal kerahasiaan)
-     supaya penanda "Rahasia" tidak pernah tertukar visual dengan status
-     lain apa pun. DILARANG dipakai untuk makna lain selain penanda akses
-     terbatas. Lihat .badge-restricted (Layer 4) — border-nya sengaja
-     dashed, bukan solid, sebagai pembeda pola tambahan dari badge status. */
-  --color-restricted: #6b2140;
-  --color-restricted-soft: #f4e8ee;
-  --color-restricted-border: #6b21404d;
-
   /* BARU (Layer 9 TODO #4) — warna backdrop modal/dialog. Dibuat sebagai
      token TERSENDIRI (bukan var(--color-ink) + opacity inline di JSX)
      supaya nilai alpha-nya konsisten di seluruh app dan mudah diubah satu
@@ -249,8 +234,6 @@
   --color-info: var(--color-info);
   --color-info-soft: var(--color-info-soft);
   --color-neutral-soft: var(--color-neutral-soft);
-  --color-restricted: var(--color-restricted);
-  --color-restricted-soft: var(--color-restricted-soft);
   --color-overlay: var(--color-overlay);
   --color-border: var(--color-border);
   --color-muted: var(--color-muted);
@@ -407,8 +390,10 @@ body {
        Terlambat    → amber   (transparansi pola telat, BUKAN penalti otomatis)
 
      `tingkat_kerahasiaan` (catatan_bk, Bab 9N): BUKAN status — pakai
-       .badge-restricted (Layer 4), bukan salah satu warna status di atas.
-       Lihat token --color-restricted di :root untuk alasan pemisahan ini.
+       <Badge variant="danger"> + ikon Lock (reuse tone yang sudah ada),
+       BUKAN token warna terpisah. (Revisi: token --color-restricted yang
+       sebelumnya dirancang khusus untuk ini di-retract karena 0 pemakaian
+       nyata terverifikasi di kode — lihat Log Deviasi FRONTEND.md.)
      ----------------------------------------------------------------------- */
 
 /* =============================================================================
@@ -521,10 +506,6 @@ body {
   color: var(--color-muted);
 }
 
-.text-restricted {
-  color: var(--color-restricted);
-}
-
 /* --- Background permukaan --- */
 .bg-surface {
   background-color: var(--color-surface);
@@ -560,10 +541,6 @@ body {
 
 .bg-neutral-soft {
   background-color: var(--color-neutral-soft);
-}
-
-.bg-restricted-soft {
-  background-color: var(--color-restricted-soft);
 }
 
 /* --- Badge / indikator status siap pakai (satu class = selesai) ---
@@ -630,24 +607,9 @@ body {
    proses AI (SRS Bab 5 poin 4) WAJIB memakai .badge-ai + teks
    "Hasil AI — perlu verifikasi" atau ikon Sparkles — tidak boleh dicampur
    ke .badge-primary/.badge-neutral/.badge-info meski datanya terlihat
-   "baik-baik saja" secara sekilas. Di level komponen, ini ditegakkan oleh
-   <AIBadge> (Layer 8) yang mewajibkan label tersebut secara otomatis —
-   bukan mengandalkan developer mengetik teksnya sendiri tiap kali. */
-
-/* BARU — satu-satunya badge yang BUKAN status, tapi penanda akses
-   terbatas: WAJIB dipakai untuk catatan_bk dengan tingkat_kerahasiaan =
-   "Rahasia" (SRS Bab 9N, Bab 10 poin 19, Bab 12), dan TIDAK BOLEH dipakai
-   untuk makna lain apa pun. border-style dashed (bukan solid seperti
-   .badge-* status lain) adalah pembeda visual yang disengaja — supaya
-   dari bentuknya saja sudah terlihat beda dari badge status biasa, bukan
-   cuma dari warnanya. Sertakan ikon gembok pada pemakaian nyata (di
-   komponen Layer 8, bukan di CSS ini). */
-.badge-restricted {
-  background-color: var(--color-restricted-soft);
-  color: var(--color-restricted);
-  border-color: var(--color-restricted-border);
-  border-style: dashed;
-}
+   "baik-baik saja" secara sekilas. Di level komponen, ini sudah tersedia
+   sebagai <AiLabel> di src/components/ui/primitives.tsx — pakai itu,
+   jangan merakit ulang. */
 
 /* =============================================================================
    LAYER 5 — DENSITY UTILITY CLASSES
@@ -997,40 +959,24 @@ body {
 }
 
 /* =============================================================================
-   LAYER 8 — KOMPONEN (SUDAH DIIMPLEMENTASIKAN)
+   LAYER 8 — KOMPONEN (rujukan ke library yang SUDAH ADA di repo)
    =============================================================================
-   Layer 1–7 & 9–15 di file ini adalah PRIMITIF (class CSS). Kombinasi
-   warna+bg+border/ikon+label yang tidak boleh dirakit salah oleh agent
-   murah/junior developer dibungkus di file TERPISAH berikut:
+   Layer 1–7 & 9–15 di file ini adalah PRIMITIF (class CSS). Komponen React
+   yang membungkusnya SUDAH ADA di src/components/ui — JANGAN membuat
+   duplikat (AGENTS.md §7.2: reuse sebelum membuat baru):
 
-     lib/utils.ts                       → helper cn() (clsx + tailwind-merge)
-     components/ui/badge.tsx            → <Badge variant="primary|success|
-                                            amber|danger|info|neutral|restricted">
-     components/ui/ai-badge.tsx         → <AIBadge> — satu-satunya jalan
-                                            menampilkan badge AI, label
-                                            "Hasil AI — perlu verifikasi"
-                                            dipaksa otomatis (SRS Bab 5 poin 4)
-     components/ui/confidential-badge.tsx → <ConfidentialBadge> — satu-satunya
-                                            jalan menampilkan penanda
-                                            catatan_bk "Rahasia" (Bab 9N,
-                                            Bab 10 poin 19), ikon gembok
-                                            dipaksa otomatis
-     components/ui/button.tsx           → <Button variant="primary|
-                                            secondary|danger" touch?>
-     components/ui/alert.tsx            → <Alert variant="primary|success|
-                                            amber|danger|info">
-     components/ui/ai-alert.tsx         → <AIAlert> — versi banner dari
-                                            AIBadge, dipakai untuk "Alert &
-                                            Peringatan Dini" (Bab 8 poin 3)
+     button.tsx         → <Button variant="primary|secondary|danger|ghost|link">
+     badge.tsx          → <Badge variant="primary|amber|danger|ai|neutral">
+                          (tipe Tone di lib/status-helpers.ts)
+     alert.tsx          → <Alert variant=Tone>
+     primitives.tsx     → <StatusBadge status=...> (peta otomatis via
+                          statusToTone) dan <AiLabel /> (label wajib
+                          "Hasil AI — perlu verifikasi", SRS Bab 5 poin 4)
+     modal.tsx / confirm-dialog.tsx / data-table.tsx / drawer.tsx
 
-   ATURAN: variant "ai" dan "restricted" SENGAJA TIDAK ADA di tipe
-   TypeScript <Badge>/<Alert> generik — bukan lupa didaftarkan, tapi
-   penjagaan yang disengaja. Kalau agent murah menulis
-   `<Badge variant="ai">`, TypeScript menolak sebelum kode itu sempat
-   dijalankan; satu-satunya jalan yang valid adalah <AIBadge>/<AIAlert>/
-   <ConfidentialBadge>, yang sudah memaksa label & ikon wajibnya sendiri.
-   JSX baru WAJIB memakai komponen-komponen ini, bukan menyusun className
-   Layer 3+4 manual.
+   Vocabulary status resmi = 5 Tone (primary, amber, danger, ai, neutral).
+   Untuk penanda "Rahasia" (catatan_bk) pakai <Badge variant="danger"> +
+   ikon Lock — bukan token warna baru.
    ============================================================================= */
 
 /* =============================================================================
@@ -1454,13 +1400,11 @@ th[aria-sort="descending"] .data-table-sort-icon {
    tampil sebagai kotak terpisah DI ATAS tabel, bukan disisipkan diam-diam
    ke dalam data.
 
-   SENGAJA tidak ada .alert-ai di sini sebagai variant lepas — sama seperti
-   .badge-ai yang aksesnya dipaksa lewat <AIBadge> (bukan <Badge variant=
-   "ai">), variant "ai" untuk Alert HANYA boleh diakses lewat komponen
-   <AIAlert> (components/ui/ai-alert.tsx) supaya label "Hasil AI — perlu
-   verifikasi" tidak pernah bisa terlewat. Class .alert-ai TETAP
-   didefinisikan di CSS ini (dipakai AIAlert), hanya tidak diekspos lewat
-   prop variant di komponen <Alert> generik.
+   STATUS: class .alert-* di layer ini BELUM dipakai komponen manapun —
+   <Alert> di src/components/ui/alert.tsx memakai utility Tailwind + Tone
+   sendiri. Untuk peringatan AI pakai <Alert variant="ai"> dan sertakan
+   teks "Hasil AI — perlu verifikasi" (lihat temuan CONTRACT GAP pada
+   alert.tsx). Layer ini dipertahankan sementara, kandidat dihapus.
    ============================================================================= */
 .alert {
   display: flex;

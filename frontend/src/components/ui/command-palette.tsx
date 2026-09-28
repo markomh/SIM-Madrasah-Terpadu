@@ -119,9 +119,8 @@ export function CommandPalette() {
                   key={item.id}
                   onClick={item.action}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex cursor-pointer items-center justify-between rounded-[4px] px-3 py-2.5 text-sm transition ${
-                    isSelected ? "bg-primary text-white" : "text-ink hover:bg-paper"
-                  }`}
+                  className={`flex cursor-pointer items-center justify-between rounded-sm px-3 py-2.5 text-sm transition ${isSelected ? "bg-primary text-white" : "text-ink hover:bg-paper"
+                    }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Icon className={`h-4 w-4 ${isSelected ? "text-white" : "text-muted"}`} />

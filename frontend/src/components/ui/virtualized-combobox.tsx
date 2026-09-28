@@ -76,9 +76,8 @@ export function VirtualizedCombobox({
         onClick={() => {
           if (!disabled) setIsOpen((prev) => !prev);
         }}
-        className={`flex w-full cursor-pointer items-center justify-between rounded-[4px] border bg-surface px-3 py-2 text-sm text-ink transition-colors focus:outline-none ${
-          error ? "border-danger" : "border-border"
-        } ${disabled ? "cursor-not-allowed bg-paper opacity-60" : "hover:border-primary"}`}
+        className={`flex w-full cursor-pointer items-center justify-between rounded-sm border bg-surface px-3 py-2 text-sm text-ink transition-colors focus:outline-none ${error ? "border-danger" : "border-border"
+          } ${disabled ? "cursor-not-allowed bg-paper opacity-60" : "hover:border-primary"}`}
       >
         <span className={selectedOption ? "text-ink font-medium" : "text-muted"}>
           {selectedOption ? selectedOption.label : placeholder}
@@ -87,9 +86,9 @@ export function VirtualizedCombobox({
       </div>
 
       {error ? (
-        <p className="mt-1 text-xs text-danger">{error}</p>
+        <p className="mt-1 text-body text-danger">{error}</p>
       ) : helperText ? (
-        <p className="mt-1 text-xs text-muted">{helperText}</p>
+        <p className="mt-1 text-body text-muted">{helperText}</p>
       ) : null}
 
       {isOpen && (
@@ -102,14 +101,14 @@ export function VirtualizedCombobox({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Ketik untuk memfilter..."
-              className="w-full bg-transparent text-xs text-ink outline-none"
+              className="w-full bg-transparent text-body text-ink outline-none"
               autoFocus
             />
           </div>
 
           <div className="max-h-52 overflow-y-auto py-1">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2.5 text-xs text-muted text-center">
+              <div className="px-3 py-2.5 text-body text-muted text-center">
                 {loading ? "Memuat..." : "Tidak ada data yang cocok"}
               </div>
             ) : (
@@ -117,13 +116,12 @@ export function VirtualizedCombobox({
                 <div
                   key={opt.value}
                   onClick={() => handleSelect(opt.value)}
-                  className={`flex cursor-pointer items-center justify-between px-3 py-2 text-xs hover:bg-hover ${
-                    opt.value === value ? "bg-primary/10 text-primary font-semibold" : "text-ink"
-                  }`}
+                  className={`flex cursor-pointer items-center justify-between px-3 py-2 text-body hover:bg-hover ${opt.value === value ? "bg-primary/10 text-primary font-semibold" : "text-ink"
+                    }`}
                 >
                   <div className="min-w-0 pr-2">
                     <p className="truncate">{opt.label}</p>
-                    {opt.sublabel && <p className="truncate text-[10px] text-muted">{opt.sublabel}</p>}
+                    {opt.sublabel && <p className="truncate text-body text-muted">{opt.sublabel}</p>}
                   </div>
                   {opt.value === value && <Check className="h-4 w-4 shrink-0 text-primary" />}
                 </div>

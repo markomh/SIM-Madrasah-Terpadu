@@ -108,12 +108,12 @@ function DetailSiswaContent() {
 
   // Load Wilayah Base List
   useEffect(() => {
-    services.wilayah.getProvinsi().then(setProvinsi).catch(() => {});
+    services.wilayah.getProvinsi().then(setProvinsi).catch(() => { });
   }, []);
 
   useEffect(() => {
     if (selectedProv) {
-      services.wilayah.getKabupaten(selectedProv).then(setKabupaten).catch(() => {});
+      services.wilayah.getKabupaten(selectedProv).then(setKabupaten).catch(() => { });
     } else {
       setKabupaten([]);
     }
@@ -121,7 +121,7 @@ function DetailSiswaContent() {
 
   useEffect(() => {
     if (selectedKab) {
-      services.wilayah.getKecamatan(selectedKab).then(setKecamatan).catch(() => {});
+      services.wilayah.getKecamatan(selectedKab).then(setKecamatan).catch(() => { });
     } else {
       setKecamatan([]);
     }
@@ -129,7 +129,7 @@ function DetailSiswaContent() {
 
   useEffect(() => {
     if (selectedKec) {
-      services.wilayah.getDesa(selectedKec).then(setDesa).catch(() => {});
+      services.wilayah.getDesa(selectedKec).then(setDesa).catch(() => { });
     } else {
       setDesa([]);
     }
@@ -260,7 +260,7 @@ function DetailSiswaContent() {
                   iconLeft={<ArrowLeft size={14} />}
                   onClick={() => router.push("/kesiswaan/siswa")}
                 >
-                  Kembali ke Daftar
+                  Kembali
                 </Button>
                 {canEdit && (
                   <Button
@@ -268,7 +268,7 @@ function DetailSiswaContent() {
                     iconLeft={<Edit3 size={14} />}
                     onClick={() => setMode("edit")}
                   >
-                    Edit Data Siswa
+                    Edit Data
                   </Button>
                 )}
               </>
@@ -304,13 +304,13 @@ function DetailSiswaContent() {
             <StatusBadge status={siswa.status_siswa} />
             <Badge variant="neutral">Jalur: {siswa.jalur_masuk}</Badge>
             <Badge variant="neutral">Rombel: {activeRombel}</Badge>
+
             {siswa.skor_risiko_ai != null && (
               <div className="flex items-center gap-2">
                 <AiLabel />
                 <span
-                  className={`tabular text-sm font-semibold ${
-                    siswa.skor_risiko_ai >= 50 ? "text-ai" : "text-muted"
-                  }`}
+                  className={`tabular text-sm font-semibold ${siswa.skor_risiko_ai >= 50 ? "text-ai" : "text-muted"
+                    }`}
                 >
                   Skor Risiko AI: {siswa.skor_risiko_ai} / 100
                 </span>
@@ -561,7 +561,7 @@ function DetailSiswaContent() {
                         setValue("id_desa", "");
                       }}
                       onSearch={(term) => {
-                        services.wilayah.getProvinsi(term).then(setProvinsi).catch(() => {});
+                        services.wilayah.getProvinsi(term).then(setProvinsi).catch(() => { });
                       }}
                       options={provinsi.map((p) => ({ label: p.nama_provinsi, value: p.id_provinsi }))}
                     />
@@ -576,7 +576,7 @@ function DetailSiswaContent() {
                         setValue("id_desa", "");
                       }}
                       onSearch={(term) => {
-                        if (selectedProv) services.wilayah.getKabupaten(selectedProv, term).then(setKabupaten).catch(() => {});
+                        if (selectedProv) services.wilayah.getKabupaten(selectedProv, term).then(setKabupaten).catch(() => { });
                       }}
                       options={kabupaten.map((k) => ({ label: k.nama_kabupaten, value: k.id_kabupaten }))}
                     />
@@ -590,7 +590,7 @@ function DetailSiswaContent() {
                         setValue("id_desa", "");
                       }}
                       onSearch={(term) => {
-                        if (selectedKab) services.wilayah.getKecamatan(selectedKab, term).then(setKecamatan).catch(() => {});
+                        if (selectedKab) services.wilayah.getKecamatan(selectedKab, term).then(setKecamatan).catch(() => { });
                       }}
                       options={kecamatan.map((k) => ({ label: k.nama_kecamatan, value: k.id_kecamatan }))}
                     />
@@ -602,7 +602,7 @@ function DetailSiswaContent() {
                       error={errors.id_desa?.message}
                       onChange={(val) => setValue("id_desa", val as string, { shouldValidate: true })}
                       onSearch={(term) => {
-                        if (selectedKec) services.wilayah.getDesa(selectedKec, term).then(setDesa).catch(() => {});
+                        if (selectedKec) services.wilayah.getDesa(selectedKec, term).then(setDesa).catch(() => { });
                       }}
                       options={desa.map((d) => ({ label: d.nama_desa, value: d.id_desa }))}
                     />

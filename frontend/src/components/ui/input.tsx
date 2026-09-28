@@ -77,11 +77,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           ref={ref}
           id={inputId}
           disabled={disabled}
-          className={`w-full rounded-[4px] border bg-surface py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${
-            startIcon ? "pl-9" : "pl-3"
-          } ${endIcon ? "pr-9" : "pr-3"} ${
-            error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
-          } ${tabular ? "tabular" : ""} ${inputClass}`}
+          className={`w-full rounded-sm border bg-surface py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${startIcon ? "pl-9" : "pl-3"
+            } ${endIcon ? "pr-9" : "pr-3"} ${error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
+            } ${tabular ? "tabular" : ""} ${inputClass}`}
           {...props}
         />
         {endIcon ? (

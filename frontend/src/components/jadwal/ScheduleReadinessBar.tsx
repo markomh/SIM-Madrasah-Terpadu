@@ -65,7 +65,7 @@ export function ScheduleReadinessBar({ rombel, bebanMengajar, jadwal, selectedSe
 
   if (stats.readinessPercent === 100 && stats.rombelTanpaWali === 0 && stats.rombelTanpaSk === 0 && stats.unallocatedJtm === 0) {
     return (
-      <div className="flex items-center gap-3 p-3 mb-6 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700">
+      <div className="flex items-center gap-3 p-3 mb-6 bg-success-soft border border-success/30 rounded-lg text-success">
         <CheckCircle className="w-5 h-5 flex-shrink-0" />
         <div className="text-sm font-medium">Data acuan penjadwalan sudah lengkap. Anda siap menyusun jadwal!</div>
       </div>
@@ -82,12 +82,12 @@ export function ScheduleReadinessBar({ rombel, bebanMengajar, jadwal, selectedSe
         <div className="text-sm font-bold text-primary">{stats.readinessPercent}% Siap</div>
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+      <div className="w-full bg-border/40 rounded-full h-2 mb-4">
         <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${stats.readinessPercent}%` }}></div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div className={`p-3 rounded border ${stats.rombelTanpaWali > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-700'} flex items-start gap-2`}>
+        <div className={`p-3 rounded border ${stats.rombelTanpaWali > 0 ? 'bg-amber-soft border-amber/30 text-amber' : 'bg-success-soft border-success/30 text-success'} flex items-start gap-2`}>
           {stats.rombelTanpaWali > 0 ? <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" /> : <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />}
           <div>
             <div className="text-xs font-bold uppercase tracking-wider mb-0.5">Wali Kelas</div>
@@ -95,7 +95,7 @@ export function ScheduleReadinessBar({ rombel, bebanMengajar, jadwal, selectedSe
           </div>
         </div>
         
-        <div className={`p-3 rounded border ${stats.rombelTanpaSk > 0 ? 'bg-danger-soft border-danger/30 text-danger' : 'bg-emerald-50 border-emerald-200 text-emerald-700'} flex items-start gap-2`}>
+        <div className={`p-3 rounded border ${stats.rombelTanpaSk > 0 ? 'bg-danger-soft border-danger/30 text-danger' : 'bg-success-soft border-success/30 text-success'} flex items-start gap-2`}>
           {stats.rombelTanpaSk > 0 ? <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" /> : <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />}
           <div>
             <div className="text-xs font-bold uppercase tracking-wider mb-0.5">SK Beban Mengajar</div>
@@ -103,7 +103,7 @@ export function ScheduleReadinessBar({ rombel, bebanMengajar, jadwal, selectedSe
           </div>
         </div>
 
-        <div className={`p-3 rounded border ${stats.unallocatedJtm > 0 ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'} flex items-start gap-2`}>
+        <div className={`p-3 rounded border ${stats.unallocatedJtm > 0 ? 'bg-primary-soft border-primary/30 text-primary' : 'bg-success-soft border-success/30 text-success'} flex items-start gap-2`}>
           {stats.unallocatedJtm > 0 ? <Info className="w-4 h-4 mt-0.5 flex-shrink-0" /> : <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />}
           <div>
             <div className="text-xs font-bold uppercase tracking-wider mb-0.5">Alokasi JTM</div>

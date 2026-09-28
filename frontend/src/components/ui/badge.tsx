@@ -22,8 +22,8 @@ const badgeVariantClasses: Record<BadgeVariant, string> = {
 };
 
 const badgeSizeClasses: Record<BadgeSize, string> = {
-  sm: "px-2 py-0.5 text-xs font-semibold rounded-[4px]",
-  md: "px-2.5 py-1 text-sm font-semibold rounded-[4px]",
+  sm: "px-2 py-0.5 text-xs font-semibold rounded-sm",
+  md: "px-2.5 py-1 text-sm font-semibold rounded-sm",
 };
 
 export function Badge({

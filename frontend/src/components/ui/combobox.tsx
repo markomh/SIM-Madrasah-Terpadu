@@ -81,7 +81,7 @@ export function Combobox({
           {label}
         </label>
       )}
-      
+
       <div className="relative">
         <input
           type="text"
@@ -96,9 +96,8 @@ export function Combobox({
           }}
           disabled={disabled}
           placeholder={placeholder}
-          className={`w-full rounded-[4px] border bg-surface px-3 py-2 pr-10 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${
-            error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
-          }`}
+          className={`w-full rounded-sm border bg-surface px-3 py-2 pr-10 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60 ${error ? "border-danger focus:border-danger focus:ring-danger" : "border-border"
+            }`}
         />
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
           {loading ? (
@@ -126,9 +125,8 @@ export function Combobox({
               <div
                 key={option.value}
                 onClick={() => handleOptionClick(option.value)}
-                className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm hover:bg-hover ${
-                  option.value === value ? "bg-primary/10 text-primary" : "text-ink"
-                }`}
+                className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm hover:bg-hover ${option.value === value ? "bg-primary/10 text-primary" : "text-ink"
+                  }`}
               >
                 <span className="truncate">{option.label}</span>
                 {option.value === value && <Check className="h-4 w-4" />}

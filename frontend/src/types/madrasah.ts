@@ -1,3 +1,5 @@
+// 
+
 export type Madrasah = {
   id_madrasah: string;
   nama_madrasah: string;

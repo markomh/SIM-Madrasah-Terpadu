@@ -54,11 +54,10 @@ export function Tabs({
               type="button"
               disabled={tab.disabled}
               onClick={() => handleTabClick(tab.id)}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                isActive
+              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${isActive
                   ? "border-primary text-primary"
                   : "border-transparent text-muted hover:border-border hover:text-ink"
-              }`}
+                }`}
             >
               <span>{tab.label}</span>
               {tab.badge ? <span>{tab.badge}</span> : null}

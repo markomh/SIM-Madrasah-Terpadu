@@ -84,12 +84,12 @@ export function JadwalMatrixView({
                         <div
                           className={`inline-flex w-full items-center justify-center px-2 py-1.5 rounded text-[11px] font-bold ${
                             matchedRoutine.tipe === "UPACARA"
-                              ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                              ? "bg-amber-soft text-amber"
                               : matchedRoutine.tipe === "IBADAH" || matchedRoutine.tipe === "ISHOMA"
-                              ? "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300"
+                              ? "bg-danger-soft text-danger"
                               : matchedRoutine.tipe === "SENAM"
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-                              : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                              ? "bg-success-soft text-success"
+                              : "bg-primary-soft text-primary"
                           }`}
                         >
                           <span className="line-clamp-1">{matchedRoutine.nama}</span>

@@ -44,14 +44,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             className={`
               pointer-events-auto flex items-center gap-3 rounded-lg border p-4 shadow-lg 
               transition-all duration-300 ease-out translate-y-0 opacity-100
-              ${t.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-900" : ""}
-              ${t.type === "error" ? "bg-rose-50 border-rose-200 text-rose-900" : ""}
-              ${t.type === "info" ? "bg-white border-outline text-ink" : ""}
+              ${t.type === "success" ? "bg-success-soft border-success/30 text-success" : ""}
+              ${t.type === "error" ? "bg-danger-soft border-danger/30 text-danger" : ""}
+              ${t.type === "info" ? "bg-surface border-border text-ink" : ""}
             `}
             style={{ animation: "0.2s ease-out 0s 1 normal none running slideUp" }}
           >
-            {t.type === "success" && <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />}
-            {t.type === "error" && <XCircle className="h-5 w-5 text-rose-600 shrink-0" />}
+            {t.type === "success" && <CheckCircle2 className="h-5 w-5 text-success shrink-0" />}
+            {t.type === "error" && <XCircle className="h-5 w-5 text-danger shrink-0" />}
             {t.type === "info" && <Info className="h-5 w-5 text-ink-lighter shrink-0" />}
             
             <span className="text-sm font-medium">{t.message}</span>

@@ -174,9 +174,12 @@ export default function RombelPage() {
     setActiveMenuId(null);
   };
 
+  const [formError, setFormError] = useState<string | null>(null);
+
   const handleSaveRombel = async () => {
     if (!formNamaRombel.trim() || !selectedTahun) return;
     setSubmitting(true);
+    setFormError(null);
     try {
       if (editingRombel) {
         await services.referensi.updateRombel(editingRombel.id_rombel, {
@@ -201,7 +204,7 @@ export default function RombelPage() {
       setIsModalOpen(false);
       bump();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Gagal menyimpan Rombel");
+      setFormError(e instanceof Error ? e.message : "Gagal menyimpan Rombel");
     } finally {
       setSubmitting(false);
     }
@@ -257,33 +260,33 @@ export default function RombelPage() {
 
         {/* STATISTIK RINGKAS CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Rombel</p>
-            <p className="text-2xl font-extrabold text-gray-900 mt-2">{rombelList.length} Rombel</p>
+          <div className="bg-surface p-4 rounded-md border border-border shadow-2xs">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider">Total Rombel</p>
+            <p className="text-2xl font-extrabold text-ink mt-2">{rombelList.length} Rombel</p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Siswa Terisi</p>
-            <p className="text-2xl font-extrabold text-emerald-700 mt-2">{totalSiswaTerisi} Siswa</p>
+          <div className="bg-surface p-4 rounded-md border border-border shadow-2xs">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider">Total Siswa Terisi</p>
+            <p className="text-2xl font-extrabold text-success mt-2">{totalSiswaTerisi} Siswa</p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Rata-rata Kapasitas</p>
-            <p className="text-2xl font-extrabold text-blue-700 mt-2">{rataKapasitas} Kuota</p>
+          <div className="bg-surface p-4 rounded-md border border-border shadow-2xs">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider">Rata-rata Kapasitas</p>
+            <p className="text-2xl font-extrabold text-info mt-2">{rataKapasitas} Kuota</p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Peringatan Validasi</p>
+          <div className="bg-surface p-4 rounded-md border border-border shadow-2xs">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wider">Peringatan Validasi</p>
             <div className="mt-2 flex items-center gap-2">
               {duplicateWaliCount > 0 ? (
                 <>
-                  <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
-                  <span className="text-lg font-bold text-amber-700">{duplicateWaliCount} Wali Ganda</span>
+                  <AlertTriangle className="h-5 w-5 text-amber shrink-0" />
+                  <span className="text-lg font-bold text-amber">{duplicateWaliCount} Wali Ganda</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
-                  <span className="text-lg font-bold text-emerald-700">Semua Valid</span>
+                  <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
+                  <span className="text-lg font-bold text-success">Semua Valid</span>
                 </>
               )}
             </div>
@@ -291,16 +294,16 @@ export default function RombelPage() {
         </div>
 
         {/* INFO BANNER STANDAR EMIS */}
-        <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50/80 p-4 text-blue-900 text-sm">
-          <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-lg border border-info-border bg-info-soft p-4 text-info text-sm">
+          <Info className="h-5 w-5 text-info shrink-0 mt-0.5" />
           <div className="leading-relaxed text-xs sm:text-sm">
-            <strong>Info Rasio</strong> Batas rasio rombel sesuai standar Ditjen Pendis: MI = 28 siswa, MTs/MA = 32 siswa. Format keterisian: <code className="bg-blue-100 px-1 py-0.5 rounded font-mono text-blue-800">[Jumlah Siswa / Kuota Ruangan]</code>. Penetapan beban JTM otomatis dihitung.
+            <strong>Info Rasio</strong> Batas rasio rombel sesuai standar Ditjen Pendis: MI = 28 siswa, MTs/MA = 32 siswa. Format keterisian: <code className="bg-surface px-1 py-0.5 rounded font-mono text-info border border-info-border">[Jumlah Siswa / Kuota Ruangan]</code>. Penetapan beban JTM otomatis dihitung.
           </div>
         </div>
 
         {/* ACTION & FILTER TOOLBAR */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-surface p-3 rounded-xl border border-border shadow-2xs">
-          <div className="flex-1 min-w-[220px]">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-md border border-border shadow-2xs">
+          <div className="flex-1 min-w-0">
             <Input
               type="text"
               placeholder="Cari rombel / wali..."
@@ -310,7 +313,7 @@ export default function RombelPage() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-nowrap items-center gap-2 shrink-0">
             <Select
               value={selectedTingkatFilter}
               onChange={(e) => setSelectedTingkatFilter(e.target.value)}
@@ -337,7 +340,7 @@ export default function RombelPage() {
         </div>
 
         {/* TABEL UTAMA ROMBEL */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-white border border-gray-200 rounded-md overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-sm">
               <thead className="bg-gray-50 text-gray-500 font-semibold">

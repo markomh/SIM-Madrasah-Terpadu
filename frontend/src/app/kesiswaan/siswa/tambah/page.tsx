@@ -31,7 +31,7 @@ export default function TambahSiswaPage() {
   const [kabupaten, setKabupaten] = useState<MasterKabupaten[]>([]);
   const [kecamatan, setKecamatan] = useState<MasterKecamatan[]>([]);
   const [desa, setDesa] = useState<MasterDesa[]>([]);
-  
+
   const [selectedProv, setSelectedProv] = useState("");
   const [selectedKab, setSelectedKab] = useState("");
   const [selectedKec, setSelectedKec] = useState("");
@@ -56,23 +56,23 @@ export default function TambahSiswaPage() {
   });
 
   useEffect(() => {
-    services.wilayah.getProvinsi().then(setProvinsi).catch(() => {});
+    services.wilayah.getProvinsi().then(setProvinsi).catch(() => { });
   }, []);
 
   useEffect(() => {
-    if (selectedProv) services.wilayah.getKabupaten(selectedProv).then(setKabupaten).catch(() => {});
+    if (selectedProv) services.wilayah.getKabupaten(selectedProv).then(setKabupaten).catch(() => { });
     else setKabupaten([]);
     setSelectedKab("");
   }, [selectedProv]);
 
   useEffect(() => {
-    if (selectedKab) services.wilayah.getKecamatan(selectedKab).then(setKecamatan).catch(() => {});
+    if (selectedKab) services.wilayah.getKecamatan(selectedKab).then(setKecamatan).catch(() => { });
     else setKecamatan([]);
     setSelectedKec("");
   }, [selectedKab]);
 
   useEffect(() => {
-    if (selectedKec) services.wilayah.getDesa(selectedKec).then(setDesa).catch(() => {});
+    if (selectedKec) services.wilayah.getDesa(selectedKec).then(setDesa).catch(() => { });
     else setDesa([]);
   }, [selectedKec]);
 
@@ -98,7 +98,8 @@ export default function TambahSiswaPage() {
   return (
     <AppShell title="Tambah Siswa">
       <PageHeader title="Tambah Siswa Baru" description="Pastikan NIK 16 digit dan seluruh data wajib terisi dengan benar." />
-      {submitError ? <div className="mb-4"><ErrorBlock message={submitError} /></div> : null}
+      {submitError ? <div className="mb-4">
+        <ErrorBlock message={submitError} /></div> : null}
       <SurfaceCard>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
           <Input
@@ -159,10 +160,12 @@ export default function TambahSiswaPage() {
 
           {/* Wilayah Alamat Berjenjang */}
           <div className="md:col-span-2 grid gap-4 md:grid-cols-4 p-4 border border-border rounded-[6px] bg-paper">
-            <div className="md:col-span-4 mb-2"><h3 className="text-sm font-semibold">Alamat Domisili Siswa</h3></div>
+            {/* <div className="md:col-span-4 mb-2">
+              <h3 className="text-sm font-semibold">Alamat Domisili Siswa</h3>
+            </div> */}
             <div className="md:col-span-4">
               <Input
-                label="Alamat Domisili Siswa (Jalan, RT/RW)"
+                label="Alamat Domisili Siswa"
                 error={errors.alamat_detail?.message}
                 {...register("alamat_detail")}
               />
@@ -177,7 +180,7 @@ export default function TambahSiswaPage() {
                 setValue("id_desa", ""); // react-hook-form
               }}
               onSearch={(term) => {
-                services.wilayah.getProvinsi(term).then(setProvinsi).catch(() => {});
+                services.wilayah.getProvinsi(term).then(setProvinsi).catch(() => { });
               }}
               options={provinsi.map((p) => ({ label: p.nama_provinsi, value: p.id_provinsi }))}
             />
@@ -191,7 +194,7 @@ export default function TambahSiswaPage() {
                 setValue("id_desa", "");
               }}
               onSearch={(term) => {
-                if (selectedProv) services.wilayah.getKabupaten(selectedProv, term).then(setKabupaten).catch(() => {});
+                if (selectedProv) services.wilayah.getKabupaten(selectedProv, term).then(setKabupaten).catch(() => { });
               }}
               options={kabupaten.map((k) => ({ label: k.nama_kabupaten, value: k.id_kabupaten }))}
             />
@@ -204,7 +207,7 @@ export default function TambahSiswaPage() {
                 setValue("id_desa", "");
               }}
               onSearch={(term) => {
-                if (selectedKab) services.wilayah.getKecamatan(selectedKab, term).then(setKecamatan).catch(() => {});
+                if (selectedKab) services.wilayah.getKecamatan(selectedKab, term).then(setKecamatan).catch(() => { });
               }}
               options={kecamatan.map((k) => ({ label: k.nama_kecamatan, value: k.id_kecamatan }))}
             />
@@ -215,7 +218,7 @@ export default function TambahSiswaPage() {
               error={errors.id_desa?.message}
               onChange={(val) => setValue("id_desa", val as string, { shouldValidate: true })}
               onSearch={(term) => {
-                if (selectedKec) services.wilayah.getDesa(selectedKec, term).then(setDesa).catch(() => {});
+                if (selectedKec) services.wilayah.getDesa(selectedKec, term).then(setDesa).catch(() => { });
               }}
               options={desa.map((d) => ({ label: d.nama_desa, value: d.id_desa }))}
             />
@@ -244,7 +247,7 @@ export default function TambahSiswaPage() {
               Batal
             </Button>
             <Button variant="primary" type="submit" loading={isSubmitting}>
-              Simpan Siswa
+              Simpan
             </Button>
           </div>
         </form>

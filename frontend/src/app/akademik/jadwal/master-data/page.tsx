@@ -42,27 +42,27 @@ function MasterDataContent() {
           }
         />
 
-        <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-md text-sm">
-          <strong>Info:</strong> Pembagian Tugas Mengajar (SK) telah dipindahkan ke halaman <a href="/penugasan?tab=mengajar" className="font-semibold underline text-blue-900">Pembagian Tugas & SK</a>.
+        <div className="mb-4 bg-info-soft border border-info-border text-info p-4 rounded-md text-xs">
+          <strong>Info:</strong> Pembagian Tugas Mengajar (SK) telah dipindahkan ke halaman <a href="/penugasan?tab=mengajar" className="font-semibold underline text-primary">Pembagian Tugas & SK</a>.
         </div>
 
-        <div className="border-b border-gray-200">
+        <div className="border-b border-border">
           <nav className="-mb-px flex space-x-8" aria-label="Tabs">
             <button
               onClick={() => setActiveTab("ruang")}
               className={`${activeTab === "ruang"
-                ? "border-primary-500 text-primary-600"
-                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+                ? "border-primary text-primary font-bold"
+                : "border-transparent text-muted hover:text-ink"
+                } whitespace-nowrap border-b-2 py-3 px-1 text-xs font-medium transition-colors`}
             >
               Ruang Fasilitas
             </button>
             <button
               onClick={() => setActiveTab("ketersediaan")}
               className={`${activeTab === "ketersediaan"
-                ? "border-primary-500 text-primary-600"
-                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                } whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium`}
+                ? "border-primary text-primary font-bold"
+                : "border-transparent text-muted hover:text-ink"
+                } whitespace-nowrap border-b-2 py-3 px-1 text-xs font-medium transition-colors`}
             >
               Ketersediaan Guru
             </button>

@@ -94,8 +94,8 @@ export function MutasiRiwayatTable({
               const s = siswaMap.get(m.id_siswa);
               return (
                 <div className="flex flex-col text-xs">
-                  <span className="font-bold text-gray-900">{s?.nama_lengkap ?? m.id_siswa}</span>
-                  <span className="text-[10px] text-gray-500">NISN: {s?.nisn ?? "-"}</span>
+                  <span className="font-bold text-ink">{s?.nama_lengkap ?? m.id_siswa}</span>
+                  <span className="text-[10px] text-muted">NISN: {s?.nisn ?? "-"}</span>
                 </div>
               );
             },
@@ -104,7 +104,7 @@ export function MutasiRiwayatTable({
             key: "sekolah",
             header: "Tujuan / Asal Sekolah",
             render: (m) => (
-              <span className="text-xs font-semibold text-gray-800">
+              <span className="text-xs font-semibold text-ink">
                 {m.jenis_mutasi === "Keluar" ? `Ke: ${m.sekolah_tujuan ?? "-"}` : `Dari: ${m.sekolah_asal ?? "-"}`}
               </span>
             ),
@@ -114,8 +114,8 @@ export function MutasiRiwayatTable({
             header: "Alasan & Berkas",
             render: (m) => (
               <div className="flex flex-col text-xs max-w-[220px]">
-                <span className="truncate text-gray-800 font-medium">{m.alasan}</span>
-                <span className="text-[10px] text-gray-500 font-mono">No: {m.no_surat_mutasi || "-"}</span>
+                <span className="truncate text-ink font-medium">{m.alasan}</span>
+                <span className="text-[10px] text-muted font-mono">No: {m.no_surat_mutasi || "-"}</span>
                 {m.berkas_pendukung && m.berkas_pendukung.length > 0 && (
                   <div className="flex items-center gap-1 mt-1">
                     <Paperclip size={11} className="text-primary" />

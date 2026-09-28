@@ -13,7 +13,11 @@ import {
   PrimaryButton,
   SecondaryButton,
   Button,
+  ConfirmDialog,
+  Field,
+  inputClass,
 } from "@/components/ui/primitives";
+import { Modal } from "@/components/ui/modal";
 import { services } from "@/services";
 import { MutasiApprovalDrawer } from "@/components/persuratan/MutasiApprovalDrawer";
 import { AuditTimelineDrawer } from "@/components/audit-timeline-drawer";
@@ -47,9 +51,15 @@ export default function PersetujuanPage() {
   const [activeTab, setActiveTab] = useState<"all" | "pindah_rombel" | "mutasi" | "surat_dinas">("all");
   const [approvalDrawerOpen, setApprovalDrawerOpen] = useState<RiwayatMutasi | null>(null);
 
-  // Enterprise Feature 2: Batch Selection State
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
-  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  // Modal State for Confirmations & Rejections (no browser confirm/prompt)
+  const [showBatchApproveConfirm, setShowBatchApproveConfirm] = useState(false);
+  const [rejectModalState, setRejectModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    onConfirm: (reason: string) => Promise<void>;
+  }>({ isOpen: false, title: "", onConfirm: async () => { } });
+  const [rejectReasonInput, setRejectReasonInput] = useState("");
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   // Enterprise Feature 3: Visual Audit Log Timeline State
   const [timelineTarget, setTimelineTarget] = useState<{
@@ -119,11 +129,8 @@ export default function PersetujuanPage() {
     setSelectedKeys(next);
   };
 
-  const handleBatchApprove = async () => {
+  const executeBatchApprove = async () => {
     if (!currentUser || selectedKeys.size === 0) return;
-    const count = selectedKeys.size;
-    if (!confirm(`Setujui sekaligus ${count} pengajuan yang dipilih?`)) return;
-
     setIsBatchProcessing(true);
     setInfo(null);
     setBatchAlert(null);
@@ -137,8 +144,8 @@ export default function PersetujuanPage() {
           item.jenis === "mutasi"
             ? item.data.id_mutasi
             : item.jenis === "pindah_rombel"
-            ? item.data.id_anggota
-            : item.data.id_surat;
+              ? item.data.id_anggota
+              : item.data.id_surat;
         if (selectedKeys.has(k)) {
           if (item.jenis === "pindah_rombel") pindahList.push(item.data.id_anggota);
           else if (item.jenis === "mutasi") mutasiList.push(item.data.id_mutasi);
@@ -181,14 +188,12 @@ export default function PersetujuanPage() {
       setError(e instanceof Error ? e.message : "Gagal memproses batch approval");
     } finally {
       setIsBatchProcessing(false);
+      setShowBatchApproveConfirm(false);
     }
   };
 
-  const handleBatchReject = async () => {
+  const executeBatchRejectWithReason = async (reason: string) => {
     if (!currentUser || selectedKeys.size === 0) return;
-    const reason = prompt(`Alasan penolakan untuk ${selectedKeys.size} pengajuan yang dipilih:`);
-    if (reason === null) return;
-
     setIsBatchProcessing(true);
     setInfo(null);
     setBatchAlert(null);
@@ -202,8 +207,8 @@ export default function PersetujuanPage() {
           item.jenis === "mutasi"
             ? item.data.id_mutasi
             : item.jenis === "pindah_rombel"
-            ? item.data.id_anggota
-            : item.data.id_surat;
+              ? item.data.id_anggota
+              : item.data.id_surat;
         if (selectedKeys.has(k)) {
           if (item.jenis === "pindah_rombel") pindahList.push(item.data.id_anggota);
           else if (item.jenis === "mutasi") mutasiList.push(item.data.id_mutasi);
@@ -250,6 +255,16 @@ export default function PersetujuanPage() {
     }
   };
 
+  const openRejectModal = (title: string, onConfirm: (reason: string) => Promise<void>) => {
+    setRejectReasonInput("");
+    setRejectModalState({ isOpen: true, title, onConfirm });
+  };
+
+  const handleBatchReject = () => {
+    if (selectedKeys.size === 0) return;
+    openRejectModal(`Penolakan Massal (${selectedKeys.size} pengajuan)`, executeBatchRejectWithReason);
+  };
+
   const handleApprovePindah = async (idAnggota: string, key: string) => {
     if (busy || isBatchProcessing) return;
     setBusy(key);
@@ -265,25 +280,25 @@ export default function PersetujuanPage() {
     }
   };
 
-  const handleRejectPindah = async (idAnggota: string, key: string) => {
+  const handleRejectPindah = (idAnggota: string, key: string) => {
     if (busy || isBatchProcessing) return;
-    const reason = prompt(`Alasan penolakan pindah rombel:`);
-    if (reason === null) return;
-    setBusy(key);
-    setInfo(null);
-    try {
-      await services.persetujuan.rejectPindahRombel(
-        idAnggota,
-        currentUser?.id_pegawai ?? "",
-        reason || "Ditolak oleh Kepala Madrasah"
-      );
-      setInfo(`Pengajuan pindah rombel ditolak.`);
-      bump();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal menolak");
-    } finally {
-      setBusy(null);
-    }
+    openRejectModal("Tolak Pengajuan Pindah Rombel", async (reason) => {
+      setBusy(key);
+      setInfo(null);
+      try {
+        await services.persetujuan.rejectPindahRombel(
+          idAnggota,
+          currentUser?.id_pegawai ?? "",
+          reason || "Ditolak oleh Kepala Madrasah"
+        );
+        setInfo("Pengajuan pindah rombel ditolak.");
+        bump();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Gagal menolak");
+      } finally {
+        setBusy(null);
+      }
+    });
   };
 
   const handleApproveMutasi = async (idMutasi: string, key: string) => {
@@ -301,26 +316,27 @@ export default function PersetujuanPage() {
     }
   };
 
-  const handleRejectMutasi = async (idMutasi: string, key: string) => {
+  const handleRejectMutasi = (idMutasi: string, key: string) => {
     if (busy || isBatchProcessing) return;
-    const reason = prompt(`Alasan penolakan mutasi:`);
-    if (reason === null) return;
-    setBusy(key);
-    setInfo(null);
-    try {
-      await services.persetujuan.rejectMutasi(
-        idMutasi,
-        currentUser?.id_pegawai ?? "",
-        reason || "Ditolak oleh Kepala Madrasah"
-      );
-      setInfo(`Pengajuan mutasi ditolak.`);
-      bump();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal menolak");
-    } finally {
-      setBusy(null);
-    }
+    openRejectModal("Tolak Pengajuan Mutasi Siswa", async (reason) => {
+      setBusy(key);
+      setInfo(null);
+      try {
+        await services.persetujuan.rejectMutasi(
+          idMutasi,
+          currentUser?.id_pegawai ?? "",
+          reason || "Ditolak oleh Kepala Madrasah"
+        );
+        setInfo("Pengajuan mutasi ditolak.");
+        bump();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Gagal menolak");
+      } finally {
+        setBusy(null);
+      }
+    });
   };
+
 
   const handleApproveSurat = async (idSurat: string, key: string) => {
     if (busy || isBatchProcessing) return;
@@ -391,7 +407,7 @@ export default function PersetujuanPage() {
               type="button"
               disabled={isBatchProcessing}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold shadow-xs"
-              onClick={handleBatchApprove}
+              onClick={() => setShowBatchApproveConfirm(true)}
             >
               <CheckCircle2 size={14} />
               <span>{isBatchProcessing ? "Memproses Batch..." : `Setujui (${selectedKeys.size}) Sekaligus`}</span>
@@ -481,6 +497,67 @@ export default function PersetujuanPage() {
           metadata={timelineTarget.metadata}
         />
       )}
+
+      {/* ConfirmDialog untuk Otorisasi Massal (Replaces browser confirm) */}
+      <ConfirmDialog
+        isOpen={showBatchApproveConfirm}
+        onClose={() => setShowBatchApproveConfirm(false)}
+        onConfirm={executeBatchApprove}
+        title="Otorisasi Massal Pengajuan"
+        description={`Setujui sekaligus ${selectedKeys.size} pengajuan yang dipilih? Tindakan ini akan memperbarui status keanggotaan/mutasi siswa yang bersangkutan secara otomatis.`}
+        confirmLabel="Ya, Setujui Semua"
+        cancelLabel="Batal"
+        variant="primary"
+        loading={isBatchProcessing}
+      />
+
+      {/* Modal Dialog Input Alasan Penolakan (Replaces browser prompt) */}
+      <Modal
+        isOpen={rejectModalState.isOpen}
+        onClose={() => setRejectModalState({ isOpen: false, title: "", onConfirm: async () => { } })}
+        title={rejectModalState.title}
+        description="Masukkan alasan penolakan secara jelas untuk dicatat dalam jurnal audit persetujuan."
+        size="md"
+      >
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setRejectLoading(true);
+            try {
+              await rejectModalState.onConfirm(rejectReasonInput);
+              setRejectModalState({ isOpen: false, title: "", onConfirm: async () => { } });
+            } finally {
+              setRejectLoading(false);
+            }
+          }}
+          className="space-y-4"
+        >
+          <Field label="Alasan Penolakan">
+            <textarea
+              required
+              rows={3}
+              placeholder="Misal: Berkas persyaratan belum lengkap / Kuota rombel tujuan penuh"
+              className={`${inputClass} min-h-[80px] p-2.5 text-xs`}
+              value={rejectReasonInput}
+              onChange={(e) => setRejectReasonInput(e.target.value)}
+            />
+          </Field>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setRejectModalState({ isOpen: false, title: "", onConfirm: async () => { } })}
+            >
+              Batal
+            </Button>
+            <Button type="submit" variant="danger" size="sm" loading={rejectLoading}>
+              Tolak Pengajuan
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </AppShell>
   );
 }

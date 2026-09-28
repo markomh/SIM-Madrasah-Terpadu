@@ -105,7 +105,7 @@ export function MutasiKeluarForm({
     <form onSubmit={keluarForm.handleSubmit(onSubmit)}>
       <div className="grid gap-6 md:grid-cols-2 items-start">
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-gray-900 border-b border-border pb-1.5 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-ink border-b border-border pb-1.5 flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">1</span>
             Identitas Siswa & Registrasi Surat
           </h3>
@@ -143,7 +143,7 @@ export function MutasiKeluarForm({
           >
             <div className="relative">
               <input
-                className={`${inputClass} bg-gray-50/70 font-semibold font-mono text-primary pr-20`}
+                className={`${inputClass} bg-paper font-semibold font-mono text-primary pr-20`}
                 {...keluarForm.register("no_surat_mutasi")}
               />
               <span className="absolute right-3 top-2.5 text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded">
@@ -158,7 +158,7 @@ export function MutasiKeluarForm({
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-gray-900 border-b border-border pb-1.5 flex items-center gap-2">
+          <h3 className="text-sm font-bold text-ink border-b border-border pb-1.5 flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">2</span>
             Detail Kepindahan & Berkas Pendukung
           </h3>
@@ -227,7 +227,7 @@ export function MutasiKeluarForm({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="text-red-500 hover:underline font-normal text-[11px] p-0 h-auto"
+                      className="text-danger hover:underline font-normal text-[11px] p-0 h-auto"
                       onClick={(e) => {
                         e.stopPropagation();
                         setFilesKeluar([]);
@@ -238,9 +238,9 @@ export function MutasiKeluarForm({
                   </div>
                   <div className="max-h-28 overflow-y-auto space-y-1">
                     {filesKeluar.map((f, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-left text-xs bg-white p-1.5 rounded border border-emerald-100">
-                        <span className="truncate max-w-[200px] text-gray-800 font-medium">{f.name}</span>
-                        <span className="text-[10px] text-gray-500 font-mono">{(f.size / 1024).toFixed(0)} KB</span>
+                      <div key={idx} className="flex items-center justify-between text-left text-xs bg-surface p-1.5 rounded border border-border">
+                        <span className="truncate max-w-[200px] text-ink font-medium">{f.name}</span>
+                        <span className="text-[10px] text-muted font-mono">{(f.size / 1024).toFixed(0)} KB</span>
                       </div>
                     ))}
                   </div>
@@ -251,10 +251,10 @@ export function MutasiKeluarForm({
                     <UploadCloud size={20} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-800">
+                    <p className="text-xs font-bold text-ink">
                       <span className="text-primary underline">Klik untuk mengunggah</span> atau tarik berkas ke sini
                     </p>
-                    <p className="mt-0.5 text-[10px] text-gray-500">Mendukung Multi-File (PDF/JPG, Maks 2MB/berkas)</p>
+                    <p className="mt-0.5 text-[10px] text-muted">Mendukung Multi-File (PDF/JPG, Maks 2MB/berkas)</p>
                   </div>
                 </div>
               )}

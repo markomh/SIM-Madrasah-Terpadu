@@ -11,7 +11,7 @@ export default function TugasLainTab({ canEdit }: { canEdit?: boolean }) {
   const [penugasan, setPenugasan] = useState<PenugasanJabatan[]>([]);
   const [pegawaiList, setPegawaiList] = useState<Pegawai[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const { bump, version } = useDataVersion();
   const [msg, setMsg] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -75,20 +75,20 @@ export default function TugasLainTab({ canEdit }: { canEdit?: boolean }) {
     }
   };
 
-  if (loading) return <div className="text-sm text-gray-500 py-4">Memuat data tugas lain...</div>;
+  if (loading) return <div className="text-sm text-muted py-4">Memuat data tugas lain...</div>;
 
   return (
     <div className="space-y-4">
       {msg ? <Alert variant="primary" onClose={() => setMsg(null)}>{msg}</Alert> : null}
-      
+
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm text-gray-500">Tugas tambahan manajerial dan fungsional pendidik (di luar tugas mengajar) yang menjadi bagian dari SK Beban Kerja.</p>
+          <p className="text-sm text-muted">Tugas tambahan manajerial dan fungsional pendidik (di luar tugas mengajar) yang menjadi bagian dari SK Beban Kerja.</p>
         </div>
       </div>
 
       {canEdit && (
-        <div className="mb-4 flex flex-wrap gap-3 items-end rounded-[6px] bg-gray-50 p-3 border border-border">
+        <div className="mb-4 flex flex-wrap gap-3 items-end rounded-[6px] bg-paper p-3 border border-border">
           <Select
             label="Pegawai"
             value={newPenugasan.id_pegawai}
@@ -142,8 +142,8 @@ export default function TugasLainTab({ canEdit }: { canEdit?: boolean }) {
               const pegawai = pegawaiList.find(peg => peg.id_pegawai === p.id_pegawai);
               return (
                 <tr key={p.id_penugasan}>
-                  <td className="px-4 py-3 font-medium text-gray-900">{pegawai?.nama_lengkap_gelar || "-"}</td>
-                  <td className="px-4 py-3 text-gray-700">{p.jenis_jabatan}</td>
+                  <td className="px-4 py-3 font-medium text-ink">{pegawai?.nama_lengkap_gelar || "-"}</td>
+                  <td className="px-4 py-3 text-muted">{p.jenis_jabatan}</td>
                   <td className="px-4 py-3">
                     <StatusBadge status={p.status} />
                   </td>

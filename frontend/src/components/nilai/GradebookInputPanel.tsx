@@ -10,6 +10,7 @@ import {
   X,
   BookOpen,
 } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
 import { useTahunAjaran, useDataVersion } from "@/components/app-providers";
 import {
   SurfaceCard,
@@ -350,25 +351,8 @@ export function GradebookInputPanel({
             </div>
           )}
           {/* Summary Metric Cards & Selector Filter */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Kartu Filter Selector */}
-            <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs flex flex-col justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted mb-1">Penugasan KBM / Rombel</p>
-              <Select
-                value={selectedJadwalKey}
-                onChange={(e) => setSelectedJadwalKey(e.target.value)}
-              >
-                {Array.from(jadwalGroupMap.entries()).map(([key, j]) => {
-                  const r = rombelMap[j.id_rombel]?.nama_rombel ?? j.id_rombel;
-                  const m = mapelMap[j.id_mapel]?.nama_mapel ?? j.id_mapel;
-                  return (
-                    <option key={key} value={key}>
-                      {r} — {m}
-                    </option>
-                  );
-                })}
-              </Select>
-            </div>
 
             <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Rata-rata Kelas</p>
@@ -384,7 +368,7 @@ export function GradebookInputPanel({
             </div>
             <div className="rounded-lg border border-border bg-surface p-3.5 shadow-xs">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Ketuntasan (≥75)</p>
-              <p className="mt-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+              <p className="mt-1 text-lg font-bold text-success">
                 {tuntasCount} / {siswaList.length} <span className="text-xs font-normal text-muted">({tuntasPct}%)</span>
               </p>
             </div>
@@ -524,7 +508,7 @@ export function GradebookInputPanel({
                         {/* Weighted Final Score */}
                         <td className="p-3 text-center font-extrabold text-sm border-l border-border/50 bg-primary-soft/10">
                           {row.weightedAverage !== null ? (
-                            <span className={row.weightedAverage >= 75 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}>
+                            <span className={row.weightedAverage >= 75 ? "text-success" : "text-amber"}>
                               {row.weightedAverage}
                             </span>
                           ) : (
@@ -555,145 +539,142 @@ export function GradebookInputPanel({
       )}
 
       {/* MODAL: Tambah Aktivitas Penilaian */}
-      {showAddActivityModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-lg border border-border bg-surface p-5 shadow-xl">
-            <h3 className="text-base font-bold text-ink">Tambah Aktivitas Penilaian</h3>
-            <p className="text-xs text-muted mt-1">
-              Tambahkan kolom aktivitas belajar baru (e.g. Tugas 2, Praktik, Kuis) untuk mata pelajaran {currentMapel?.nama_mapel}.
-            </p>
+      <Modal
+        isOpen={showAddActivityModal}
+        onClose={() => setShowAddActivityModal(false)}
+        title="Tambah Aktivitas Penilaian"
+        description={`Tambahkan kolom aktivitas belajar baru (e.g. Tugas 2, Praktik, Kuis) untuk mata pelajaran ${currentMapel?.nama_mapel ?? ""}.`}
+        size="md"
+      >
+        <form onSubmit={handleAddActivity} className="space-y-3">
+          <Field label="Nama Aktivitas / Komponen">
+            <input
+              type="text"
+              required
+              placeholder="Misal: Tugas 2: Trigonometri / Praktik Sholat"
+              className={inputClass}
+              value={newActivityName}
+              onChange={(e) => setNewActivityName(e.target.value)}
+            />
+          </Field>
 
-            <form onSubmit={handleAddActivity} className="mt-4 space-y-3">
-              <Field label="Nama Aktivitas / Komponen">
-                <input
-                  type="text"
-                  required
-                  placeholder="Misal: Tugas 2: Trigonometri / Praktik Sholat"
-                  className={inputClass}
-                  value={newActivityName}
-                  onChange={(e) => setNewActivityName(e.target.value)}
-                />
-              </Field>
+          <Field label="Bobot Penilaian (%)">
+            <input
+              type="number"
+              min={1}
+              max={100}
+              required
+              className={inputClass}
+              value={newActivityBobot}
+              onChange={(e) => setNewActivityBobot(Number(e.target.value))}
+            />
+          </Field>
 
-              <Field label="Bobot Penilaian (%)">
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  required
-                  className={inputClass}
-                  value={newActivityBobot}
-                  onChange={(e) => setNewActivityBobot(Number(e.target.value))}
-                />
-              </Field>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border mt-4">
-                <Button variant="secondary" type="button" onClick={() => setShowAddActivityModal(false)}>
-                  Batal
-                </Button>
-                <Button variant="primary" type="submit" iconLeft={<Plus className="h-4 w-4" />}>
-                  Simpan Aktivitas
-                </Button>
-              </div>
-            </form>
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border mt-4">
+            <Button variant="secondary" type="button" onClick={() => setShowAddActivityModal(false)}>
+              Batal
+            </Button>
+            <Button variant="primary" type="submit" iconLeft={<Plus className="h-4 w-4" />}>
+              Simpan Aktivitas
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
       {/* MODAL: Print-Ready Leger Nilai Harian */}
-      {showPrintModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-lg border border-border bg-surface shadow-2xl overflow-hidden">
-            {/* Header Modal */}
-            <div className="flex items-center justify-between border-b border-border p-4 bg-paper">
-              <div className="flex items-center gap-2">
-                <Printer size={18} className="text-primary" />
-                <h3 className="text-sm font-bold text-ink">Pratinjau Cetak Leger Nilai Harian</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="primary" size="sm" iconLeft={<Printer className="h-3.5 w-3.5" />} onClick={() => window.print()}>
-                  Cetak Dokumen
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => setShowPrintModal(false)}>
-                  Tutup
-                </Button>
-              </div>
-            </div>
+      <Modal
+        isOpen={showPrintModal}
+        onClose={() => setShowPrintModal(false)}
+        title={
+          <div className="flex items-center gap-2">
+            <Printer size={18} className="text-primary" />
+            <span>Pratinjau Cetak Leger Nilai Harian</span>
+          </div>
+        }
+        size="xl"
+        footer={
+          <div className="flex items-center gap-2">
+            <Button variant="primary" size="sm" iconLeft={<Printer className="h-3.5 w-3.5" />} onClick={() => window.print()}>
+              Cetak Dokumen
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setShowPrintModal(false)}>
+              Tutup
+            </Button>
+          </div>
+        }
+      >
+        {/* Printable Content Area */}
+        <div className="p-4 overflow-y-auto space-y-6 text-ink bg-surface print:p-0">
+          {/* Kop Madrasah */}
+          <div className="border-b-2 border-ink pb-3 text-center space-y-1">
+            <h2 className="text-base font-extrabold uppercase tracking-wider">
+              {profilMadrasah?.nama_madrasah ?? "MADRASAH TSANAWIYAH TERPADU NUSANTARA"}
+            </h2>
+            <p className="text-xs text-muted">
+              NSM: {profilMadrasah?.nsm ?? "121232010001"} • NPSN: {profilMadrasah?.npsn ?? "20100001"} • {profilMadrasah?.alamat ?? "Jl. Pendidikan Islam No. 45, Jawa Barat"}
+            </p>
+            <h3 className="text-sm font-bold underline pt-2">
+              LEGER NILAI OPERASIONAL HARIAN PEMBELAJARAN
+            </h3>
+          </div>
 
-            {/* Printable Content Area */}
-            <div className="p-8 overflow-y-auto space-y-6 text-ink bg-white dark:bg-zinc-950 print:p-0">
-              {/* Kop Madrasah */}
-              <div className="border-b-2 border-ink pb-3 text-center space-y-1">
-                <h2 className="text-base font-extrabold uppercase tracking-wider">
-                  {profilMadrasah?.nama_madrasah ?? "MADRASAH TSANAWIYAH TERPADU NUSANTARA"}
-                </h2>
-                <p className="text-xs text-muted">
-                  NSM: {profilMadrasah?.nsm ?? "121232010001"} • NPSN: {profilMadrasah?.npsn ?? "20100001"} • {profilMadrasah?.alamat ?? "Jl. Pendidikan Islam No. 45, Jawa Barat"}
-                </p>
-                <h3 className="text-sm font-bold underline pt-2">
-                  LEGER NILAI OPERASIONAL HARIAN PEMBELAJARAN
-                </h3>
-              </div>
+          {/* Metadata Leger */}
+          <div className="grid grid-cols-2 text-xs gap-y-1">
+            <div>Rombongan Belajar: <strong>{currentRombel?.nama_rombel}</strong></div>
+            <div>Semester / Tahun: <strong>{selectedJadwal?.semester} / {selectedTahun?.nama_tahun ?? "2026/2027"}</strong></div>
+            <div>Mata Pelajaran: <strong>{currentMapel?.nama_mapel} ({currentMapel?.kode_mapel})</strong></div>
+            <div>Guru Pengajar: <strong>{currentUser.nama_lengkap_gelar}</strong></div>
+          </div>
 
-              {/* Metadata Leger */}
-              <div className="grid grid-cols-2 text-xs gap-y-1">
-                <div>Rombongan Belajar: <strong>{currentRombel?.nama_rombel}</strong></div>
-                <div>Semester / Tahun: <strong>{selectedJadwal?.semester} / {selectedTahun?.nama_tahun ?? "2026/2027"}</strong></div>
-                <div>Mata Pelajaran: <strong>{currentMapel?.nama_mapel} ({currentMapel?.kode_mapel})</strong></div>
-                <div>Guru Pengajar: <strong>{currentUser.nama_lengkap_gelar}</strong></div>
-              </div>
-
-              {/* Table Leger */}
-              <table className="w-full border border-collapse border-zinc-300 dark:border-zinc-700 text-xs">
-                <thead>
-                  <tr className="bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-300 dark:border-zinc-700">
-                    <th className="p-2 border-r text-center w-8">No</th>
-                    <th className="p-2 border-r text-left w-24">NISN</th>
-                    <th className="p-2 border-r text-left">Nama Siswa</th>
-                    {komponen.map((k) => (
-                      <th key={k.id_komponen} className="p-2 border-r text-center">
-                        {k.nama_komponen} ({k.bobot}%)
-                      </th>
-                    ))}
-                    <th className="p-2 border-r text-center w-20">Nilai Akhir</th>
-                    <th className="p-2 text-center w-24">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                  {gradebookRows.map((r, idx) => (
-                    <tr key={r.siswa.id_siswa}>
-                      <td className="p-2 border-r text-center">{idx + 1}</td>
-                      <td className="p-2 border-r font-mono">{r.siswa.nisn}</td>
-                      <td className="p-2 border-r font-bold">{r.siswa.nama_lengkap}</td>
-                      {komponen.map((k) => (
-                        <td key={k.id_komponen} className="p-2 border-r text-center">
-                          {r.scores[k.id_komponen] ?? "—"}
-                        </td>
-                      ))}
-                      <td className="p-2 border-r text-center font-bold">
-                        {r.weightedAverage ?? "—"}
-                      </td>
-                      <td className="p-2 text-center">{r.statusKetuntasan}</td>
-                    </tr>
+          {/* Table Leger */}
+          <table className="w-full border border-collapse border-border text-xs">
+            <thead>
+              <tr className="bg-paper border-b border-border">
+                <th className="p-2 border-r text-center w-8">No</th>
+                <th className="p-2 border-r text-left w-24">NISN</th>
+                <th className="p-2 border-r text-left">Nama Siswa</th>
+                {komponen.map((k) => (
+                  <th key={k.id_komponen} className="p-2 border-r text-center">
+                    {k.nama_komponen} ({k.bobot}%)
+                  </th>
+                ))}
+                <th className="p-2 border-r text-center w-20">Nilai Akhir</th>
+                <th className="p-2 text-center w-24">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {gradebookRows.map((r, idx) => (
+                <tr key={r.siswa.id_siswa}>
+                  <td className="p-2 border-r text-center">{idx + 1}</td>
+                  <td className="p-2 border-r font-mono">{r.siswa.nisn}</td>
+                  <td className="p-2 border-r font-bold">{r.siswa.nama_lengkap}</td>
+                  {komponen.map((k) => (
+                    <td key={k.id_komponen} className="p-2 border-r text-center">
+                      {r.scores[k.id_komponen] ?? "—"}
+                    </td>
                   ))}
-                </tbody>
-              </table>
+                  <td className="p-2 border-r text-center font-bold">
+                    {r.weightedAverage ?? "—"}
+                  </td>
+                  <td className="p-2 text-center">{r.statusKetuntasan}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-              {/* Tanda Tangan */}
-              <div className="pt-8 flex justify-between text-xs text-center">
-                <div className="space-y-12">
-                  <p>Mengetahui,<br />Kepala Madrasah</p>
-                  <p className="font-bold underline">Dra. Nurul Hidayah, M.Pd.<br /><span className="font-normal text-[11px]">NIP. 197801012005011001</span></p>
-                </div>
-                <div className="space-y-12">
-                  <p>Kota Bogor, {new Date().toLocaleDateString("id-ID")}<br />Guru Mata Pelajaran</p>
-                  <p className="font-bold underline">{currentUser.nama_lengkap_gelar}<br /><span className="font-normal text-[11px]">NIP/NIP. {currentUser.nip ?? "-"}</span></p>
-                </div>
-              </div>
+          {/* Tanda Tangan */}
+          <div className="pt-8 flex justify-between text-xs text-center">
+            <div className="space-y-12">
+              <p>Mengetahui,<br />Kepala Madrasah</p>
+              <p className="font-bold underline">Dra. Nurul Hidayah, M.Pd.<br /><span className="font-normal text-[11px]">NIP. 197801012005011001</span></p>
+            </div>
+            <div className="space-y-12">
+              <p>Kota Bogor, {new Date().toLocaleDateString("id-ID")}<br />Guru Mata Pelajaran</p>
+              <p className="font-bold underline">{currentUser.nama_lengkap_gelar}<br /><span className="font-normal text-[11px]">NIP/NIP. {currentUser.nip ?? "-"}</span></p>
             </div>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

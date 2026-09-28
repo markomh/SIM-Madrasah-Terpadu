@@ -5,7 +5,10 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useAuth } from "@/components/auth-context";
 import { useDataVersion, useTahunAjaran } from "@/components/app-providers";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
+  Button,
   ErrorBlock,
   LoadingBlock,
   PageHeader,
@@ -201,6 +204,19 @@ export default function RekapPresensiPage() {
       <PageHeader
         title="Rekap Presensi Siswa"
         description="Melihat rekap kehadiran siswa per sesi mata pelajaran."
+        customBreadcrumbs={[
+          { label: "Akademik", href: "/akademik" },
+          { label: "Absensi Siswa", href: "/akademik/presensi-siswa" },
+          { label: "Rekap Presensi" },
+        ]}
+        action={
+          <Link href="/akademik/presensi-siswa">
+            <Button variant="secondary" className="inline-flex items-center gap-2">
+              <ArrowLeft size={16} />
+              <span>Kembali ke Presensi</span>
+            </Button>
+          </Link>
+        }
       />
 
       <RekapFilterBar

@@ -39,7 +39,7 @@ export function Tooltip({
       {children}
       {isVisible ? (
         <div
-          className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-[4px] bg-ink px-2 py-1 text-xs text-white shadow-md transition-opacity duration-150 ${positionClasses[position]} ${className}`}
+          className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-sm bg-ink px-2 py-1 text-xs text-white shadow-md transition-opacity duration-150 ${positionClasses[position]} ${className}`}
           role="tooltip"
         >
           {content}

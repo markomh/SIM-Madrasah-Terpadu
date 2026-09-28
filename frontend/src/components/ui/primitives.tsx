@@ -69,7 +69,7 @@ export function AiLabel() {
 }
 
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-[4px] bg-muted/20 ${className}`} />;
+  return <div className={`animate-pulse rounded-sm bg-muted/20 ${className}`} />;
 }
 
 export function LoadingBlock({ label = "Memuat data..." }: { label?: string }) {
@@ -144,6 +144,13 @@ export function PageHeader({
   );
 }
 
+// surface card, form card, listing card adalah primitif card yang digunakan untuk membungkus konten di halaman.
+// Mereka memiliki gaya dan perilaku yang berbeda sesuai dengan konteks penggunaannya.
+// gunakan grlobal.css untuk menambahkan gaya tambahan jika diperlukan. contohnya: roun
+// 
+//se
+
+
 export function SurfaceCard({
   children,
   className = "",
@@ -158,7 +165,7 @@ export function SurfaceCard({
   onClick?: () => void;
 }) {
   return (
-    <section onClick={onClick} className={`rounded-[6px] border border-border bg-surface ${className}`}>
+    <section onClick={onClick} className={`radius-sm border border-border bg-surface ${className}`}>
       {title ? (
         <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
@@ -206,7 +213,7 @@ export function ListingCard({ children, className = "", title, action }: {
   action?: ReactNode;
 }) {
   return (
-    <section className={`rounded-[6px] border border-border bg-surface h-full flex flex-col ${className}`}>
+    <section className={`rounded-md border border-border bg-surface h-full flex flex-col ${className}`}>
       {title ? (
         <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
@@ -258,7 +265,7 @@ export function Field({
 }
 
 export const inputClass =
-  "w-full rounded-[4px] border border-border bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60";
+  "w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60";
 
 export * from "./table-cell-input";
 export * from "./header-select";

@@ -140,6 +140,11 @@ function PresensiSiswaContent() {
       <PageHeader
         title="Input Presensi Sesi Tatap Muka"
         description="Presensi harian siswa per sesi kegiatan belajar mengajar (KBM) beserta rekap kehadiran guru."
+        action={
+          <Link href="/akademik/rekap-presensi">
+            <Button variant="secondary">Rekap Presensi</Button>
+          </Link>
+        }
       />
 
       {/* Context Inheritance Banner when a session is active */}
@@ -167,7 +172,7 @@ function PresensiSiswaContent() {
           <div className="flex items-center gap-2">
             <Link
               href={`/akademik/nilai?rombel=${selectedRombel}&mapel=${selectedJadwal.id_mapel}&semester=${selectedJadwal.semester}&jadwalKey=${selectedRombel}_${selectedJadwal.id_mapel}_${selectedJadwal.semester}`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-indigo-500/30 bg-surface px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-surface px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary-soft transition-all shadow-xs"
             >
               <FileSpreadsheet size={14} />
               <span>Buka Gradebook Rombel Ini</span>
@@ -220,11 +225,10 @@ function PresensiSiswaContent() {
                         type="button"
                         variant={isSelected ? "primary" : "secondary"}
                         onClick={() => handleSelectSesi(s)}
-                        className={`w-full text-left p-3 rounded-lg text-xs transition-all h-auto flex flex-col items-start ${
-                          isSelected
+                        className={`w-full text-left p-3 rounded-lg text-xs transition-all h-auto flex flex-col items-start ${isSelected
                             ? "bg-primary-soft ring-1 ring-primary text-ink"
                             : "bg-surface hover:bg-paper text-ink"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-ink">
